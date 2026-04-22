@@ -16,6 +16,8 @@ def test_generate_reading_produces_complete_sections() -> None:
     assert reading.sections[0].title == "核心身份"
     assert any("25-51" in bullet for bullet in reading.sections[5].bullets)
     assert any("57 号闸门" in bullet for bullet in reading.sections[6].bullets)
+    assert any("唤醒" in bullet for bullet in reading.sections[5].bullets)
+    assert any("直觉清醒" in bullet for bullet in reading.sections[6].bullets)
     assert any(fact.startswith("输入精度：") for fact in reading.quick_facts)
 
 

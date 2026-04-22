@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import json
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+
 TYPE_GUIDES = {
     "manifestor": {
         "summary": "你的能量更适合主动发起、打开局面，而不是等外界先给许可。",
@@ -205,3 +210,102 @@ VARIABLE_ORIENTATION_GUIDES = {
     "left": "偏左说明更适合结构、节奏、专注、可重复的方法。",
     "right": "偏右说明更适合接收、宽感知、环境读取和整体扫描。",
 }
+
+REFERENCE_ROOT = Path(__file__).resolve().parents[1] / "references"
+REFERENCE_INDEX_PATH = REFERENCE_ROOT / "index.json"
+
+
+@dataclass(frozen=True)
+class ReferenceCard:
+    code: str
+    title: str
+    summary: str
+    gifts: tuple[str, ...]
+    shadows: tuple[str, ...]
+    focus: dict[str, str]
+    path: str
+
+
+def get_gate_card(gate: int | str) -> ReferenceCard | None:
+    return _load_markdown_card("gates", str(gate))
+
+
+def get_channel_card(code: str) -> ReferenceCard | None:
+    return _load_markdown_card("channels", code)
+
+
+@lru_cache(maxsize=1)
+def load_reference_index() -> dict:
+    if not REFERENCE_INDEX_PATH.exists():
+        return {"version": "0.6-draft", "collections": {}}
+    return json.loads(REFERENCE_INDEX_PATH.read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=256)
+def _load_markdown_card(collection: str, code: str) -> ReferenceCard | None:
+    path = _resolve_reference_path(collection, code)
+    if path is None or not path.exists():
+        return None
+    return _parse_markdown_card(code, path)
+
+
+def _resolve_reference_path(collection: str, code: str) -> Path | None:
+    index = load_reference_index()
+    collection_index = index.get("collections", {}).get(collection, {})
+    items = collection_index.get("items", {})
+    relative_path = items.get(code)
+    if relative_path:
+        return REFERENCE_ROOT.parent / relative_path
+    fallback = REFERENCE_ROOT / collection / f"{code}.md"
+    if fallback.exists():
+        return fallback
+    return None
+
+
+def _parse_markdown_card(code: str, path: Path) -> ReferenceCard:
+    raw = path.read_text(encoding="utf-8").strip()
+    title = code
+    current_heading: str | None = None
+    sections: dict[str, list[str]] = {}
+
+    for line in raw.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("# "):
+            title = stripped[2:].strip()
+            continue
+        if stripped.startswith("## "):
+            current_heading = stripped[3:].strip().lower()
+            sections.setdefault(current_heading, [])
+            continue
+        if current_heading is None:
+            continue
+        sections.setdefault(current_heading, []).append(stripped)
+
+    return ReferenceCard(
+        code=code,
+        title=title,
+        summary=_join_section(sections.get("核心主题", [])),
+        gifts=_collect_bullets(sections.get("礼物", [])),
+        shadows=_collect_bullets(sections.get("失衡表现", [])),
+        focus={
+            "career": _join_section(sections.get("career", [])),
+            "relationship": _join_section(sections.get("relationship", [])),
+            "decision": _join_section(sections.get("decision", [])),
+            "growth": _join_section(sections.get("growth", [])),
+        },
+        path=str(path),
+    )
+
+
+def _join_section(lines: list[str]) -> str:
+    return " ".join(line.removeprefix("- ").strip() for line in lines).strip()
+
+
+def _collect_bullets(lines: list[str]) -> tuple[str, ...]:
+    bullets = [line[2:].strip() for line in lines if line.startswith("- ")]
+    if bullets:
+        return tuple(bullets)
+    content = _join_section(lines)
+    return (content,) if content else ()

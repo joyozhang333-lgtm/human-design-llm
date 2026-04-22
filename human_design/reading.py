@@ -8,6 +8,8 @@ from .knowledge import (
     CHANNEL_TYPE_GUIDES,
     CIRCUIT_GROUP_GUIDES,
     DEFINITION_GUIDES,
+    get_channel_card,
+    get_gate_card,
     LINE_GUIDES,
     PLANET_GUIDES,
     PROFILE_GUIDES,
@@ -258,16 +260,23 @@ def _integration_section(chart: HumanDesignChart) -> ReadingSection:
 
 
 def _describe_channel(channel) -> str:
+    card = get_channel_card(channel.code)
     channel_type = CHANNEL_TYPE_GUIDES.get(channel.channel_type.code, "")
     circuit_group = CIRCUIT_GROUP_GUIDES.get(channel.circuit_group.code, "")
     center_names = " 与 ".join(_center_label(code) for code in channel.centers)
+    details = ""
+    if card:
+        detail_parts = [card.summary, *_limit_bullets(card.gifts, 2), *_limit_bullets(card.shadows, 1)]
+        details = " ".join(part for part in detail_parts if part).strip()
     return (
         f"{channel.label}：连接 {center_names}，属于 {channel.circuit_group.label} 回路中的 "
         f"{channel.channel_type.label} 通道。{channel_type} {circuit_group}"
+        f"{(' ' + details) if details else ''}"
     ).strip()
 
 
 def _describe_gate(gate) -> str:
+    card = get_gate_card(gate.gate)
     planet_bits = []
     for activation in gate.activations:
         planet_meaning = PLANET_GUIDES.get(
@@ -278,9 +287,15 @@ def _describe_gate(gate) -> str:
             f"{activation.imprint} {activation.planet_label} 激活 {activation.line} 线：{planet_meaning} {line_guide}".strip()
         )
 
+    card_summary = ""
+    if card:
+        detail_parts = [card.summary, *_limit_bullets(card.gifts, 1), *_limit_bullets(card.shadows, 1)]
+        card_summary = " ".join(part for part in detail_parts if part).strip()
+
     return (
         f"{gate.gate} 号闸门《{gate.title}》位于 {_center_label(gate.center)}，主题是「{gate.theme}」。"
         f"相关通道：{', '.join(gate.channels) or '无'}。"
+        f"{(card_summary + ' ') if card_summary else ''}"
         f"{' '.join(planet_bits)}"
     )
 
@@ -309,3 +324,7 @@ def _find_activation(chart: HumanDesignChart, imprint: str, planet_code: str):
 def _center_label(code: str) -> str:
     guide = CENTER_GUIDES.get(code)
     return guide["label"] if guide else code
+
+
+def _limit_bullets(items: tuple[str, ...], limit: int) -> tuple[str, ...]:
+    return tuple(item for item in items[:limit] if item)

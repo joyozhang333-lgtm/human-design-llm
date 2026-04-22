@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from .knowledge import get_channel_card, get_gate_card
 from .reading import generate_reading
 from .schema import HumanDesignChart, LLMContextBlock, LLMProductPackage
 
@@ -115,6 +116,7 @@ def build_llm_product(
     selected_sections = tuple(
         section for section in reading.sections if section.key in selected_keys
     )
+    focus_highlights = _build_focus_highlights(chart, focus_key)
 
     context_blocks = (
         LLMContextBlock(
@@ -138,6 +140,17 @@ def build_llm_product(
             title="Quick Facts",
             content="\n".join(reading.quick_facts),
         ),
+        *(
+            (
+                LLMContextBlock(
+                    key="focus-highlights",
+                    title="Focus Highlights",
+                    content=focus_highlights,
+                ),
+            )
+            if focus_highlights
+            else ()
+        ),
         *tuple(
             LLMContextBlock(
                 key=section.key,
@@ -153,6 +166,7 @@ def build_llm_product(
         reading.headline,
         focus_key,
         question,
+        focus_highlights,
         selected_sections,
         FOCUS_FOLLOWUPS[focus_key],
     )
@@ -177,6 +191,7 @@ def _render_focus_answer(
     headline: str,
     focus: str,
     question: str | None,
+    focus_highlights: str | None,
     sections,
     followups: tuple[str, ...],
 ) -> str:
@@ -191,6 +206,10 @@ def _render_focus_answer(
     precision_note = _precision_note(chart)
     if precision_note:
         lines.append(f"输入精度提示：{precision_note}")
+    if focus_highlights:
+        lines.append("")
+        lines.append("## 焦点提示")
+        lines.append(focus_highlights)
 
     for section in sections:
         lines.append("")
@@ -220,3 +239,23 @@ def _precision_note(chart: HumanDesignChart | None) -> str | None:
     if chart is None or not chart.input.warnings:
         return None
     return "；".join(chart.input.warnings)
+
+
+def _build_focus_highlights(chart: HumanDesignChart, focus: str) -> str | None:
+    if focus == "overview":
+        return None
+
+    lines: list[str] = []
+    for channel in chart.channels:
+        card = get_channel_card(channel.code)
+        if card and card.focus.get(focus):
+            lines.append(f"{channel.code}：{card.focus[focus]}")
+    for gate in chart.activated_gates:
+        card = get_gate_card(gate.gate)
+        if card and card.focus.get(focus):
+            lines.append(f"{gate.gate} 号闸门：{card.focus[focus]}")
+        if len(lines) >= 4:
+            break
+    if not lines:
+        return None
+    return "\n".join(f"- {line}" for line in lines[:4])

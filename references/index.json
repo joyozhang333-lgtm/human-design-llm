@@ -1,0 +1,94 @@
+{
+  "version": "0.6-draft",
+  "collections": {
+    "types": {
+      "path": "references/types",
+      "format": "markdown",
+      "items": {}
+    },
+    "authorities": {
+      "path": "references/authorities",
+      "format": "markdown",
+      "items": {}
+    },
+    "profiles": {
+      "path": "references/profiles",
+      "format": "markdown",
+      "items": {}
+    },
+    "centers": {
+      "path": "references/centers",
+      "format": "markdown",
+      "items": {}
+    },
+    "channels": {
+      "path": "references/channels",
+      "format": "markdown",
+      "items": {
+        "01-08": "references/channels/01-08.md",
+        "02-14": "references/channels/02-14.md",
+        "03-60": "references/channels/03-60.md",
+        "04-63": "references/channels/04-63.md",
+        "05-15": "references/channels/05-15.md",
+        "06-59": "references/channels/06-59.md",
+        "07-31": "references/channels/07-31.md",
+        "09-52": "references/channels/09-52.md",
+        "10-20": "references/channels/10-20.md",
+        "10-34": "references/channels/10-34.md",
+        "10-57": "references/channels/10-57.md",
+        "11-56": "references/channels/11-56.md",
+        "12-22": "references/channels/12-22.md",
+        "13-33": "references/channels/13-33.md",
+        "16-48": "references/channels/16-48.md",
+        "17-62": "references/channels/17-62.md",
+        "18-58": "references/channels/18-58.md",
+        "19-49": "references/channels/19-49.md",
+        "20-34": "references/channels/20-34.md",
+        "20-57": "references/channels/20-57.md",
+        "21-45": "references/channels/21-45.md",
+        "23-43": "references/channels/23-43.md",
+        "24-61": "references/channels/24-61.md",
+        "25-51": "references/channels/25-51.md"
+      }
+    },
+    "gates": {
+      "path": "references/gates",
+      "format": "markdown",
+      "items": {
+        "1": "references/gates/1.md",
+        "10": "references/gates/10.md",
+        "11": "references/gates/11.md",
+        "12": "references/gates/12.md",
+        "13": "references/gates/13.md",
+        "14": "references/gates/14.md",
+        "15": "references/gates/15.md",
+        "16": "references/gates/16.md",
+        "17": "references/gates/17.md",
+        "18": "references/gates/18.md",
+        "19": "references/gates/19.md",
+        "2": "references/gates/2.md",
+        "20": "references/gates/20.md",
+        "21": "references/gates/21.md",
+        "22": "references/gates/22.md",
+        "23": "references/gates/23.md",
+        "24": "references/gates/24.md",
+        "25": "references/gates/25.md",
+        "26": "references/gates/26.md",
+        "27": "references/gates/27.md",
+        "28": "references/gates/28.md",
+        "29": "references/gates/29.md",
+        "3": "references/gates/3.md",
+        "30": "references/gates/30.md",
+        "31": "references/gates/31.md",
+        "32": "references/gates/32.md",
+        "4": "references/gates/4.md",
+        "5": "references/gates/5.md",
+        "57": "references/gates/57.md",
+        "6": "references/gates/6.md",
+        "7": "references/gates/7.md",
+        "8": "references/gates/8.md",
+        "9": "references/gates/9.md"
+      }
+    }
+  }
+}

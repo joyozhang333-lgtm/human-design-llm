@@ -20,8 +20,10 @@ def test_build_llm_product_generates_session_package() -> None:
     assert package.question == "我在工作里最该怎么用这张图？"
     assert "structured chart data" in package.system_prompt
     assert any(block.key == "channels" for block in package.context_blocks)
+    assert any(block.key == "focus-highlights" for block in package.context_blocks)
     assert "当前聚焦：career" in package.answer_markdown
     assert "当前问题：我在工作里最该怎么用这张图？" in package.answer_markdown
+    assert "## 焦点提示" in package.answer_markdown
     assert len(package.suggested_followups) == 2
 
 
