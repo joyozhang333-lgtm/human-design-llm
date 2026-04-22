@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from .knowledge import get_channel_card, get_gate_card
+from .knowledge import (
+    get_authority_card,
+    get_center_card,
+    get_channel_card,
+    get_definition_card,
+    get_gate_card,
+    get_profile_card,
+    get_type_card,
+)
 from .reading import generate_reading
 from .schema import HumanDesignChart, LLMContextBlock, LLMProductPackage
 
@@ -104,6 +113,70 @@ ASSISTANT_INSTRUCTIONS = (
     "结尾给 2 个可以继续追问的问题。",
 )
 
+QUESTION_PATTERNS = {
+    "career_transition": ("换工作", "转岗", "跳槽", "辞职", "创业", "副业", "职业"),
+    "career_team": ("工作", "事业", "团队", "合作", "老板", "管理", "带人", "同事"),
+    "relationship_intimacy": ("关系", "亲密", "伴侣", "婚姻", "恋爱", "相处"),
+    "relationship_boundary": ("边界", "沟通", "争吵", "情绪", "拉扯"),
+    "decision_timing": ("要不要", "是否", "该不该", "什么时候", "现在", "时机"),
+    "growth_pattern": ("成长", "卡点", "内耗", "练习", "课题", "天赋", "状态"),
+}
+
+CENTER_PRIORITY = {
+    "career": ("throat", "sacral", "heart", "g", "ajna", "root"),
+    "relationship": ("g", "solar-plexus", "heart", "sacral", "throat", "spleen"),
+    "decision": ("solar-plexus", "spleen", "sacral", "heart", "g"),
+    "growth": ("root", "head", "ajna", "g", "spleen", "solar-plexus", "heart"),
+}
+
+SOURCE_PRIORITY = {
+    "career": {
+        "type": 100,
+        "authority": 95,
+        "profile": 90,
+        "channel": 80,
+        "center": 72,
+        "gate": 60,
+        "definition": 55,
+    },
+    "relationship": {
+        "authority": 100,
+        "profile": 95,
+        "center": 88,
+        "channel": 80,
+        "type": 72,
+        "gate": 62,
+        "definition": 50,
+    },
+    "decision": {
+        "authority": 100,
+        "definition": 88,
+        "center": 84,
+        "channel": 76,
+        "gate": 66,
+        "type": 62,
+        "profile": 58,
+    },
+    "growth": {
+        "profile": 96,
+        "center": 90,
+        "definition": 84,
+        "channel": 78,
+        "gate": 70,
+        "type": 66,
+        "authority": 62,
+    },
+}
+
+
+@dataclass(frozen=True)
+class HighlightCandidate:
+    key: str
+    source_type: str
+    label: str
+    text: str
+    priority: int
+
 
 def build_llm_product(
     chart: HumanDesignChart,
@@ -116,13 +189,25 @@ def build_llm_product(
     selected_sections = tuple(
         section for section in reading.sections if section.key in selected_keys
     )
-    focus_highlights = _build_focus_highlights(chart, focus_key)
+    question_lens = _build_question_lens(focus_key, question)
+    focus_highlights = _build_focus_highlights(chart, focus_key, question)
 
     context_blocks = (
         LLMContextBlock(
             key="focus",
             title="Focus",
             content=FOCUS_GUIDANCE[focus_key],
+        ),
+        *(
+            (
+                LLMContextBlock(
+                    key="question-lens",
+                    title="Question Lens",
+                    content=question_lens,
+                ),
+            )
+            if question_lens
+            else ()
         ),
         *(
             (
@@ -166,6 +251,7 @@ def build_llm_product(
         reading.headline,
         focus_key,
         question,
+        question_lens,
         focus_highlights,
         selected_sections,
         FOCUS_FOLLOWUPS[focus_key],
@@ -191,6 +277,7 @@ def _render_focus_answer(
     headline: str,
     focus: str,
     question: str | None,
+    question_lens: str | None,
     focus_highlights: str | None,
     sections,
     followups: tuple[str, ...],
@@ -206,6 +293,10 @@ def _render_focus_answer(
     precision_note = _precision_note(chart)
     if precision_note:
         lines.append(f"输入精度提示：{precision_note}")
+    if question_lens:
+        lines.append("")
+        lines.append("## 问题切口")
+        lines.append(question_lens)
     if focus_highlights:
         lines.append("")
         lines.append("## 焦点提示")
@@ -241,21 +332,221 @@ def _precision_note(chart: HumanDesignChart | None) -> str | None:
     return "；".join(chart.input.warnings)
 
 
-def _build_focus_highlights(chart: HumanDesignChart, focus: str) -> str | None:
+def _build_question_lens(focus: str, question: str | None) -> str | None:
+    if not question:
+        return None
+
+    hits = [
+        name
+        for name, keywords in QUESTION_PATTERNS.items()
+        if any(keyword in question for keyword in keywords)
+    ]
+    if not hits:
+        return None
+
+    if focus == "career":
+        if "career_transition" in hits:
+            return "这个问题更像职业转向场景。回答时要优先看邀请/回应是否对位、合作关系是否支持你，以及资源承诺能否长期承接。"
+        if "career_team" in hits:
+            return "这个问题更像团队与协作场景。回答时要优先看你在组织中的角色定位、表达方式、边界感和资源交换模式。"
+    if focus == "relationship":
+        if "relationship_boundary" in hits:
+            return "这个问题更像关系边界与沟通场景。回答时要优先看情绪、表达时机、角色投射和彼此边界，而不是只判断对错。"
+        if "relationship_intimacy" in hits:
+            return "这个问题更像亲密关系场景。回答时要优先看连接方式、情绪处理、被看见的需求，以及相处节奏是否对位。"
+    if focus == "decision":
+        if "decision_timing" in hits or "career_transition" in hits:
+            return "这个问题带有明确的现实决策压力。回答时要优先帮助用户放慢、识别权威信号，并区分真实清晰和短期焦虑。"
+    if focus == "growth":
+        if "growth_pattern" in hits:
+            return "这个问题更像自我成长场景。回答时要优先指出重复模式、练习路径和可执行的小实验，而不是给抽象评价。"
+    return None
+
+
+def _build_focus_highlights(
+    chart: HumanDesignChart,
+    focus: str,
+    question: str | None,
+) -> str | None:
     if focus == "overview":
         return None
 
-    lines: list[str] = []
-    for channel in chart.channels:
-        card = get_channel_card(channel.code)
-        if card and card.focus.get(focus):
-            lines.append(f"{channel.code}：{card.focus[focus]}")
-    for gate in chart.activated_gates:
-        card = get_gate_card(gate.gate)
-        if card and card.focus.get(focus):
-            lines.append(f"{gate.gate} 号闸门：{card.focus[focus]}")
-        if len(lines) >= 4:
-            break
-    if not lines:
+    candidates: list[HighlightCandidate] = []
+    candidates.extend(_build_core_candidates(chart, focus))
+    candidates.extend(_build_center_candidates(chart, focus))
+    candidates.extend(_build_channel_candidates(chart, focus))
+    candidates.extend(_build_gate_candidates(chart, focus))
+
+    if not candidates:
         return None
-    return "\n".join(f"- {line}" for line in lines[:4])
+
+    question_bonus = _question_bonus_map(question or "")
+    selected: list[str] = []
+    seen: set[str] = set()
+    ranked = sorted(
+        candidates,
+        key=lambda candidate: candidate.priority + question_bonus.get(candidate.source_type, 0),
+        reverse=True,
+    )
+    for candidate in ranked:
+        if candidate.key in seen:
+            continue
+        selected.append(f"- {candidate.label}：{candidate.text}")
+        seen.add(candidate.key)
+        if len(selected) >= 5:
+            break
+    return "\n".join(selected) if selected else None
+
+
+def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[HighlightCandidate]:
+    priority = SOURCE_PRIORITY[focus]
+    candidates: list[HighlightCandidate] = []
+
+    type_card = get_type_card(chart.summary.type.code)
+    if type_card and type_card.focus.get(focus):
+        candidates.append(
+            HighlightCandidate(
+                key=f"type:{chart.summary.type.code}",
+                source_type="type",
+                label=f"类型 {chart.summary.type.label}",
+                text=type_card.focus[focus],
+                priority=priority["type"],
+            )
+        )
+
+    authority_card = get_authority_card(chart.summary.authority.code)
+    if authority_card and authority_card.focus.get(focus):
+        candidates.append(
+            HighlightCandidate(
+                key=f"authority:{chart.summary.authority.code}",
+                source_type="authority",
+                label=f"权威 {chart.summary.authority.label}",
+                text=authority_card.focus[focus],
+                priority=priority["authority"],
+            )
+        )
+
+    profile_card = get_profile_card(chart.summary.profile.code)
+    if profile_card and profile_card.focus.get(focus):
+        candidates.append(
+            HighlightCandidate(
+                key=f"profile:{chart.summary.profile.code}",
+                source_type="profile",
+                label=f"Profile {chart.summary.profile.label}",
+                text=profile_card.focus[focus],
+                priority=priority["profile"],
+            )
+        )
+
+    definition_card = get_definition_card(chart.summary.definition.code)
+    if definition_card and definition_card.focus.get(focus):
+        candidates.append(
+            HighlightCandidate(
+                key=f"definition:{chart.summary.definition.code}",
+                source_type="definition",
+                label=f"定义 {chart.summary.definition.label}",
+                text=definition_card.focus[focus],
+                priority=priority["definition"],
+            )
+        )
+    return candidates
+
+
+def _build_center_candidates(chart: HumanDesignChart, focus: str) -> list[HighlightCandidate]:
+    priorities = CENTER_PRIORITY.get(focus, ())
+    base_priority = SOURCE_PRIORITY[focus]["center"]
+    candidates: list[HighlightCandidate] = []
+    for rank, center_code in enumerate(priorities):
+        center_state = next((center for center in chart.centers if center.code == center_code), None)
+        if center_state is None:
+            continue
+        center_card = get_center_card(center_code)
+        if center_card is None or not center_card.focus.get(focus):
+            continue
+        state_label = "已定义" if center_state.defined else "开放"
+        candidates.append(
+            HighlightCandidate(
+                key=f"center:{center_code}",
+                source_type="center",
+                label=f"{center_card.title}（{state_label}）",
+                text=center_card.focus[focus],
+                priority=base_priority - rank,
+            )
+        )
+    return candidates
+
+
+def _build_channel_candidates(chart: HumanDesignChart, focus: str) -> list[HighlightCandidate]:
+    priority = SOURCE_PRIORITY[focus]["channel"]
+    candidates: list[HighlightCandidate] = []
+    for rank, channel in enumerate(chart.channels):
+        card = get_channel_card(channel.code)
+        if card is None or not card.focus.get(focus):
+            continue
+        candidates.append(
+            HighlightCandidate(
+                key=f"channel:{channel.code}",
+                source_type="channel",
+                label=f"通道 {channel.code}",
+                text=card.focus[focus],
+                priority=priority - rank,
+            )
+        )
+    return candidates
+
+
+def _build_gate_candidates(chart: HumanDesignChart, focus: str) -> list[HighlightCandidate]:
+    priority = SOURCE_PRIORITY[focus]["gate"]
+    candidates: list[HighlightCandidate] = []
+    for rank, gate in enumerate(chart.activated_gates):
+        card = get_gate_card(gate.gate)
+        if card is None or not card.focus.get(focus):
+            continue
+        candidates.append(
+            HighlightCandidate(
+                key=f"gate:{gate.gate}",
+                source_type="gate",
+                label=f"{gate.gate} 号闸门",
+                text=card.focus[focus],
+                priority=priority - rank,
+            )
+        )
+    return candidates
+
+
+def _question_bonus_map(question: str) -> dict[str, int]:
+    if not question:
+        return {}
+    bonus = {
+        "type": 0,
+        "authority": 0,
+        "profile": 0,
+        "definition": 0,
+        "center": 0,
+        "channel": 0,
+        "gate": 0,
+    }
+    if any(token in question for token in QUESTION_PATTERNS["career_transition"]):
+        bonus["authority"] += 6
+        bonus["channel"] += 5
+        bonus["definition"] += 4
+    if any(token in question for token in QUESTION_PATTERNS["career_team"]):
+        bonus["type"] += 4
+        bonus["center"] += 5
+        bonus["channel"] += 4
+    if any(token in question for token in QUESTION_PATTERNS["relationship_intimacy"]):
+        bonus["center"] += 6
+        bonus["authority"] += 4
+        bonus["profile"] += 4
+    if any(token in question for token in QUESTION_PATTERNS["relationship_boundary"]):
+        bonus["center"] += 7
+        bonus["gate"] += 4
+    if any(token in question for token in QUESTION_PATTERNS["decision_timing"]):
+        bonus["authority"] += 8
+        bonus["definition"] += 4
+        bonus["gate"] += 3
+    if any(token in question for token in QUESTION_PATTERNS["growth_pattern"]):
+        bonus["profile"] += 6
+        bonus["center"] += 5
+        bonus["gate"] += 4
+    return bonus
