@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from human_design import __version__
 from human_design.engine import calculate_chart
 from human_design.input import normalize_birth_input
 from human_design.product import build_llm_product
@@ -16,6 +17,7 @@ def test_build_llm_product_generates_session_package() -> None:
     )
 
     assert package.product_name == "human-design-llm"
+    assert package.product_version == __version__ == "1.0.0"
     assert package.focus == "career"
     assert package.question == "我在工作里最该怎么用这张图？"
     assert "structured chart data" in package.system_prompt

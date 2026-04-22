@@ -4,13 +4,13 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前阶段先做五件事：
+当前版本：`1.0.0`
+
+这版已经完成三层收口：
 
 1. 选定一个可控的人类图计算底座
-2. 搭建适合 Codex skill 的解释层结构
-3. 定义统一的 chart 数据结构和本地排盘入口
-4. 生成完整的人类图解读成稿
-5. 生成给 LLM 直接消费的产品包
+2. 形成可安装的 skill 结构
+3. 形成可回归的 runtime / eval / release 工具链
 
 ## 当前判断
 
@@ -24,33 +24,50 @@
 
 ```text
 human-design-product/
+├── CHANGELOG.md
+├── agents/
+│   └── openai.yaml
 ├── SKILL.md
 ├── docs/
 │   ├── contracts/
 │   ├── github-research.md
+│   ├── install.md
+│   ├── release-checklist.md
+│   ├── versioning.md
 │   ├── execution-plan.md
 │   └── roadmap.md
 ├── human_design/
 │   ├── engine.py
+│   ├── evals.py
+│   ├── installer.py
 │   ├── knowledge.py
 │   ├── product.py
 │   ├── pyhd_adapter.py
 │   ├── reading.py
-│   └── schema.py
+│   ├── schema.py
+│   └── version.py
+├── references/
 ├── requirements.txt
 ├── requirements-dev.txt
-├── scripts/
-│   ├── calculate_chart.py
-│   ├── generate_llm_product.py
-│   └── generate_reading.py
 ├── runtimes/
 │   ├── README.md
-│   └── hermes/SYSTEM_PROMPT.md
+│   ├── codex/SYSTEM_PROMPT.md
+│   ├── hermes/SYSTEM_PROMPT.md
+│   └── openclaw/SYSTEM_PROMPT.md
+├── scripts/
+│   ├── calculate_chart.py
+│   ├── evaluate_narrative.py
+│   ├── generate_llm_product.py
+│   ├── install_skill.py
+│   ├── generate_reading.py
+│   └── smoke_all.py
 └── tests/
+    ├── test_evals.py
     ├── test_engine.py
+    ├── test_installer.py
+    ├── test_knowledge.py
     ├── test_product.py
     └── test_reading.py
-├── references/
 ```
 
 ## 本地使用
@@ -64,6 +81,9 @@ python scripts/calculate_chart.py '1988-10-09T20:30:00' --timezone Asia/Shanghai
 python scripts/calculate_chart.py '1988-10-09T20:30:00' --city Shanghai --country China
 python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？'
+python scripts/install_skill.py --mode link --force
+python scripts/smoke_all.py
+python scripts/evaluate_narrative.py
 ```
 
 输入支持四种方式：
@@ -129,7 +149,24 @@ python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus caree
 `generate_reading.py` 默认输出 Markdown 成稿，也支持 `--format json` 输出完整结构化阅读对象。
 `generate_llm_product.py` 默认输出完整 JSON 产品包，也支持 `--format markdown` 只输出最终回答成稿。
 
-## 下一步
+## 当前安装与 runtime 状态
+
+- 已提供 `agents/openai.yaml`
+- 已提供本地安装脚本 `scripts/install_skill.py`
+- 已提供 `Codex / Hermes / OpenClaw` 三套 runtime adapter
+- 已有安装文档 [docs/install.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/install.md)
+- 已有 release 文档和 changelog
+
+## 当前评测与发布状态
+
+- 版本号来自 [human_design/version.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/human_design/version.py)
+- smoke runner: [scripts/smoke_all.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/scripts/smoke_all.py)
+- narrative eval: [scripts/evaluate_narrative.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/scripts/evaluate_narrative.py)
+- release checklist: [docs/release-checklist.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/release-checklist.md)
+- versioning: [docs/versioning.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/versioning.md)
+- changelog: [CHANGELOG.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/CHANGELOG.md)
+
+## 后续方向
 
 1. 细化 64 闸门与 36 通道的专属知识卡
 2. 继续扩充 fixtures 和线上计算器一致性验证

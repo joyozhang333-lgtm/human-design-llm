@@ -14,9 +14,10 @@ from .knowledge import (
 )
 from .reading import generate_reading
 from .schema import HumanDesignChart, LLMContextBlock, LLMProductPackage
+from .version import VERSION
 
 PRODUCT_NAME = "human-design-llm"
-PRODUCT_VERSION = "0.1.0"
+PRODUCT_VERSION = VERSION
 
 FOCUS_SECTIONS = {
     "overview": (
