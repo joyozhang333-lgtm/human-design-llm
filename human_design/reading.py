@@ -8,8 +8,13 @@ from .knowledge import (
     CHANNEL_TYPE_GUIDES,
     CIRCUIT_GROUP_GUIDES,
     DEFINITION_GUIDES,
+    get_authority_card,
     get_channel_card,
+    get_center_card,
+    get_definition_card,
     get_gate_card,
+    get_profile_card,
+    get_type_card,
     LINE_GUIDES,
     PLANET_GUIDES,
     PROFILE_GUIDES,
@@ -97,15 +102,24 @@ def render_reading_markdown(reading: HumanDesignReading) -> str:
 
 
 def _core_section(chart: HumanDesignChart) -> ReadingSection:
+    type_card = get_type_card(chart.summary.type.code)
     type_guide = TYPE_GUIDES.get(chart.summary.type.code, {})
+    summary_text = type_card.summary if type_card and type_card.summary else type_guide.get(
+        "summary",
+        "这张图的重点，是先尊重你的能量运作方式，再谈效率和结果。",
+    )
+    gifts = type_card.gifts if type_card and type_card.gifts else type_guide.get("gifts", ())
+    shadows = (
+        type_card.shadows if type_card and type_card.shadows else type_guide.get("shadows", ())
+    )
     summary = (
         f"你的基础配置是「{chart.summary.type.label} + {chart.summary.profile.label} + "
         f"{chart.summary.authority.label}」。"
-        f"{type_guide.get('summary', '这张图的重点，是先尊重你的能量运作方式，再谈效率和结果。')}"
+        f"{summary_text}"
     )
     bullets = (
-        *type_guide.get("gifts", ()),
-        *type_guide.get("shadows", ()),
+        *gifts,
+        *shadows,
         f"签名主题是「{chart.summary.signature.label}」，不对位时更容易落入「{chart.summary.not_self_theme.label}」。",
     )
     return ReadingSection(
@@ -117,9 +131,14 @@ def _core_section(chart: HumanDesignChart) -> ReadingSection:
 
 
 def _decision_section(chart: HumanDesignChart) -> ReadingSection:
-    authority = AUTHORITY_GUIDES.get(
-        chart.summary.authority.code,
-        "你的决定方式要尽量回到身体和真实当下，而不是只靠头脑推理。",
+    authority_card = get_authority_card(chart.summary.authority.code)
+    authority = (
+        authority_card.summary
+        if authority_card and authority_card.summary
+        else AUTHORITY_GUIDES.get(
+            chart.summary.authority.code,
+            "你的决定方式要尽量回到身体和真实当下，而不是只靠头脑推理。",
+        )
     )
     summary = (
         f"行动上，你的策略是「{chart.summary.strategy.label}」；决定上，你的权威是「{chart.summary.authority.label}」。"
@@ -139,13 +158,23 @@ def _decision_section(chart: HumanDesignChart) -> ReadingSection:
 
 
 def _profile_definition_section(chart: HumanDesignChart) -> ReadingSection:
-    profile = PROFILE_GUIDES.get(
-        chart.summary.profile.code,
-        "你的 Profile 提示你在人生里既有天赋表达，也有必须亲自走过的成长路径。",
+    profile_card = get_profile_card(chart.summary.profile.code)
+    profile = (
+        profile_card.summary
+        if profile_card and profile_card.summary
+        else PROFILE_GUIDES.get(
+            chart.summary.profile.code,
+            "你的 Profile 提示你在人生里既有天赋表达，也有必须亲自走过的成长路径。",
+        )
     )
-    definition = DEFINITION_GUIDES.get(
-        chart.summary.definition.code,
-        "你的定义方式决定了你是更偏内部整合，还是更需要关系和环境来帮助连接。",
+    definition_card = get_definition_card(chart.summary.definition.code)
+    definition = (
+        definition_card.summary
+        if definition_card and definition_card.summary
+        else DEFINITION_GUIDES.get(
+            chart.summary.definition.code,
+            "你的定义方式决定了你是更偏内部整合，还是更需要关系和环境来帮助连接。",
+        )
     )
     summary = (
         f"Profile「{chart.summary.profile.label}」更多讲的是你学习、关系和角色展开的方式；"
@@ -198,12 +227,18 @@ def _centers_section(chart: HumanDesignChart) -> ReadingSection:
     )
     bullets: list[str] = []
     for center in chart.centers:
+        center_card = get_center_card(center.code)
         guide = CENTER_GUIDES.get(center.code)
-        if not guide:
+        if not guide and not center_card:
             continue
         state = "已定义" if center.defined else "开放"
-        explanation = guide["defined"] if center.defined else guide["undefined"]
-        bullets.append(f"{guide['label']}：{state}。{explanation}")
+        if center_card:
+            label = center_card.title
+            explanation = center_card.defined if center.defined else center_card.undefined
+        else:
+            label = guide["label"]
+            explanation = guide["defined"] if center.defined else guide["undefined"]
+        bullets.append(f"{label}：{state}。{explanation}")
     return ReadingSection(
         key="centers",
         title="九大中心",
@@ -322,6 +357,9 @@ def _find_activation(chart: HumanDesignChart, imprint: str, planet_code: str):
 
 
 def _center_label(code: str) -> str:
+    center_card = get_center_card(code)
+    if center_card:
+        return center_card.title
     guide = CENTER_GUIDES.get(code)
     return guide["label"] if guide else code
 

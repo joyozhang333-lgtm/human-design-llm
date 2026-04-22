@@ -106,6 +106,16 @@ python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus caree
 
 这层的目标是：让任何 LLM runtime 不需要再现场拼 prompt，而是直接消费本仓库产出的产品包。
 
+## 当前知识库状态
+
+`references/` 已经开始承载运行时知识，而不再只是预留目录。当前已经落地：
+
+- `types / authorities / profiles / centers / definitions`
+- 第一批 `gates`
+- 第一批 `channels`
+
+`reading.py` 和 `product.py` 现在会优先读取这些引用卡；`knowledge.py` 中的硬编码 guide 仍作为 fallback 存在。
+
 ## 当前完整产品能力
 
 现在这个 repo 已经具备一条完整本地链路：

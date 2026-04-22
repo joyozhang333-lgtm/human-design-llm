@@ -226,6 +226,37 @@ class ReferenceCard:
     path: str
 
 
+@dataclass(frozen=True)
+class CenterGuideCard:
+    code: str
+    title: str
+    summary: str
+    defined: str
+    undefined: str
+    focus: dict[str, str]
+    path: str
+
+
+def get_type_card(code: str) -> ReferenceCard | None:
+    return _load_markdown_card("types", code)
+
+
+def get_authority_card(code: str) -> ReferenceCard | None:
+    return _load_markdown_card("authorities", code)
+
+
+def get_profile_card(code: str) -> ReferenceCard | None:
+    return _load_markdown_card("profiles", code)
+
+
+def get_definition_card(code: str) -> ReferenceCard | None:
+    return _load_markdown_card("definitions", code)
+
+
+def get_center_card(code: str) -> CenterGuideCard | None:
+    return _load_center_card(code)
+
+
 def get_gate_card(gate: int | str) -> ReferenceCard | None:
     return _load_markdown_card("gates", str(gate))
 
@@ -249,6 +280,14 @@ def _load_markdown_card(collection: str, code: str) -> ReferenceCard | None:
     return _parse_markdown_card(code, path)
 
 
+@lru_cache(maxsize=64)
+def _load_center_card(code: str) -> CenterGuideCard | None:
+    path = _resolve_reference_path("centers", code)
+    if path is None or not path.exists():
+        return None
+    return _parse_center_card(code, path)
+
+
 def _resolve_reference_path(collection: str, code: str) -> Path | None:
     index = load_reference_index()
     collection_index = index.get("collections", {}).get(collection, {})
@@ -263,8 +302,44 @@ def _resolve_reference_path(collection: str, code: str) -> Path | None:
 
 
 def _parse_markdown_card(code: str, path: Path) -> ReferenceCard:
+    title, sections = _parse_markdown_sections(path, code)
+    return ReferenceCard(
+        code=code,
+        title=title,
+        summary=_join_section(sections.get("核心主题", [])),
+        gifts=_collect_bullets(sections.get("礼物", [])),
+        shadows=_collect_bullets(sections.get("失衡表现", [])),
+        focus={
+            "career": _join_section(sections.get("career", [])),
+            "relationship": _join_section(sections.get("relationship", [])),
+            "decision": _join_section(sections.get("decision", [])),
+            "growth": _join_section(sections.get("growth", [])),
+        },
+        path=str(path),
+    )
+
+
+def _parse_center_card(code: str, path: Path) -> CenterGuideCard:
+    title, sections = _parse_markdown_sections(path, code)
+    return CenterGuideCard(
+        code=code,
+        title=title,
+        summary=_join_section(sections.get("核心主题", [])),
+        defined=_join_section(sections.get("已定义", [])),
+        undefined=_join_section(sections.get("开放", [])),
+        focus={
+            "career": _join_section(sections.get("career", [])),
+            "relationship": _join_section(sections.get("relationship", [])),
+            "decision": _join_section(sections.get("decision", [])),
+            "growth": _join_section(sections.get("growth", [])),
+        },
+        path=str(path),
+    )
+
+
+def _parse_markdown_sections(path: Path, default_title: str) -> tuple[str, dict[str, list[str]]]:
     raw = path.read_text(encoding="utf-8").strip()
-    title = code
+    title = default_title
     current_heading: str | None = None
     sections: dict[str, list[str]] = {}
 
@@ -282,21 +357,7 @@ def _parse_markdown_card(code: str, path: Path) -> ReferenceCard:
         if current_heading is None:
             continue
         sections.setdefault(current_heading, []).append(stripped)
-
-    return ReferenceCard(
-        code=code,
-        title=title,
-        summary=_join_section(sections.get("核心主题", [])),
-        gifts=_collect_bullets(sections.get("礼物", [])),
-        shadows=_collect_bullets(sections.get("失衡表现", [])),
-        focus={
-            "career": _join_section(sections.get("career", [])),
-            "relationship": _join_section(sections.get("relationship", [])),
-            "decision": _join_section(sections.get("decision", [])),
-            "growth": _join_section(sections.get("growth", [])),
-        },
-        path=str(path),
-    )
+    return title, sections
 
 
 def _join_section(lines: list[str]) -> str:

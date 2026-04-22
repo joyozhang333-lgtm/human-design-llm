@@ -4,22 +4,62 @@
     "types": {
       "path": "references/types",
       "format": "markdown",
-      "items": {}
+      "items": {
+        "classic-projector": "references/types/classic-projector.md",
+        "energy-projector": "references/types/energy-projector.md",
+        "manifesting-generator": "references/types/manifesting-generator.md",
+        "manifestor": "references/types/manifestor.md",
+        "mental-projector": "references/types/mental-projector.md",
+        "pure-generator": "references/types/pure-generator.md",
+        "reflector": "references/types/reflector.md"
+      }
     },
     "authorities": {
       "path": "references/authorities",
       "format": "markdown",
-      "items": {}
+      "items": {
+        "ego-manifested": "references/authorities/ego-manifested.md",
+        "ego-projected": "references/authorities/ego-projected.md",
+        "lunar": "references/authorities/lunar.md",
+        "outer-authority": "references/authorities/outer-authority.md",
+        "sacral": "references/authorities/sacral.md",
+        "self-projected": "references/authorities/self-projected.md",
+        "solar-plexus": "references/authorities/solar-plexus.md",
+        "splenic": "references/authorities/splenic.md"
+      }
     },
     "profiles": {
       "path": "references/profiles",
       "format": "markdown",
-      "items": {}
+      "items": {
+        "1-3": "references/profiles/1-3.md",
+        "1-4": "references/profiles/1-4.md",
+        "2-4": "references/profiles/2-4.md",
+        "2-5": "references/profiles/2-5.md",
+        "3-5": "references/profiles/3-5.md",
+        "3-6": "references/profiles/3-6.md",
+        "4-1": "references/profiles/4-1.md",
+        "4-6": "references/profiles/4-6.md",
+        "5-1": "references/profiles/5-1.md",
+        "5-2": "references/profiles/5-2.md",
+        "6-2": "references/profiles/6-2.md",
+        "6-3": "references/profiles/6-3.md"
+      }
     },
     "centers": {
       "path": "references/centers",
       "format": "markdown",
-      "items": {}
+      "items": {
+        "ajna": "references/centers/ajna.md",
+        "g": "references/centers/g.md",
+        "head": "references/centers/head.md",
+        "heart": "references/centers/heart.md",
+        "root": "references/centers/root.md",
+        "sacral": "references/centers/sacral.md",
+        "solar-plexus": "references/centers/solar-plexus.md",
+        "spleen": "references/centers/spleen.md",
+        "throat": "references/centers/throat.md"
+      }
     },
     "channels": {
       "path": "references/channels",
@@ -88,6 +128,18 @@
         "7": "references/gates/7.md",
         "8": "references/gates/8.md",
         "9": "references/gates/9.md"
+      }
+    },
+    "definitions": {
+      "path": "references/definitions",
+      "format": "markdown",
+      "items": {
+        "no": "references/definitions/no.md",
+        "quadruple-split": "references/definitions/quadruple-split.md",
+        "simple-split": "references/definitions/simple-split.md",
+        "single": "references/definitions/single.md",
+        "triple-split": "references/definitions/triple-split.md",
+        "wide-split": "references/definitions/wide-split.md"
       }
     }
   }

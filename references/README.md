@@ -5,9 +5,13 @@ v0.6 开始把知识从 `human_design/knowledge.py` 拆到 `references/`。
 当前约定：
 
 - `references/index.json` 是索引入口
+- `references/types/*.md` 存类型卡
+- `references/authorities/*.md` 存权威卡
+- `references/profiles/*.md` 存 Profile 卡
+- `references/centers/*.md` 存中心卡
+- `references/definitions/*.md` 存定义卡
 - `references/gates/*.md` 存 gate 卡
 - `references/channels/*.md` 存 channel 卡
-- 未来再补 `types / authorities / profiles / centers`
 
 Markdown 卡片格式：
 
@@ -43,3 +47,30 @@ Markdown 卡片格式：
 1. 不要加 YAML front matter。
 2. 标题与 section 名保持稳定，方便程序解析。
 3. 中文内容为主，英文名只做辅助识别。
+
+中心卡的特例结构：
+
+```md
+# G 中心
+
+## 核心主题
+...
+
+## 已定义
+...
+
+## 开放
+...
+
+## Career
+...
+
+## Relationship
+...
+
+## Decision
+...
+
+## Growth
+...
+```
