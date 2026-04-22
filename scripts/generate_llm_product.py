@@ -58,6 +58,12 @@ def parse_args() -> argparse.Namespace:
         default="json",
         help="Output full package as JSON, or only answer markdown.",
     )
+    parser.add_argument(
+        "--citation-mode",
+        choices=("none", "sources"),
+        default="none",
+        help="Optional citation rendering mode for answer_markdown.",
+    )
     return parser.parse_args()
 
 
@@ -76,7 +82,12 @@ def main() -> int:
         return 2
 
     chart = calculate_chart(normalized)
-    package = build_llm_product(chart, focus=args.focus, question=args.question)
+    package = build_llm_product(
+        chart,
+        focus=args.focus,
+        question=args.question,
+        citation_mode=args.citation_mode,
+    )
     if args.format == "markdown":
         print(package.answer_markdown, end="")
     else:

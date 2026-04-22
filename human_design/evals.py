@@ -9,7 +9,7 @@ from .engine import calculate_chart
 from .input import normalize_birth_input
 from .product import build_llm_product
 from .reading import generate_reading
-from .schema import LLMContextBlock, ReadingSection, SourceReference
+from .schema import AnswerCitation, LLMContextBlock, ReadingSection, SourceReference
 
 FOCUSES = ("overview", "career", "relationship", "decision", "growth")
 VALID_SOURCE_KINDS = frozenset(
@@ -107,6 +107,20 @@ def run_smoke_suite(fixtures_path: str | Path) -> EvalSuiteResult:
                     and package.focus == focus
                     and bool(package.context_blocks),
                     detail=f"context_blocks={len(package.context_blocks)}",
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"product-{focus}-answer-citation-integrity",
+                    passed=_answer_citations_are_valid(package.answer_citations),
+                    detail=_answer_citation_detail(package.answer_citations),
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"product-{focus}-answer-citation-sync",
+                    passed=_answer_citations_match_sections(package.answer_citations, package.reading.sections),
+                    detail=_answer_citation_sync_detail(package.answer_citations, package.reading.sections),
                 )
             )
             checks.append(
@@ -312,3 +326,45 @@ def _mismatched_section_keys(
 
 def _source_signature(sources: tuple[SourceReference, ...]) -> tuple[tuple[str, str, str], ...]:
     return tuple((source.kind, source.code, source.path) for source in sources)
+
+
+def _answer_citations_are_valid(citations: tuple[AnswerCitation, ...]) -> bool:
+    return all(_sources_are_valid(citation.sources) for citation in citations)
+
+
+def _answer_citation_detail(citations: tuple[AnswerCitation, ...]) -> str:
+    invalid = [
+        citation.key
+        for citation in citations
+        if not _sources_are_valid(citation.sources)
+    ]
+    return f"citations={len(citations)} invalid={invalid}"
+
+
+def _answer_citations_match_sections(
+    citations: tuple[AnswerCitation, ...],
+    sections: tuple[ReadingSection, ...],
+) -> bool:
+    return not _answer_citation_mismatches(citations, sections)
+
+
+def _answer_citation_sync_detail(
+    citations: tuple[AnswerCitation, ...],
+    sections: tuple[ReadingSection, ...],
+) -> str:
+    return f"mismatches={_answer_citation_mismatches(citations, sections)}"
+
+
+def _answer_citation_mismatches(
+    citations: tuple[AnswerCitation, ...],
+    sections: tuple[ReadingSection, ...],
+) -> list[str]:
+    citation_map = {citation.key: citation for citation in citations}
+    mismatches: list[str] = []
+    for section in sections:
+        citation = citation_map.get(section.key)
+        if citation is None:
+            continue
+        if _source_signature(citation.sources) != _source_signature(section.sources):
+            mismatches.append(section.key)
+    return mismatches

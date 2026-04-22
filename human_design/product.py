@@ -14,11 +14,19 @@ from .knowledge import (
     to_source_reference,
 )
 from .reading import generate_reading
-from .schema import HumanDesignChart, LLMContextBlock, LLMProductPackage, SourceReference
+from .schema import (
+    AnswerCitation,
+    HumanDesignChart,
+    LLMContextBlock,
+    LLMProductPackage,
+    ReadingSection,
+    SourceReference,
+)
 from .version import VERSION
 
 PRODUCT_NAME = "human-design-llm"
 PRODUCT_VERSION = VERSION
+CITATION_MODES = ("none", "sources")
 
 FOCUS_SECTIONS = {
     "overview": (
@@ -185,8 +193,10 @@ def build_llm_product(
     chart: HumanDesignChart,
     focus: str = "overview",
     question: str | None = None,
+    citation_mode: str = "none",
 ) -> LLMProductPackage:
     focus_key = focus if focus in FOCUS_SECTIONS else "overview"
+    citation_mode_key = citation_mode if citation_mode in CITATION_MODES else "none"
     reading = generate_reading(chart)
     selected_keys = set(FOCUS_SECTIONS[focus_key])
     selected_sections = tuple(
@@ -194,6 +204,10 @@ def build_llm_product(
     )
     question_lens = _build_question_lens(focus_key, question)
     focus_highlights, focus_highlight_sources = _build_focus_highlights(chart, focus_key, question)
+    answer_citations = _build_answer_citations(
+        selected_sections=selected_sections,
+        focus_highlight_sources=focus_highlight_sources,
+    )
 
     context_blocks = (
         LLMContextBlock(
@@ -260,6 +274,8 @@ def build_llm_product(
         focus_highlights,
         selected_sections,
         FOCUS_FOLLOWUPS[focus_key],
+        answer_citations,
+        citation_mode_key,
     )
 
     return LLMProductPackage(
@@ -271,6 +287,8 @@ def build_llm_product(
         system_prompt=SYSTEM_PROMPT,
         assistant_instructions=ASSISTANT_INSTRUCTIONS,
         context_blocks=context_blocks,
+        answer_citation_mode=citation_mode_key,
+        answer_citations=answer_citations,
         answer_markdown=answer_markdown,
         suggested_followups=FOCUS_FOLLOWUPS[focus_key],
         reading=reading,
@@ -284,9 +302,12 @@ def _render_focus_answer(
     question: str | None,
     question_lens: str | None,
     focus_highlights: str | None,
-    sections,
+    sections: tuple[ReadingSection, ...],
     followups: tuple[str, ...],
+    answer_citations: tuple[AnswerCitation, ...],
+    citation_mode: str,
 ) -> str:
+    citation_map = {citation.key: citation for citation in answer_citations}
     lines: list[str] = []
     lines.append("# Human Design LLM Session")
     lines.append("")
@@ -306,6 +327,10 @@ def _render_focus_answer(
         lines.append("")
         lines.append("## 焦点提示")
         lines.append(focus_highlights)
+        citation = citation_map.get("focus-highlights")
+        if citation_mode == "sources" and citation is not None:
+            lines.append("")
+            lines.append(_render_source_line(citation.sources))
 
     for section in sections:
         lines.append("")
@@ -315,6 +340,10 @@ def _render_focus_answer(
             lines.append("")
             for bullet in section.bullets:
                 lines.append(f"- {bullet}")
+        citation = citation_map.get(section.key)
+        if citation_mode == "sources" and citation is not None:
+            lines.append("")
+            lines.append(_render_source_line(citation.sources))
 
     lines.append("")
     lines.append("## 建议继续追问")
@@ -329,6 +358,31 @@ def _section_to_text(summary: str, bullets: tuple[str, ...]) -> str:
     for bullet in bullets:
         lines.append(f"- {bullet}")
     return "\n".join(lines)
+
+
+def _build_answer_citations(
+    selected_sections: tuple[ReadingSection, ...],
+    focus_highlight_sources: tuple[SourceReference, ...],
+) -> tuple[AnswerCitation, ...]:
+    citations: list[AnswerCitation] = []
+    if focus_highlight_sources:
+        citations.append(
+            AnswerCitation(
+                key="focus-highlights",
+                title="焦点提示",
+                sources=focus_highlight_sources,
+            )
+        )
+    citations.extend(
+        AnswerCitation(
+            key=section.key,
+            title=section.title,
+            sources=section.sources,
+        )
+        for section in selected_sections
+        if section.sources
+    )
+    return tuple(citations)
 
 
 def _precision_note(chart: HumanDesignChart | None) -> str | None:
@@ -584,3 +638,11 @@ def _unique_sources(sources: tuple[SourceReference, ...]) -> tuple[SourceReferen
         seen.add(key)
         unique.append(source)
     return tuple(unique)
+
+
+def _render_source_line(sources: tuple[SourceReference, ...]) -> str:
+    items = [
+        f"[{source.kind}:{source.code}]({source.path})"
+        for source in sources
+    ]
+    return "来源：" + "；".join(items)

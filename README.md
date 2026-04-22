@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.1.1`
+当前版本：`1.2.0`
 
 这版已经完成三层收口：
 
@@ -81,6 +81,7 @@ python scripts/calculate_chart.py '1988-10-09T20:30:00' --timezone Asia/Shanghai
 python scripts/calculate_chart.py '1988-10-09T20:30:00' --city Shanghai --country China
 python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？'
+python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？' --format markdown --citation-mode sources
 python scripts/install_skill.py --mode link --force
 python scripts/smoke_all.py
 python scripts/evaluate_narrative.py
@@ -127,6 +128,7 @@ python scripts/evaluate_narrative.py
 这层的目标是：让任何 LLM runtime 不需要再现场拼 prompt，而是直接消费本仓库产出的产品包。
 
 从 `1.1.0` 开始，`reading.sections[*]` 和 `llm_package.context_blocks[*]` 还会附带结构化 `sources`，把每段输出对应到具体知识卡路径，方便 runtime 做可解释性、trace 和二次评测。
+从 `1.2.0` 开始，`llm_package` 还会附带 `answer_citations`，并支持通过 `citation_mode=sources` 把最终回答直接映射回具体知识卡。
 
 ## 当前知识库状态
 

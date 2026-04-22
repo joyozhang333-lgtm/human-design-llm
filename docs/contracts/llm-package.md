@@ -1,6 +1,6 @@
 # LLM Package Contract
 
-更新时间：2026-04-22
+更新时间：2026-04-23
 
 这份文档定义 `LLMProductPackage` 的结构契约。目标是让 runtime 直接消费产品包，而不是现场重拼 prompt。
 
@@ -16,6 +16,8 @@
 | `system_prompt` | `string` | 稳定 | runtime 可直接使用的系统提示 |
 | `assistant_instructions` | `array[string]` | 稳定 | 执行约束 |
 | `context_blocks` | `array` | 稳定 | 按 focus 选出的上下文块 |
+| `answer_citation_mode` | `string` | 稳定 | `none / sources` |
+| `answer_citations` | `array` | 稳定 | 最终回答段落到知识卡来源的结构化映射 |
 | `answer_markdown` | `string` | 稳定 | 直接可展示的回答草稿 |
 | `suggested_followups` | `array[string]` | 稳定 | 推荐继续追问 |
 | `reading` | `object` | 稳定 | 完整 `HumanDesignReading` |
@@ -103,9 +105,37 @@
 - 选中 sections
 - `建议继续追问`
 
+当 `answer_citation_mode = "sources"` 时，允许在 `焦点提示` 和各 section 后附加 `来源：...` 行，把回答直接映射回知识卡。
+
+## `answer_citations`
+
+每个 citation 结构：
+
+```json
+{
+  "key": "channels",
+  "title": "通道主题",
+  "sources": [
+    {
+      "kind": "channel",
+      "code": "25-51",
+      "title": "25-51 Channel of Initiation",
+      "path": "/abs/path/to/references/channels/25-51.md"
+    }
+  ]
+}
+```
+
+规则：
+
+1. `answer_citations` 是最终回答层的结构化 trace，不依赖 markdown 是否显示来源。
+2. `key` 默认对应 `focus-highlights` 或 section key。
+3. `sources` 的对象结构与 `context_blocks[*].sources` 相同。
+
 ## 兼容性规则
 
 1. `product_name`、`focus`、`context_blocks[*].key` 视为上层 runtime 契约。
 2. 可以扩展 block，但不要删除已有基础 block。
 3. prompt 文案可以演进，但字段名称和对象层级不要随意漂移。
 4. `context_blocks[*].sources` 是新增稳定字段；消费方应兼容空数组和多来源场景。
+5. `answer_citation_mode` 与 `answer_citations` 是新增稳定字段；消费方不应假设最终回答只有纯文本。

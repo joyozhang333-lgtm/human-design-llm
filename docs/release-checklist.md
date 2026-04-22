@@ -1,6 +1,6 @@
 # Release Checklist
 
-更新时间：2026-04-22
+更新时间：2026-04-23
 
 ## 发布前
 
@@ -10,6 +10,7 @@
 - 抽样检查 `career / relationship / decision / growth / overview` 五个 focus
 - 抽样检查至少一例 `input.warnings` 场景
 - 确认 narrative eval 已覆盖关键 block 的 `sources` 与 source kind 校验
+- 抽样运行一例 `python scripts/generate_llm_product.py ... --format markdown --citation-mode sources`
 - `README.md`、`SKILL.md`、`docs/install.md` 已同步当前行为
 - `agents/openai.yaml` 存在且描述未过时
 - `runtimes/` 至少包含 `codex / hermes / openclaw`

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 - 2026-04-23
+
+- 为 `llm_package` 增加 `answer_citation_mode` 与 `answer_citations`
+- `build_llm_product()` 支持 `citation_mode`，可选把最终回答直接渲染为带来源的 markdown
+- `scripts/generate_llm_product.py` 增加 `--citation-mode`
+- 同步更新产品契约、README 和 skill 说明
+- 将产品版本切到 `1.2.0`
+
 ## 1.1.1 - 2026-04-23
 
 - 扩展 `smoke` 与 `narrative eval`，把 `sources` 来源完整性纳入回归检查

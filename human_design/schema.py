@@ -188,6 +188,13 @@ class LLMContextBlock(JsonMixin):
 
 
 @dataclass(frozen=True)
+class AnswerCitation(JsonMixin):
+    key: str
+    title: str
+    sources: tuple[SourceReference, ...]
+
+
+@dataclass(frozen=True)
 class LLMProductPackage(JsonMixin):
     generated_at_utc: str
     product_name: str
@@ -197,6 +204,8 @@ class LLMProductPackage(JsonMixin):
     system_prompt: str
     assistant_instructions: tuple[str, ...]
     context_blocks: tuple[LLMContextBlock, ...]
+    answer_citation_mode: str
+    answer_citations: tuple[AnswerCitation, ...]
     answer_markdown: str
     suggested_followups: tuple[str, ...]
     reading: HumanDesignReading
