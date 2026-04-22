@@ -111,8 +111,8 @@ python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus caree
 `references/` 已经开始承载运行时知识，而不再只是预留目录。当前已经落地：
 
 - `types / authorities / profiles / centers / definitions`
-- 第一批 `gates`
-- 第一批 `channels`
+- `64 gates` draft 覆盖
+- `36 channels` draft 覆盖
 
 `reading.py` 和 `product.py` 现在会优先读取这些引用卡；`knowledge.py` 中的硬编码 guide 仍作为 fallback 存在。
 

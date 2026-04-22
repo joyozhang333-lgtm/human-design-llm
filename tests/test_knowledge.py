@@ -22,6 +22,8 @@ def test_reference_index_has_core_collections() -> None:
     assert "definitions" in index["collections"]
     assert "channels" in index["collections"]
     assert "gates" in index["collections"]
+    assert len(index["collections"]["gates"]["items"]) == 64
+    assert len(index["collections"]["channels"]["items"]) == 36
 
 
 def test_load_type_card() -> None:
@@ -79,3 +81,16 @@ def test_load_gate_card() -> None:
     assert "直觉" in card.summary
     assert len(card.shadows) >= 2
     assert card.focus["decision"]
+
+
+def test_load_generated_gate_and_channel_cards() -> None:
+    gate_card = get_gate_card(33)
+    channel_card = get_channel_card("34-57")
+
+    assert gate_card is not None
+    assert "33 号闸门位于" in gate_card.summary
+    assert gate_card.focus["career"]
+
+    assert channel_card is not None
+    assert "34 和 57" in channel_card.summary
+    assert channel_card.focus["growth"]
