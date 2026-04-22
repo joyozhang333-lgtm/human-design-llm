@@ -27,6 +27,14 @@
   "bullets": [
     "具体建议 1",
     "具体建议 2"
+  ],
+  "sources": [
+    {
+      "kind": "authority",
+      "code": "ego-projected",
+      "title": "Ego Projected Authority",
+      "path": "/abs/path/to/references/authorities/ego-projected.md"
+    }
   ]
 }
 ```
@@ -37,6 +45,13 @@
 - `title`
 - `summary`
 - `bullets`
+- `sources`
+
+`sources` 规则：
+
+1. 这是结构化来源追踪字段，用来标记该 section 主要基于哪些知识卡。
+2. 每个来源对象固定包含 `kind / code / title / path`。
+3. 允许为空数组；当 section 主要由 chart 原始结构拼装、没有明确知识卡支撑时，可以不附来源。
 
 ## 当前默认章节 key
 
@@ -79,3 +94,4 @@
 1. `headline` 和 `summary` 的文案可演进，但结构必须保持稳定。
 2. `sections[*].key` 是产品层选段逻辑的契约，不要在未同步上层代码时改动。
 3. `chart` 必须保持原样附带，不能在阅读对象里裁剪成不完整版本。
+4. `sections[*].sources` 是新增稳定字段；上层消费方应允许它为空，但不应假设该字段不存在。

@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.0.0`
+当前版本：`1.1.0`
 
 这版已经完成三层收口：
 
@@ -125,6 +125,8 @@ python scripts/evaluate_narrative.py
 - 完整 `reading`
 
 这层的目标是：让任何 LLM runtime 不需要再现场拼 prompt，而是直接消费本仓库产出的产品包。
+
+从 `1.1.0` 开始，`reading.sections[*]` 和 `llm_package.context_blocks[*]` 还会附带结构化 `sources`，把每段输出对应到具体知识卡路径，方便 runtime 做可解释性、trace 和二次评测。
 
 ## 当前知识库状态
 

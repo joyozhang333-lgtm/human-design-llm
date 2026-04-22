@@ -17,13 +17,17 @@ def test_build_llm_product_generates_session_package() -> None:
     )
 
     assert package.product_name == "human-design-llm"
-    assert package.product_version == __version__ == "1.0.0"
+    assert package.product_version == __version__ == "1.1.0"
     assert package.focus == "career"
     assert package.question == "我在工作里最该怎么用这张图？"
     assert "structured chart data" in package.system_prompt
     assert any(block.key == "channels" for block in package.context_blocks)
     assert any(block.key == "question-lens" for block in package.context_blocks)
     assert any(block.key == "focus-highlights" for block in package.context_blocks)
+    channels_block = next(block for block in package.context_blocks if block.key == "channels")
+    highlight_block = next(block for block in package.context_blocks if block.key == "focus-highlights")
+    assert any(source.kind == "channel" for source in channels_block.sources)
+    assert len(highlight_block.sources) >= 1
     assert "当前聚焦：career" in package.answer_markdown
     assert "当前问题：我在工作里最该怎么用这张图？" in package.answer_markdown
     assert "## 问题切口" in package.answer_markdown

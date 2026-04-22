@@ -10,14 +10,20 @@ from human_design.reading import generate_reading, render_reading_markdown
 def test_generate_reading_produces_complete_sections() -> None:
     chart = calculate_chart(datetime(1988, 10, 9, 12, 30, tzinfo=UTC))
     reading = generate_reading(chart)
+    core_section = reading.sections[0]
+    channels_section = reading.sections[5]
+    gates_section = reading.sections[6]
 
     assert "Energy Projector" in reading.headline
     assert len(reading.sections) == 8
-    assert reading.sections[0].title == "核心身份"
-    assert any("25-51" in bullet for bullet in reading.sections[5].bullets)
-    assert any("57 号闸门" in bullet for bullet in reading.sections[6].bullets)
-    assert any("唤醒" in bullet for bullet in reading.sections[5].bullets)
-    assert any("直觉清醒" in bullet for bullet in reading.sections[6].bullets)
+    assert core_section.title == "核心身份"
+    assert any(source.kind == "type" for source in core_section.sources)
+    assert any("25-51" in bullet for bullet in channels_section.bullets)
+    assert any("57 号闸门" in bullet for bullet in gates_section.bullets)
+    assert any("唤醒" in bullet for bullet in channels_section.bullets)
+    assert any("直觉清醒" in bullet for bullet in gates_section.bullets)
+    assert any(source.code == "25-51" for source in channels_section.sources)
+    assert any(source.code == "57" for source in gates_section.sources)
     assert any(fact.startswith("输入精度：") for fact in reading.quick_facts)
 
 

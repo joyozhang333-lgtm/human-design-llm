@@ -20,8 +20,9 @@ from .knowledge import (
     PROFILE_GUIDES,
     TYPE_GUIDES,
     VARIABLE_ORIENTATION_GUIDES,
+    to_source_reference,
 )
-from .schema import HumanDesignChart, HumanDesignReading, ReadingSection
+from .schema import HumanDesignChart, HumanDesignReading, ReadingSection, SourceReference
 
 PRECISION_LABELS = {
     "explicit-offset": "显式 UTC offset",
@@ -127,6 +128,11 @@ def _core_section(chart: HumanDesignChart) -> ReadingSection:
         title="核心身份",
         summary=summary,
         bullets=tuple(bullets),
+        sources=_unique_sources(
+            (
+                _source_from_card("type", type_card),
+            )
+        ),
     )
 
 
@@ -154,6 +160,11 @@ def _decision_section(chart: HumanDesignChart) -> ReadingSection:
         title="决策与行动方式",
         summary=summary,
         bullets=bullets,
+        sources=_unique_sources(
+            (
+                _source_from_card("authority", authority_card),
+            )
+        ),
     )
 
 
@@ -190,6 +201,12 @@ def _profile_definition_section(chart: HumanDesignChart) -> ReadingSection:
         title="角色路径与内在线路",
         summary=summary,
         bullets=bullets,
+        sources=_unique_sources(
+            (
+                _source_from_card("profile", profile_card),
+                _source_from_card("definition", definition_card),
+            )
+        ),
     )
 
 
@@ -226,6 +243,7 @@ def _centers_section(chart: HumanDesignChart) -> ReadingSection:
         "已定义中心是你相对稳定的发力方式，开放中心是你最容易放大外界、同时也最有学习空间的地方。"
     )
     bullets: list[str] = []
+    sources: list[SourceReference | None] = []
     for center in chart.centers:
         center_card = get_center_card(center.code)
         guide = CENTER_GUIDES.get(center.code)
@@ -239,11 +257,13 @@ def _centers_section(chart: HumanDesignChart) -> ReadingSection:
             label = guide["label"]
             explanation = guide["defined"] if center.defined else guide["undefined"]
         bullets.append(f"{label}：{state}。{explanation}")
+        sources.append(_source_from_card("center", center_card))
     return ReadingSection(
         key="centers",
         title="九大中心",
         summary=summary,
         bullets=tuple(bullets),
+        sources=_unique_sources(tuple(sources)),
     )
 
 
@@ -251,7 +271,11 @@ def _channels_section(chart: HumanDesignChart) -> ReadingSection:
     summary = (
         f"你当前有 {len(chart.channels)} 条已定义通道。通道代表固定回路：它们会把两个中心之间的能量流变成更稳定的表达方式。"
     )
-    bullets = tuple(_describe_channel(channel) for channel in chart.channels) or (
+    channel_cards = [get_channel_card(channel.code) for channel in chart.channels]
+    bullets = tuple(
+        _describe_channel(channel, channel_card)
+        for channel, channel_card in zip(chart.channels, channel_cards, strict=True)
+    ) or (
         "这张图当前没有已定义通道，说明你的很多体验更依赖具体环境和互动来被激活。",
     )
     return ReadingSection(
@@ -259,6 +283,9 @@ def _channels_section(chart: HumanDesignChart) -> ReadingSection:
         title="通道主题",
         summary=summary,
         bullets=bullets,
+        sources=_unique_sources(
+            tuple(_source_from_card("channel", channel_card) for channel_card in channel_cards)
+        ),
     )
 
 
@@ -266,17 +293,24 @@ def _gates_section(chart: HumanDesignChart) -> ReadingSection:
     summary = (
         f"你当前有 {len(chart.activated_gates)} 个被激活的闸门。下面优先列出完整激活清单，方便后续继续做更细的门线解读。"
     )
-    bullets = tuple(_describe_gate(gate) for gate in chart.activated_gates)
+    gate_cards = [get_gate_card(gate.gate) for gate in chart.activated_gates]
+    bullets = tuple(
+        _describe_gate(gate, gate_card)
+        for gate, gate_card in zip(chart.activated_gates, gate_cards, strict=True)
+    )
     return ReadingSection(
         key="gates",
         title="闸门与行星激活",
         summary=summary,
         bullets=bullets,
+        sources=_unique_sources(tuple(_source_from_card("gate", gate_card) for gate_card in gate_cards)),
     )
 
 
 def _integration_section(chart: HumanDesignChart) -> ReadingSection:
     defined_centers = [center.label for center in chart.centers if center.defined]
+    type_card = get_type_card(chart.summary.type.code)
+    authority_card = get_authority_card(chart.summary.authority.code)
     summary = (
         "真正让人类图变成产品价值的，不是知道术语，而是把它变成可执行的自我观察。"
         "你现在最需要的不是再多看一堆标签，而是把图里最关键的 2 到 3 个机制活到日常里。"
@@ -291,11 +325,18 @@ def _integration_section(chart: HumanDesignChart) -> ReadingSection:
         title="30 天整合建议",
         summary=summary,
         bullets=bullets,
+        sources=_unique_sources(
+            (
+                _source_from_card("type", type_card),
+                _source_from_card("authority", authority_card),
+            )
+        ),
     )
 
 
-def _describe_channel(channel) -> str:
-    card = get_channel_card(channel.code)
+def _describe_channel(channel, card=None) -> str:
+    if card is None:
+        card = get_channel_card(channel.code)
     channel_type = CHANNEL_TYPE_GUIDES.get(channel.channel_type.code, "")
     circuit_group = CIRCUIT_GROUP_GUIDES.get(channel.circuit_group.code, "")
     center_names = " 与 ".join(_center_label(code) for code in channel.centers)
@@ -310,8 +351,9 @@ def _describe_channel(channel) -> str:
     ).strip()
 
 
-def _describe_gate(gate) -> str:
-    card = get_gate_card(gate.gate)
+def _describe_gate(gate, card=None) -> str:
+    if card is None:
+        card = get_gate_card(gate.gate)
     planet_bits = []
     for activation in gate.activations:
         planet_meaning = PLANET_GUIDES.get(
@@ -366,3 +408,22 @@ def _center_label(code: str) -> str:
 
 def _limit_bullets(items: tuple[str, ...], limit: int) -> tuple[str, ...]:
     return tuple(item for item in items[:limit] if item)
+
+
+def _source_from_card(kind: str, card) -> SourceReference | None:
+    if card is None:
+        return None
+    return to_source_reference(kind, card)
+
+
+def _unique_sources(sources: tuple[SourceReference | None, ...]) -> tuple[SourceReference, ...]:
+    items = [source for source in sources if source is not None]
+    seen: set[tuple[str, str, str]] = set()
+    unique: list[SourceReference] = []
+    for source in items:
+        key = (source.kind, source.code, source.path)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(source)
+    return tuple(unique)

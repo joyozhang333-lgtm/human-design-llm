@@ -28,7 +28,15 @@
 {
   "key": "channels",
   "title": "通道主题",
-  "content": "你当前有 1 条已定义通道……"
+  "content": "你当前有 1 条已定义通道……",
+  "sources": [
+    {
+      "kind": "channel",
+      "code": "25-51",
+      "title": "25-51 Channel of Initiation",
+      "path": "/abs/path/to/references/channels/25-51.md"
+    }
+  ]
 }
 ```
 
@@ -37,6 +45,13 @@
 - `key`
 - `title`
 - `content`
+- `sources`
+
+`sources` 规则：
+
+1. `context_blocks[*].sources` 用来给 runtime、评测器或上层应用做可解释性追踪。
+2. 每个来源对象固定包含 `kind / code / title / path`。
+3. 基础 block（如 `focus`、`quick-facts`）允许为空数组。
 
 ## 当前约定的 block key
 
@@ -93,3 +108,4 @@
 1. `product_name`、`focus`、`context_blocks[*].key` 视为上层 runtime 契约。
 2. 可以扩展 block，但不要删除已有基础 block。
 3. prompt 文案可以演进，但字段名称和对象层级不要随意漂移。
+4. `context_blocks[*].sources` 是新增稳定字段；消费方应兼容空数组和多来源场景。

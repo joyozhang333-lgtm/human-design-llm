@@ -153,11 +153,20 @@ class HumanDesignChart(JsonMixin):
 
 
 @dataclass(frozen=True)
+class SourceReference(JsonMixin):
+    kind: str
+    code: str
+    title: str
+    path: str
+
+
+@dataclass(frozen=True)
 class ReadingSection(JsonMixin):
     key: str
     title: str
     summary: str
     bullets: tuple[str, ...]
+    sources: tuple[SourceReference, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -175,6 +184,7 @@ class LLMContextBlock(JsonMixin):
     key: str
     title: str
     content: str
+    sources: tuple[SourceReference, ...] = ()
 
 
 @dataclass(frozen=True)

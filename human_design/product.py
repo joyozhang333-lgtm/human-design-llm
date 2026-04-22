@@ -11,9 +11,10 @@ from .knowledge import (
     get_gate_card,
     get_profile_card,
     get_type_card,
+    to_source_reference,
 )
 from .reading import generate_reading
-from .schema import HumanDesignChart, LLMContextBlock, LLMProductPackage
+from .schema import HumanDesignChart, LLMContextBlock, LLMProductPackage, SourceReference
 from .version import VERSION
 
 PRODUCT_NAME = "human-design-llm"
@@ -177,6 +178,7 @@ class HighlightCandidate:
     label: str
     text: str
     priority: int
+    source: SourceReference | None = None
 
 
 def build_llm_product(
@@ -191,7 +193,7 @@ def build_llm_product(
         section for section in reading.sections if section.key in selected_keys
     )
     question_lens = _build_question_lens(focus_key, question)
-    focus_highlights = _build_focus_highlights(chart, focus_key, question)
+    focus_highlights, focus_highlight_sources = _build_focus_highlights(chart, focus_key, question)
 
     context_blocks = (
         LLMContextBlock(
@@ -232,6 +234,7 @@ def build_llm_product(
                     key="focus-highlights",
                     title="Focus Highlights",
                     content=focus_highlights,
+                    sources=focus_highlight_sources,
                 ),
             )
             if focus_highlights
@@ -242,6 +245,7 @@ def build_llm_product(
                 key=section.key,
                 title=section.title,
                 content=_section_to_text(section.summary, section.bullets),
+                sources=section.sources,
             )
             for section in selected_sections
         ),
@@ -368,9 +372,9 @@ def _build_focus_highlights(
     chart: HumanDesignChart,
     focus: str,
     question: str | None,
-) -> str | None:
+) -> tuple[str | None, tuple[SourceReference, ...]]:
     if focus == "overview":
-        return None
+        return None, ()
 
     candidates: list[HighlightCandidate] = []
     candidates.extend(_build_core_candidates(chart, focus))
@@ -379,10 +383,11 @@ def _build_focus_highlights(
     candidates.extend(_build_gate_candidates(chart, focus))
 
     if not candidates:
-        return None
+        return None, ()
 
     question_bonus = _question_bonus_map(question or "")
     selected: list[str] = []
+    sources: list[SourceReference] = []
     seen: set[str] = set()
     ranked = sorted(
         candidates,
@@ -393,10 +398,13 @@ def _build_focus_highlights(
         if candidate.key in seen:
             continue
         selected.append(f"- {candidate.label}：{candidate.text}")
+        if candidate.source is not None:
+            sources.append(candidate.source)
         seen.add(candidate.key)
         if len(selected) >= 5:
             break
-    return "\n".join(selected) if selected else None
+    content = "\n".join(selected) if selected else None
+    return content, _unique_sources(tuple(sources))
 
 
 def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[HighlightCandidate]:
@@ -412,6 +420,7 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
                 label=f"类型 {chart.summary.type.label}",
                 text=type_card.focus[focus],
                 priority=priority["type"],
+                source=_source_from_card("type", type_card),
             )
         )
 
@@ -424,6 +433,7 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
                 label=f"权威 {chart.summary.authority.label}",
                 text=authority_card.focus[focus],
                 priority=priority["authority"],
+                source=_source_from_card("authority", authority_card),
             )
         )
 
@@ -436,6 +446,7 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
                 label=f"Profile {chart.summary.profile.label}",
                 text=profile_card.focus[focus],
                 priority=priority["profile"],
+                source=_source_from_card("profile", profile_card),
             )
         )
 
@@ -448,6 +459,7 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
                 label=f"定义 {chart.summary.definition.label}",
                 text=definition_card.focus[focus],
                 priority=priority["definition"],
+                source=_source_from_card("definition", definition_card),
             )
         )
     return candidates
@@ -472,6 +484,7 @@ def _build_center_candidates(chart: HumanDesignChart, focus: str) -> list[Highli
                 label=f"{center_card.title}（{state_label}）",
                 text=center_card.focus[focus],
                 priority=base_priority - rank,
+                source=_source_from_card("center", center_card),
             )
         )
     return candidates
@@ -491,6 +504,7 @@ def _build_channel_candidates(chart: HumanDesignChart, focus: str) -> list[Highl
                 label=f"通道 {channel.code}",
                 text=card.focus[focus],
                 priority=priority - rank,
+                source=_source_from_card("channel", card),
             )
         )
     return candidates
@@ -510,6 +524,7 @@ def _build_gate_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
                 label=f"{gate.gate} 号闸门",
                 text=card.focus[focus],
                 priority=priority - rank,
+                source=_source_from_card("gate", card),
             )
         )
     return candidates
@@ -551,3 +566,21 @@ def _question_bonus_map(question: str) -> dict[str, int]:
         bonus["center"] += 5
         bonus["gate"] += 4
     return bonus
+
+
+def _source_from_card(kind: str, card) -> SourceReference | None:
+    if card is None:
+        return None
+    return to_source_reference(kind, card)
+
+
+def _unique_sources(sources: tuple[SourceReference, ...]) -> tuple[SourceReference, ...]:
+    seen: set[tuple[str, str, str]] = set()
+    unique: list[SourceReference] = []
+    for source in sources:
+        key = (source.kind, source.code, source.path)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(source)
+    return tuple(unique)

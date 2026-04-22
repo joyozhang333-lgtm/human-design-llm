@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+from .schema import SourceReference
+
 TYPE_GUIDES = {
     "manifestor": {
         "summary": "你的能量更适合主动发起、打开局面，而不是等外界先给许可。",
@@ -235,6 +237,15 @@ class CenterGuideCard:
     undefined: str
     focus: dict[str, str]
     path: str
+
+
+def to_source_reference(kind: str, card: ReferenceCard | CenterGuideCard) -> SourceReference:
+    return SourceReference(
+        kind=kind,
+        code=card.code,
+        title=card.title,
+        path=card.path,
+    )
 
 
 def get_type_card(code: str) -> ReferenceCard | None:
