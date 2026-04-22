@@ -1,0 +1,4 @@
+interface:
+  display_name: "Human Design"
+  short_description: "用结构化人类图盘面生成可追问、可聚焦、非宿命化的解读。"
+  default_prompt: "Use $human-design to calculate my Human Design chart from my birth data, explain it with practical language, and answer my question through the chart's actual type, authority, profile, centers, channels, and gates."
