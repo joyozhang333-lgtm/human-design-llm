@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.1.0`
+当前版本：`1.1.1`
 
 这版已经完成三层收口：
 
@@ -164,6 +164,7 @@ python scripts/evaluate_narrative.py
 - 版本号来自 [human_design/version.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/human_design/version.py)
 - smoke runner: [scripts/smoke_all.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/scripts/smoke_all.py)
 - narrative eval: [scripts/evaluate_narrative.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/scripts/evaluate_narrative.py)
+- narrative eval 当前已覆盖 block source trace 校验
 - release checklist: [docs/release-checklist.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/release-checklist.md)
 - versioning: [docs/versioning.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/versioning.md)
 - changelog: [CHANGELOG.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/CHANGELOG.md)

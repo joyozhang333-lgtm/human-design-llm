@@ -13,6 +13,12 @@
       "焦点提示"
     ],
     "required_block_keys": ["question-lens", "focus-highlights"],
+    "required_source_blocks": ["focus-highlights", "decision", "profile-definition", "channels"],
+    "required_block_source_kinds": {
+      "decision": ["authority"],
+      "profile-definition": ["profile", "definition"],
+      "channels": ["channel"]
+    },
     "forbidden_substrings": ["医疗建议", "法律建议"]
   },
   {
@@ -27,7 +33,13 @@
       "输入精度提示",
       "焦点提示"
     ],
-    "required_block_keys": ["input-precision", "question-lens", "focus-highlights"]
+    "required_block_keys": ["input-precision", "question-lens", "focus-highlights"],
+    "required_source_blocks": ["focus-highlights", "decision", "profile-definition", "integration"],
+    "required_block_source_kinds": {
+      "decision": ["authority"],
+      "profile-definition": ["profile", "definition"],
+      "integration": ["type", "authority"]
+    }
   },
   {
     "id": "relationship-intimacy-lens",
@@ -42,7 +54,12 @@
       "焦点提示",
       "当前聚焦：relationship"
     ],
-    "required_block_keys": ["question-lens", "focus-highlights"]
+    "required_block_keys": ["question-lens", "focus-highlights"],
+    "required_source_blocks": ["focus-highlights", "centers", "channels"],
+    "required_block_source_kinds": {
+      "centers": ["center"],
+      "channels": ["channel"]
+    }
   },
   {
     "id": "growth-pattern-lens",
@@ -57,7 +74,12 @@
       "焦点提示",
       "当前聚焦：growth"
     ],
-    "required_block_keys": ["question-lens", "focus-highlights"]
+    "required_block_keys": ["question-lens", "focus-highlights"],
+    "required_source_blocks": ["focus-highlights", "centers", "gates"],
+    "required_block_source_kinds": {
+      "centers": ["center"],
+      "gates": ["gate"]
+    }
   },
   {
     "id": "overview-baseline",
@@ -71,6 +93,16 @@
       "核心身份"
     ],
     "required_block_keys": [],
+    "required_source_blocks": ["core", "decision", "profile-definition", "centers", "channels", "gates", "integration"],
+    "required_block_source_kinds": {
+      "core": ["type"],
+      "decision": ["authority"],
+      "profile-definition": ["profile", "definition"],
+      "centers": ["center"],
+      "channels": ["channel"],
+      "gates": ["gate"],
+      "integration": ["type", "authority"]
+    },
     "forbidden_substrings": ["## 焦点提示"]
   }
 ]

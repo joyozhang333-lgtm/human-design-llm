@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 - 2026-04-23
+
+- 扩展 `smoke` 与 `narrative eval`，把 `sources` 来源完整性纳入回归检查
+- 支持在 narrative fixture 中声明 `required_source_blocks` 与 `required_block_source_kinds`
+- 增加 context block 与 reading section 的 source sync 校验，避免产品包和阅读对象脱钩
+- 将产品版本切到 `1.1.1`
+
 ## 1.1.0 - 2026-04-23
 
 - 为 `reading.sections[*]` 增加结构化 `sources`，把章节输出关联到具体知识卡
