@@ -1,0 +1,2 @@
+git+https://github.com/ppo/pyhd.git@main#egg=pyhd
+tzdata>=2024.1

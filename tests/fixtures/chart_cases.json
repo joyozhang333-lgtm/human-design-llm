@@ -1,0 +1,94 @@
+[
+  {
+    "id": "explicit-offset-shanghai",
+    "input": {
+      "birth_time": "1988-10-09T20:30:00+08:00"
+    },
+    "expected": {
+      "source_precision": "explicit-offset",
+      "type": "energy-projector",
+      "authority": "ego-projected",
+      "profile": "2-4",
+      "definition": "single",
+      "channels": ["25-51"],
+      "personality_sun": {"gate": 57, "line": 2},
+      "personality_earth": {"gate": 51, "line": 2},
+      "design_sun": {"gate": 53, "line": 4},
+      "design_earth": {"gate": 54, "line": 4}
+    }
+  },
+  {
+    "id": "explicit-offset-new-york",
+    "input": {
+      "birth_time": "1992-01-03T06:15:00-05:00"
+    },
+    "expected": {
+      "source_precision": "explicit-offset",
+      "type": "pure-generator",
+      "authority": "sacral",
+      "profile": "4-6",
+      "definition": "single",
+      "channels": ["32-54", "34-57"],
+      "personality_sun": {"gate": 38, "line": 4},
+      "personality_earth": {"gate": 39, "line": 4},
+      "design_sun": {"gate": 48, "line": 6},
+      "design_earth": {"gate": 21, "line": 6}
+    }
+  },
+  {
+    "id": "timezone-name-london",
+    "input": {
+      "birth_time": "2001-06-21T14:45:00",
+      "timezone_name": "Europe/London"
+    },
+    "expected": {
+      "source_precision": "timezone-name",
+      "type": "pure-generator",
+      "authority": "solar-plexus",
+      "profile": "3-5",
+      "definition": "simple-split",
+      "channels": ["05-15", "19-49"],
+      "personality_sun": {"gate": 15, "line": 3},
+      "personality_earth": {"gate": 10, "line": 3},
+      "design_sun": {"gate": 25, "line": 5},
+      "design_earth": {"gate": 46, "line": 5}
+    }
+  },
+  {
+    "id": "timezone-name-tokyo",
+    "input": {
+      "birth_time": "1977-12-01T23:59:00",
+      "timezone_name": "Asia/Tokyo"
+    },
+    "expected": {
+      "source_precision": "timezone-name",
+      "type": "pure-generator",
+      "authority": "solar-plexus",
+      "profile": "4-6",
+      "definition": "simple-split",
+      "channels": ["05-15", "07-31", "10-57", "16-48", "37-40"],
+      "personality_sun": {"gate": 9, "line": 4},
+      "personality_earth": {"gate": 16, "line": 4},
+      "design_sun": {"gate": 40, "line": 6},
+      "design_earth": {"gate": 37, "line": 6}
+    }
+  },
+  {
+    "id": "assumed-utc-naive",
+    "input": {
+      "birth_time": "1999-03-14T08:05:00"
+    },
+    "expected": {
+      "source_precision": "assumed-utc",
+      "type": "manifesting-generator",
+      "authority": "solar-plexus",
+      "profile": "1-3",
+      "definition": "single",
+      "channels": ["03-60", "12-22", "19-49"],
+      "personality_sun": {"gate": 36, "line": 1},
+      "personality_earth": {"gate": 6, "line": 1},
+      "design_sun": {"gate": 11, "line": 3},
+      "design_earth": {"gate": 12, "line": 3}
+    }
+  }
+]
