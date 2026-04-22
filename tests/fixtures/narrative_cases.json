@@ -1,0 +1,76 @@
+[
+  {
+    "id": "career-team-lens",
+    "input": {
+      "birth_time": "1988-10-09T20:30:00+08:00"
+    },
+    "focus": "career",
+    "question": "我在工作里最该怎么用这张图？",
+    "required_substrings": [
+      "当前聚焦：career",
+      "问题切口",
+      "团队与协作场景",
+      "焦点提示"
+    ],
+    "required_block_keys": ["question-lens", "focus-highlights"],
+    "forbidden_substrings": ["医疗建议", "法律建议"]
+  },
+  {
+    "id": "career-transition-lens",
+    "input": {
+      "birth_time": "1999-03-14T08:05:00"
+    },
+    "focus": "decision",
+    "question": "我现在要不要换工作？",
+    "required_substrings": [
+      "现实决策压力",
+      "输入精度提示",
+      "焦点提示"
+    ],
+    "required_block_keys": ["input-precision", "question-lens", "focus-highlights"]
+  },
+  {
+    "id": "relationship-intimacy-lens",
+    "input": {
+      "birth_time": "2001-06-21T14:45:00",
+      "timezone_name": "Europe/London"
+    },
+    "focus": "relationship",
+    "question": "我在亲密关系里最该注意什么？",
+    "required_substrings": [
+      "亲密关系场景",
+      "焦点提示",
+      "当前聚焦：relationship"
+    ],
+    "required_block_keys": ["question-lens", "focus-highlights"]
+  },
+  {
+    "id": "growth-pattern-lens",
+    "input": {
+      "birth_time": "1977-12-01T23:59:00",
+      "timezone_name": "Asia/Tokyo"
+    },
+    "focus": "growth",
+    "question": "我最近最大的内耗和成长课题是什么？",
+    "required_substrings": [
+      "自我成长场景",
+      "焦点提示",
+      "当前聚焦：growth"
+    ],
+    "required_block_keys": ["question-lens", "focus-highlights"]
+  },
+  {
+    "id": "overview-baseline",
+    "input": {
+      "birth_time": "1992-01-03T06:15:00-05:00"
+    },
+    "focus": "overview",
+    "question": "先给我一个总览。",
+    "required_substrings": [
+      "当前聚焦：overview",
+      "核心身份"
+    ],
+    "required_block_keys": [],
+    "forbidden_substrings": ["## 焦点提示"]
+  }
+]
