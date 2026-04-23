@@ -136,6 +136,13 @@ class VariableSet(JsonMixin):
 
 
 @dataclass(frozen=True)
+class UncertaintyFacet(JsonMixin):
+    key: str
+    values: tuple[LabeledValue, ...]
+    stable: bool
+
+
+@dataclass(frozen=True)
 class HumanDesignChart(JsonMixin):
     generated_at_utc: str
     birth_datetime_utc: str
@@ -150,6 +157,35 @@ class HumanDesignChart(JsonMixin):
     activated_gates: tuple[GateState, ...]
     personality: ImprintData
     design: ImprintData
+
+
+@dataclass(frozen=True)
+class ChartRangeSample(JsonMixin):
+    birth_datetime_local: str
+    birth_datetime_utc: str
+    summary: ChartSummary
+    defined_centers: tuple[str, ...]
+    channels: tuple[str, ...]
+    activated_gates: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class ChartUncertaintyResult(JsonMixin):
+    generated_at_utc: str
+    interval_minutes: int
+    sample_count: int
+    range_start_local: str
+    range_end_local: str
+    range_start_utc: str
+    range_end_utc: str
+    summary_facets: tuple[UncertaintyFacet, ...]
+    stable_centers: tuple[str, ...]
+    variable_centers: tuple[str, ...]
+    stable_channels: tuple[str, ...]
+    variable_channels: tuple[str, ...]
+    stable_gates: tuple[int, ...]
+    variable_gates: tuple[int, ...]
+    samples: tuple[ChartRangeSample, ...]
 
 
 @dataclass(frozen=True)

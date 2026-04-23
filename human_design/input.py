@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Protocol
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -28,6 +28,12 @@ class LocationResolver(Protocol):
 class NormalizedBirthInput:
     birth_datetime_utc: datetime
     chart_input: ChartInput
+
+
+@dataclass(frozen=True)
+class NormalizedBirthRange:
+    samples: tuple[NormalizedBirthInput, ...]
+    interval_minutes: int
 
 
 @dataclass(frozen=True)
@@ -125,11 +131,104 @@ def normalize_birth_input(
     )
 
 
+def normalize_birth_time_range(
+    start_birth_time: str | datetime,
+    end_birth_time: str | datetime,
+    *,
+    timezone_name: str | None = None,
+    city: str | None = None,
+    region: str | None = None,
+    country: str | None = None,
+    interval_minutes: int = 30,
+    location_resolver: LocationResolver | None = None,
+) -> NormalizedBirthRange:
+    if interval_minutes <= 0:
+        raise InputNormalizationError("区间采样间隔必须大于 0 分钟。")
+
+    _, start_value = _coerce_birth_time(start_birth_time)
+    _, end_value = _coerce_birth_time(end_birth_time)
+    _validate_range_endpoints(start_value, end_value)
+
+    resolved = _resolve_timezone(
+        start_value,
+        timezone_name=timezone_name,
+        city=city,
+        region=region,
+        country=country,
+        location_resolver=location_resolver,
+    )
+
+    localized_start = _localize_datetime(start_value, resolved.timezone_name)
+    localized_end = _localize_datetime(end_value, resolved.timezone_name)
+    if localized_end < localized_start:
+        raise InputNormalizationError("出生时间区间的结束时间不能早于开始时间。")
+
+    samples = tuple(
+        _build_normalized_sample(sample_time, resolved)
+        for sample_time in _iterate_range_samples(
+            localized_start,
+            localized_end,
+            interval_minutes=interval_minutes,
+        )
+    )
+    return NormalizedBirthRange(samples=samples, interval_minutes=interval_minutes)
+
+
 def _coerce_birth_time(value: str | datetime) -> tuple[str, datetime]:
     if isinstance(value, datetime):
         raw = value.isoformat()
         return raw, value
     return value, datetime.fromisoformat(value)
+
+
+def _build_normalized_sample(
+    localized: datetime,
+    resolved: ResolvedTimezone,
+) -> NormalizedBirthInput:
+    birth_datetime_utc = localized.astimezone(UTC)
+    chart_input = ChartInput(
+        raw_birth_time=localized.isoformat(),
+        birth_datetime_local=localized.isoformat(),
+        timezone_name=resolved.timezone_name,
+        source_precision=resolved.source_precision,
+        warnings=resolved.warnings,
+        location=resolved.location,
+    )
+    return NormalizedBirthInput(
+        birth_datetime_utc=birth_datetime_utc,
+        chart_input=chart_input,
+    )
+
+
+def _validate_range_endpoints(start_value: datetime, end_value: datetime) -> None:
+    if (start_value.tzinfo is None) != (end_value.tzinfo is None):
+        raise InputNormalizationError(
+            "区间开始和结束时间必须同时带时区，或同时不带时区。"
+        )
+    if start_value.tzinfo is not None and end_value.tzinfo is not None:
+        start_offset = start_value.utcoffset()
+        end_offset = end_value.utcoffset()
+        if start_offset != end_offset:
+            raise InputNormalizationError(
+                "带显式 offset 的区间开始和结束时间当前必须使用同一个 offset；若跨 DST，改用无 offset 时间并配合 --timezone。"
+            )
+
+
+def _iterate_range_samples(
+    start_value: datetime,
+    end_value: datetime,
+    *,
+    interval_minutes: int,
+) -> tuple[datetime, ...]:
+    step = timedelta(minutes=interval_minutes)
+    current = start_value
+    samples: list[datetime] = []
+    while current <= end_value:
+        samples.append(current)
+        current += step
+    if samples[-1] != end_value:
+        samples.append(end_value)
+    return tuple(samples)
 
 
 def _resolve_timezone(

@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.2.1`
+当前版本：`1.3.0`
 
 这版已经完成三层收口：
 
@@ -79,6 +79,7 @@ python -m pip install -r requirements-dev.txt
 python scripts/calculate_chart.py '1988-10-09T20:30:00+08:00'
 python scripts/calculate_chart.py '1988-10-09T20:30:00' --timezone Asia/Shanghai
 python scripts/calculate_chart.py '1988-10-09T20:30:00' --city Shanghai --country China
+python scripts/analyze_uncertainty.py '1988-10-09T20:00:00' '1988-10-09T21:00:00' --timezone Asia/Shanghai --interval-minutes 30
 python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？' --format markdown --citation-mode sources
@@ -151,6 +152,13 @@ python scripts/evaluate_narrative.py
 4. 输出完整解读
 5. 输出 LLM 会话产品包
 
+此外，当前已经开始进入 `V2.0` 的第一阶段：`uncertainty`。
+现在可以对一个出生时间区间做采样分析，输出：
+
+- 哪些核心摘要字段稳定
+- 哪些中心 / 通道 / 闸门会漂移
+- 每个采样点的轻量盘面结果
+
 `generate_reading.py` 默认输出 Markdown 成稿，也支持 `--format json` 输出完整结构化阅读对象。
 `generate_llm_product.py` 默认输出完整 JSON 产品包，也支持 `--format markdown` 只输出最终回答成稿。
 
@@ -181,8 +189,10 @@ python scripts/evaluate_narrative.py
 
 详细版本路线见 [docs/roadmap.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/roadmap.md)。
 详细开发、评审、提交节奏见 [docs/execution-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/execution-plan.md)。
+`V2.0` 的持续开发循环见 [docs/v2-delivery-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/v2-delivery-plan.md)。
 结构契约见：
 
 - [docs/contracts/chart.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/chart.md)
 - [docs/contracts/reading.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/reading.md)
 - [docs/contracts/llm-package.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/llm-package.md)
+- [docs/contracts/uncertainty.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/uncertainty.md)

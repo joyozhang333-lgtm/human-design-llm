@@ -8,6 +8,7 @@ from human_design.input import (
     InputNormalizationError,
     NominatimLocationResolver,
     normalize_birth_input,
+    normalize_birth_time_range,
 )
 from human_design.schema import InputLocation
 
@@ -85,3 +86,25 @@ def test_normalize_birth_input_warns_when_timezone_missing() -> None:
 def test_normalize_birth_input_rejects_unknown_timezone() -> None:
     with pytest.raises(InputNormalizationError):
         normalize_birth_input("1988-10-09T20:30:00", timezone_name="Mars/Base")
+
+
+def test_normalize_birth_time_range_builds_multiple_samples() -> None:
+    normalized = normalize_birth_time_range(
+        "1988-10-09T20:00:00",
+        "1988-10-09T21:00:00",
+        timezone_name="Asia/Shanghai",
+        interval_minutes=30,
+    )
+
+    assert normalized.interval_minutes == 30
+    assert len(normalized.samples) == 3
+    assert normalized.samples[0].chart_input.birth_datetime_local == "1988-10-09T20:00:00+08:00"
+    assert normalized.samples[-1].chart_input.birth_datetime_local == "1988-10-09T21:00:00+08:00"
+
+
+def test_normalize_birth_time_range_rejects_mixed_timezone_awareness() -> None:
+    with pytest.raises(InputNormalizationError):
+        normalize_birth_time_range(
+            "1988-10-09T20:00:00+08:00",
+            "1988-10-09T21:00:00",
+        )

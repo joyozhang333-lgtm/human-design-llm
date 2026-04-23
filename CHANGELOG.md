@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 - 2026-04-23
+
+- 新增 `normalize_birth_time_range()`，支持出生时间区间归一化
+- 新增 `ChartUncertaintyResult` 与 `scripts/analyze_uncertainty.py`
+- 新增 uncertainty contract 与测试覆盖
+- 新增 `docs/v2-delivery-plan.md`，把 V2.0 改成阶段式持续交付循环
+- 将产品版本切到 `1.3.0`
+
 ## 1.2.1 - 2026-04-23
 
 - 扩展 smoke，增加 `answer_citations` scope/sync 与 markdown 渲染检查
