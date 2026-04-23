@@ -224,6 +224,16 @@ class RelationshipComparisonResult(JsonMixin):
 
 
 @dataclass(frozen=True)
+class RelationshipReading(JsonMixin):
+    generated_at_utc: str
+    headline: str
+    quick_facts: tuple[str, ...]
+    sections: tuple["ReadingSection", ...]
+    suggested_questions: tuple[str, ...]
+    comparison: RelationshipComparisonResult
+
+
+@dataclass(frozen=True)
 class SourceReference(JsonMixin):
     kind: str
     code: str
@@ -280,3 +290,21 @@ class LLMProductPackage(JsonMixin):
     answer_markdown: str
     suggested_followups: tuple[str, ...]
     reading: HumanDesignReading
+
+
+@dataclass(frozen=True)
+class RelationshipProductPackage(JsonMixin):
+    generated_at_utc: str
+    product_name: str
+    product_version: str
+    focus: str
+    question: str | None
+    system_prompt: str
+    assistant_instructions: tuple[str, ...]
+    context_blocks: tuple[LLMContextBlock, ...]
+    answer_citation_mode: str
+    answer_citations: tuple[AnswerCitation, ...]
+    answer_markdown: str
+    suggested_followups: tuple[str, ...]
+    comparison: RelationshipComparisonResult
+    reading: RelationshipReading

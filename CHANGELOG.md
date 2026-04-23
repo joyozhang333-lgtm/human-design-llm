@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0 - 2026-04-23
+
+- 新增 `RelationshipReading` 与 `RelationshipProductPackage`
+- 新增 `generate_relationship_reading.py` 与 `generate_relationship_product.py`
+- 新增 relationship reading / package contract 与测试覆盖
+- 将双人盘能力从结构比较推进到可被 LLM 直接消费的关系产品层
+- 将产品版本切到 `1.5.0`
+
 ## 1.4.0 - 2026-04-23
 
 - 新增 `RelationshipComparisonResult` 与 `compare_relationship()`

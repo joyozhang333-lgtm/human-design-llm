@@ -241,9 +241,8 @@
 
 当前动作：
 
-- 冻结 relationship comparison schema
-- 落地双人盘对照逻辑
-- 增加 comparison script 和 tests
-- 下一轮把 relationship reading / product package 接进来
+- relationship comparison schema 已落地
+- relationship reading / product package 已接入
+- 下一轮补 relationship eval、narrative case 和 release gate
 
 这一轮完成前，不切去 timing。
