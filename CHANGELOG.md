@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.0.0 - 2026-04-23
+
+- 为 single / relationship / timing 三条产品线统一加入 `delivery_depth`
+- 为三条产品线统一加入 `session_state`
+- 新增 `human_design/session.py`，把输出深度与会话连续性收口成统一协议
+- 新增 `docs/contracts/output-depth.md` 与 `docs/contracts/session.md`
+- 将 `scripts/evaluate_v2.py` 改成按真实产品行为评分，而不是只检查文件存在
+- 完成 `Phase 4: Output & Session` 与 `Phase 5: Full Release`
+- 将 `V2.0` 收口到真实评测 `100/100`
+- 将产品版本切到 `2.0.0`
+
+## 1.6.0 - 2026-04-23
+
+- 新增 `TimingAnalysisResult`、`TimingReading`、`TimingProductPackage`
+- 新增 `analyze_timing.py`、`generate_timing_reading.py`、`generate_timing_product.py`
+- 新增 timing smoke / narrative eval 与 `scripts/evaluate_timing.py`
+- 新增 V2.0 总规划、评分标准和 `scripts/evaluate_v2.py`
+- 将 `V2.0` 当前阶段推进到 `Phase 4: Output & Session`
+- 将产品版本切到 `1.6.0`
+
 ## 1.5.1 - 2026-04-23
 
 - 新增 `run_relationship_smoke_suite()` 与 `run_relationship_narrative_eval_suite()`

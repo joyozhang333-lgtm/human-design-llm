@@ -7,6 +7,8 @@ from human_design.evals import (
     run_relationship_narrative_eval_suite,
     run_relationship_smoke_suite,
     run_smoke_suite,
+    run_timing_narrative_eval_suite,
+    run_timing_smoke_suite,
 )
 
 
@@ -64,3 +66,28 @@ def test_run_relationship_narrative_eval_suite_passes_case_set() -> None:
     assert any(check.name == "source-kinds:relationship-practice" for check in first_result.checks)
     assert any(check.name == "citation-mode" and check.detail == "sources" for check in first_result.checks)
     assert any(check.name == "answer-citation:focus-highlights" for check in first_result.checks)
+
+
+def test_run_timing_smoke_suite_passes_fixture_set() -> None:
+    report = run_timing_smoke_suite(ROOT / "fixtures" / "timing_cases.json")
+
+    assert report.failed == 0
+    assert report.total == 3
+    assert report.passed == 3
+    first_result = report.results[0]
+    assert any(check.name == "timing-reading-source-coverage" for check in first_result.checks)
+    assert any(check.name.endswith("highlight-sources") for check in first_result.checks)
+    assert any(check.name.endswith("answer-citation-integrity") for check in first_result.checks)
+
+
+def test_run_timing_narrative_eval_suite_passes_case_set() -> None:
+    report = run_timing_narrative_eval_suite(ROOT / "fixtures" / "timing_narrative_cases.json")
+
+    assert report.failed == 0
+    assert report.total == 3
+    assert report.passed == 3
+    first_result = report.results[0]
+    assert any(check.name == "source-block:pressure-points" for check in first_result.checks)
+    assert any(check.name == "source-kinds:decision-window" for check in first_result.checks)
+    assert any(check.name == "citation-mode" and check.detail == "sources" for check in first_result.checks)
+    assert any(check.name == "answer-citation:decision-window" for check in first_result.checks)

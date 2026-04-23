@@ -1,0 +1,84 @@
+[
+  {
+    "id": "timing-decision-pressure",
+    "timing_label": "today",
+    "natal_input": {
+      "birth_time": "1988-10-09T20:30:00+08:00"
+    },
+    "transit_input": {
+      "birth_time": "2026-04-23T10:00:00+08:00"
+    },
+    "focus": "decision",
+    "question": "我现在要不要推进这个决定？",
+    "citation_mode": "sources",
+    "required_substrings": [
+      "当前聚焦：decision",
+      "问题切口",
+      "现实决策压力",
+      "焦点提示",
+      "来源："
+    ],
+    "required_block_keys": ["question-lens", "focus-highlights"],
+    "required_source_blocks": ["focus-highlights", "pressure-points", "decision-window", "timing-practice"],
+    "required_block_source_kinds": {
+      "pressure-points": ["center", "gate"],
+      "decision-window": ["authority", "center", "channel"],
+      "timing-practice": ["authority", "center", "gate"]
+    },
+    "required_citation_keys": ["focus-highlights", "decision-window"],
+    "required_citation_source_kinds": {
+      "focus-highlights": ["authority", "center", "channel"],
+      "decision-window": ["authority", "center", "channel"]
+    }
+  },
+  {
+    "id": "timing-energy-pressure",
+    "timing_label": "launch-week",
+    "natal_input": {
+      "birth_time": "1992-01-03T06:15:00-05:00"
+    },
+    "transit_input": {
+      "birth_time": "2026-05-02T09:00:00",
+      "timezone_name": "Asia/Shanghai"
+    },
+    "focus": "energy",
+    "question": "我最近为什么这么容易累和内耗？",
+    "required_substrings": [
+      "当前聚焦：energy",
+      "能量与压力场景",
+      "焦点提示"
+    ],
+    "required_block_keys": ["question-lens", "focus-highlights"],
+    "required_source_blocks": ["focus-highlights", "current-atmosphere", "pressure-points", "timing-practice"],
+    "required_block_source_kinds": {
+      "current-atmosphere": ["center", "channel", "gate"],
+      "pressure-points": ["center", "gate"],
+      "timing-practice": ["authority"]
+    }
+  },
+  {
+    "id": "timing-growth-window",
+    "timing_label": "current-cycle",
+    "natal_input": {
+      "birth_time": "2001-06-21T14:45:00",
+      "timezone_name": "Europe/London"
+    },
+    "transit_input": {
+      "birth_time": "2026-06-18T16:00:00+01:00"
+    },
+    "focus": "growth",
+    "question": "我最近最大的阶段课题是什么？",
+    "required_substrings": [
+      "当前聚焦：growth",
+      "阶段成长场景",
+      "焦点提示"
+    ],
+    "required_block_keys": ["question-lens", "focus-highlights"],
+    "required_source_blocks": ["focus-highlights", "pressure-points", "decision-window", "timing-practice"],
+    "required_block_source_kinds": {
+      "pressure-points": ["center", "gate"],
+      "decision-window": ["authority"],
+      "timing-practice": ["authority"]
+    }
+  }
+]

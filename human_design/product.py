@@ -14,6 +14,7 @@ from .knowledge import (
     to_source_reference,
 )
 from .reading import generate_reading
+from .session import build_session_state, followups_by_depth, highlight_limit, normalize_depth, select_sections_by_depth
 from .schema import (
     AnswerCitation,
     HumanDesignChart,
@@ -194,16 +195,18 @@ def build_llm_product(
     focus: str = "overview",
     question: str | None = None,
     citation_mode: str = "none",
+    depth: str = "standard",
 ) -> LLMProductPackage:
     focus_key = focus if focus in FOCUS_SECTIONS else "overview"
     citation_mode_key = citation_mode if citation_mode in CITATION_MODES else "none"
+    depth_key = normalize_depth(depth)
     reading = generate_reading(chart)
     selected_keys = set(FOCUS_SECTIONS[focus_key])
-    selected_sections = tuple(
+    selected_sections = select_sections_by_depth(tuple(
         section for section in reading.sections if section.key in selected_keys
-    )
+    ), depth_key)
     question_lens = _build_question_lens(focus_key, question)
-    focus_highlights, focus_highlight_sources = _build_focus_highlights(chart, focus_key, question)
+    focus_highlights, focus_highlight_sources = _build_focus_highlights(chart, focus_key, question, depth_key)
     answer_citations = _build_answer_citations(
         selected_sections=selected_sections,
         focus_highlight_sources=focus_highlight_sources,
@@ -277,12 +280,22 @@ def build_llm_product(
         answer_citations,
         citation_mode_key,
     )
+    suggested_followups = followups_by_depth(FOCUS_FOLLOWUPS[focus_key], depth_key)
+    session_state = build_session_state(
+        product_line="single",
+        focus=focus_key,
+        headline=reading.headline,
+        quick_facts=reading.quick_facts,
+        context_blocks=context_blocks,
+        suggested_followups=suggested_followups,
+    )
 
     return LLMProductPackage(
         generated_at_utc=datetime.now(UTC).isoformat(),
         product_name=PRODUCT_NAME,
         product_version=PRODUCT_VERSION,
         focus=focus_key,
+        delivery_depth=depth_key,
         question=question,
         system_prompt=SYSTEM_PROMPT,
         assistant_instructions=ASSISTANT_INSTRUCTIONS,
@@ -290,7 +303,8 @@ def build_llm_product(
         answer_citation_mode=citation_mode_key,
         answer_citations=answer_citations,
         answer_markdown=answer_markdown,
-        suggested_followups=FOCUS_FOLLOWUPS[focus_key],
+        suggested_followups=suggested_followups,
+        session_state=session_state,
         reading=reading,
     )
 
@@ -426,6 +440,7 @@ def _build_focus_highlights(
     chart: HumanDesignChart,
     focus: str,
     question: str | None,
+    depth: str,
 ) -> tuple[str | None, tuple[SourceReference, ...]]:
     if focus == "overview":
         return None, ()
@@ -455,7 +470,7 @@ def _build_focus_highlights(
         if candidate.source is not None:
             sources.append(candidate.source)
         seen.add(candidate.key)
-        if len(selected) >= 5:
+        if len(selected) >= highlight_limit(depth):
             break
     content = "\n".join(selected) if selected else None
     return content, _unique_sources(tuple(sources))

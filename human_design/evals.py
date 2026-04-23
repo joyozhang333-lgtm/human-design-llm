@@ -13,9 +13,13 @@ from .relationship import compare_relationship
 from .relationship_product import build_relationship_product
 from .relationship_reading import generate_relationship_reading
 from .schema import AnswerCitation, LLMContextBlock, ReadingSection, SourceReference
+from .timing import analyze_timing
+from .timing_product import build_timing_product
+from .timing_reading import generate_timing_reading
 
 FOCUSES = ("overview", "career", "relationship", "decision", "growth")
 RELATIONSHIP_FOCUSES = ("overview", "intimacy", "partnership", "decision", "communication")
+TIMING_FOCUSES = ("overview", "decision", "timing", "energy", "growth")
 VALID_SOURCE_KINDS = frozenset(
     ("type", "authority", "profile", "definition", "center", "channel", "gate")
 )
@@ -580,6 +584,261 @@ def run_relationship_narrative_eval_suite(cases_path: str | Path) -> EvalSuiteRe
     return _suite_from_results("relationship-narrative", results)
 
 
+def run_timing_smoke_suite(fixtures_path: str | Path) -> EvalSuiteResult:
+    fixtures = json.loads(Path(fixtures_path).read_text(encoding="utf-8"))
+    results: list[EvalCaseResult] = []
+
+    for fixture in fixtures:
+        checks: list[EvalCheck] = []
+        timing = _build_timing_from_fixture(fixture)
+        reading = generate_timing_reading(timing)
+
+        checks.append(
+            EvalCheck(
+                name="timing-reading-sections",
+                passed=len(reading.sections) >= 4,
+                detail=f"sections={len(reading.sections)}",
+            )
+        )
+        sourced_sections = sum(1 for section in reading.sections if section.sources)
+        checks.append(
+            EvalCheck(
+                name="timing-reading-source-coverage",
+                passed=sourced_sections >= 4,
+                detail=f"sourced_sections={sourced_sections}",
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="timing-reading-source-integrity",
+                passed=_sources_are_valid(_collect_reading_sources(reading.sections)),
+                detail=_source_integrity_detail(_collect_reading_sources(reading.sections)),
+            )
+        )
+
+        focus_outputs: dict[str, str] = {}
+        for focus in TIMING_FOCUSES:
+            package = build_timing_product(timing, focus=focus)
+            cited_package = build_timing_product(timing, focus=focus, citation_mode="sources")
+            focus_outputs[focus] = package.answer_markdown
+            checks.append(
+                EvalCheck(
+                    name=f"timing-product-{focus}",
+                    passed=bool(package.answer_markdown.strip())
+                    and package.focus == focus
+                    and bool(package.context_blocks),
+                    detail=f"context_blocks={len(package.context_blocks)}",
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"timing-product-{focus}-answer-citation-mode-stable",
+                    passed=package.answer_citations == cited_package.answer_citations,
+                    detail=f"citations={len(package.answer_citations)}",
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"timing-product-{focus}-answer-citation-integrity",
+                    passed=_answer_citations_are_valid(package.answer_citations),
+                    detail=_answer_citation_detail(package.answer_citations),
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"timing-product-{focus}-answer-citation-scope-sync",
+                    passed=_answer_citations_match_scope(
+                        package.answer_citations,
+                        package.context_blocks,
+                        package.reading.sections,
+                    ),
+                    detail=_answer_citation_scope_detail(
+                        package.answer_citations,
+                        package.context_blocks,
+                        package.reading.sections,
+                    ),
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"timing-product-{focus}-answer-markdown-citation-render",
+                    passed=_answer_markdown_renders_citations(cited_package),
+                    detail=_answer_markdown_citation_detail(cited_package),
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"timing-product-{focus}-block-source-integrity",
+                    passed=_sources_are_valid(_collect_block_sources(package.context_blocks)),
+                    detail=_source_integrity_detail(_collect_block_sources(package.context_blocks)),
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"timing-product-{focus}-section-source-sync",
+                    passed=_context_sources_match_reading(package.context_blocks, package.reading.sections),
+                    detail=_section_sync_detail(package.context_blocks, package.reading.sections),
+                )
+            )
+            if focus != "overview":
+                highlight_block = _find_block(package.context_blocks, "focus-highlights")
+                checks.append(
+                    EvalCheck(
+                        name=f"timing-product-{focus}-highlight-sources",
+                        passed=highlight_block is not None and bool(highlight_block.sources),
+                        detail=f"sources={len(highlight_block.sources) if highlight_block else 0}",
+                    )
+                )
+
+        unique_outputs = len(set(focus_outputs.values()))
+        checks.append(
+            EvalCheck(
+                name="timing-focus-diversity",
+                passed=unique_outputs >= 4,
+                detail=f"unique_outputs={unique_outputs}",
+            )
+        )
+
+        results.append(
+            EvalCaseResult(
+                case_id=fixture["id"],
+                passed=all(check.passed for check in checks),
+                checks=tuple(checks),
+            )
+        )
+
+    return _suite_from_results("timing-smoke", results)
+
+
+def run_timing_narrative_eval_suite(cases_path: str | Path) -> EvalSuiteResult:
+    cases = json.loads(Path(cases_path).read_text(encoding="utf-8"))
+    results: list[EvalCaseResult] = []
+
+    for case in cases:
+        timing = _build_timing_from_fixture(case)
+        package = build_timing_product(
+            timing,
+            focus=case["focus"],
+            question=case.get("question"),
+            citation_mode=case.get("citation_mode", "none"),
+        )
+        text = package.answer_markdown
+        checks: list[EvalCheck] = []
+
+        checks.append(
+            EvalCheck(
+                name="citation-mode",
+                passed=package.answer_citation_mode == case.get("citation_mode", "none"),
+                detail=package.answer_citation_mode,
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="has-focus",
+                passed=f"当前聚焦：{case['focus']}" in text,
+                detail=case["focus"],
+            )
+        )
+
+        for pattern in case.get("required_substrings", []):
+            checks.append(
+                EvalCheck(
+                    name=f"required:{pattern}",
+                    passed=pattern in text,
+                    detail=pattern,
+                )
+            )
+
+        for pattern in case.get("forbidden_substrings", []):
+            checks.append(
+                EvalCheck(
+                    name=f"forbidden:{pattern}",
+                    passed=pattern not in text,
+                    detail=pattern,
+                )
+            )
+
+        for key in case.get("required_block_keys", []):
+            checks.append(
+                EvalCheck(
+                    name=f"block:{key}",
+                    passed=any(block.key == key for block in package.context_blocks),
+                    detail=key,
+                )
+            )
+
+        for key in case.get("required_source_blocks", []):
+            block = _find_block(package.context_blocks, key)
+            checks.append(
+                EvalCheck(
+                    name=f"source-block:{key}",
+                    passed=block is not None and bool(block.sources),
+                    detail=f"sources={len(block.sources) if block else 0}",
+                )
+            )
+            if block is not None and block.sources:
+                checks.append(
+                    EvalCheck(
+                        name=f"source-block-integrity:{key}",
+                        passed=_sources_are_valid(block.sources),
+                        detail=_source_integrity_detail(block.sources),
+                    )
+                )
+
+        for key, expected_kinds in case.get("required_block_source_kinds", {}).items():
+            block = _find_block(package.context_blocks, key)
+            present_kinds = {source.kind for source in block.sources} if block is not None else set()
+            missing = [kind for kind in expected_kinds if kind not in present_kinds]
+            checks.append(
+                EvalCheck(
+                    name=f"source-kinds:{key}",
+                    passed=not missing,
+                    detail=f"present={sorted(present_kinds)} missing={missing}",
+                )
+            )
+
+        for key in case.get("required_citation_keys", []):
+            citation = _find_answer_citation(package.answer_citations, key)
+            checks.append(
+                EvalCheck(
+                    name=f"answer-citation:{key}",
+                    passed=citation is not None and bool(citation.sources),
+                    detail=f"sources={len(citation.sources) if citation else 0}",
+                )
+            )
+            if citation is not None and case.get("citation_mode", "none") == "sources":
+                rendered_line = _render_expected_source_line(citation.sources)
+                checks.append(
+                    EvalCheck(
+                        name=f"answer-citation-render:{key}",
+                        passed=rendered_line in text,
+                        detail=rendered_line,
+                    )
+                )
+
+        for key, expected_kinds in case.get("required_citation_source_kinds", {}).items():
+            citation = _find_answer_citation(package.answer_citations, key)
+            present_kinds = {source.kind for source in citation.sources} if citation is not None else set()
+            missing = [kind for kind in expected_kinds if kind not in present_kinds]
+            checks.append(
+                EvalCheck(
+                    name=f"answer-citation-kinds:{key}",
+                    passed=not missing,
+                    detail=f"present={sorted(present_kinds)} missing={missing}",
+                )
+            )
+
+        results.append(
+            EvalCaseResult(
+                case_id=case["id"],
+                passed=all(check.passed for check in checks),
+                checks=tuple(checks),
+            )
+        )
+
+    return _suite_from_results("timing-narrative", results)
+
+
 def _suite_from_results(name: str, results: list[EvalCaseResult]) -> EvalSuiteResult:
     passed = sum(1 for result in results if result.passed)
     total = len(results)
@@ -600,6 +859,16 @@ def _build_relationship_comparison_from_fixture(fixture: dict[str, Any]):
         right,
         left_label=fixture.get("left_label", "A"),
         right_label=fixture.get("right_label", "B"),
+    )
+
+
+def _build_timing_from_fixture(fixture: dict[str, Any]):
+    natal = normalize_birth_input(**fixture["natal_input"])
+    transit = normalize_birth_input(**fixture["transit_input"])
+    return analyze_timing(
+        natal,
+        transit,
+        timing_label=fixture.get("timing_label", "current"),
     )
 
 

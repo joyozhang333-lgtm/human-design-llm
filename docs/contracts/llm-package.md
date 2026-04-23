@@ -12,6 +12,7 @@
 | `product_name` | `string` | 稳定 | 当前固定为 `human-design-llm` |
 | `product_version` | `string` | 稳定 | 产品包版本 |
 | `focus` | `string` | 稳定 | `overview / career / relationship / decision / growth` |
+| `delivery_depth` | `string` | 稳定 | `brief / standard / deep` |
 | `question` | `string|null` | 稳定 | 用户原始问题 |
 | `system_prompt` | `string` | 稳定 | runtime 可直接使用的系统提示 |
 | `assistant_instructions` | `array[string]` | 稳定 | 执行约束 |
@@ -20,6 +21,7 @@
 | `answer_citations` | `array` | 稳定 | 最终回答段落到知识卡来源的结构化映射 |
 | `answer_markdown` | `string` | 稳定 | 直接可展示的回答草稿 |
 | `suggested_followups` | `array[string]` | 稳定 | 推荐继续追问 |
+| `session_state` | `object` | 稳定 | 下一轮会话可直接复用的状态摘要 |
 | `reading` | `object` | 稳定 | 完整 `HumanDesignReading` |
 
 ## `context_blocks`
@@ -131,6 +133,25 @@
 1. `answer_citations` 是最终回答层的结构化 trace，不依赖 markdown 是否显示来源。
 2. `key` 默认对应 `focus-highlights` 或 section key。
 3. `sources` 的对象结构与 `context_blocks[*].sources` 相同。
+
+## `delivery_depth`
+
+统一规则见 [output-depth.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/output-depth.md)。
+
+当前要求：
+
+1. `brief` 必须比 `deep` 更短，而不是只改一个标签。
+2. `delivery_depth` 应同时影响 section 数量、高亮数量和 followup 数量。
+
+## `session_state`
+
+统一规则见 [session.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/session.md)。
+
+当前要求：
+
+1. `session_state.product_line` 对单人产品固定为 `single`。
+2. `carry_block_keys` 正常情况下不应为空。
+3. `suggested_next_questions` 应与 `suggested_followups` 保持同向。
 
 ## 兼容性规则
 

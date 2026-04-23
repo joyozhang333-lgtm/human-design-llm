@@ -235,14 +235,20 @@
 
 ## 当前阶段
 
-当前已进入：
+当前已完成：
 
+- `Phase 1: Uncertainty`
+- `Phase 2: Relationship`
 - `Phase 3: Timing`
+- `Phase 4: Output & Session`
+- `Phase 5: Full Release`
 
-当前动作：
+最终收口结果：
 
-- relationship phase 已完成 comparison / reading / product / eval gate
-- 冻结 timing schema 与输入边界
-- 下一轮落 timing baseline、脚本与测试
+- `scripts/evaluate_v2.py`：`100/100`
+- `pytest`：`57 passed`
+- `smoke_all.py`：`5/5 passed`
+- `evaluate_relationship.py`：`6/6 passed`
+- `evaluate_timing.py`：`6/6 passed`
 
-这一轮完成前，不切去 output/session。
+本轮已经满足 `>= 90` 的停止条件，因此 `V2.0` 主循环结束，后续进入维护、精修或 `v2.x` 演进阶段。

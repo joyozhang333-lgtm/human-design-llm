@@ -18,6 +18,7 @@
 | `product_name` | `string` | 稳定 | 当前为 relationship 产品名 |
 | `product_version` | `string` | 稳定 | 版本号 |
 | `focus` | `string` | 稳定 | 当前关系焦点 |
+| `delivery_depth` | `string` | 稳定 | `brief / standard / deep` |
 | `question` | `string|null` | 稳定 | 用户问题 |
 | `system_prompt` | `string` | 稳定 | runtime 系统提示 |
 | `assistant_instructions` | `array[string]` | 稳定 | 回答规约 |
@@ -26,6 +27,7 @@
 | `answer_citations` | `array` | 稳定 | 最终回答引用映射 |
 | `answer_markdown` | `string` | 稳定 | 最终回答 |
 | `suggested_followups` | `array[string]` | 稳定 | 继续追问建议 |
+| `session_state` | `object` | 稳定 | 下一轮关系会话状态摘要 |
 | `comparison` | `object` | 稳定 | 原始比较结果 |
 | `reading` | `object` | 稳定 | `RelationshipReading` |
 
@@ -59,6 +61,24 @@
 
 1. `focus-highlights` 如果存在，应同时出现在 `answer_citations` 中。
 2. section block 的 `sources` 应与 `reading.sections[*].sources` 保持一致。
+
+## `delivery_depth`
+
+统一规则见 [output-depth.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/output-depth.md)。
+
+relationship 基线要求：
+
+1. `brief` 应更偏向快速建立关系骨架。
+2. `deep` 应保留更多 section 和 followups，便于连续追问。
+
+## `session_state`
+
+统一规则见 [session.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/session.md)。
+
+relationship 基线要求：
+
+1. `session_state.product_line` 固定为 `relationship`。
+2. `carry_facts` 应优先保留双方关系骨架与摩擦/共鸣事实。
 
 ## 兼容性规则
 

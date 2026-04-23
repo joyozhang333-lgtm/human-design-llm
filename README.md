@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.5.1`
+当前版本：`2.0.0`
 
 这版已经完成三层收口：
 
@@ -58,10 +58,15 @@ human-design-product/
 ├── scripts/
 │   ├── calculate_chart.py
 │   ├── compare_relationship.py
+│   ├── evaluate_relationship.py
+│   ├── evaluate_timing.py
+│   ├── evaluate_v2.py
 │   ├── evaluate_narrative.py
 │   ├── generate_llm_product.py
 │   ├── generate_relationship_product.py
 │   ├── generate_relationship_reading.py
+│   ├── generate_timing_product.py
+│   ├── generate_timing_reading.py
 │   ├── install_skill.py
 │   ├── generate_reading.py
 │   └── smoke_all.py
@@ -88,6 +93,11 @@ python scripts/compare_relationship.py '1988-10-09T20:30:00+08:00' '1992-01-03T0
 python scripts/generate_relationship_reading.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方
 python scripts/generate_relationship_product.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方 --focus communication --question '我们为什么一沟通就容易拉扯？'
 python scripts/evaluate_relationship.py
+python scripts/analyze_timing.py '1988-10-09T20:30:00+08:00' '2026-04-23T10:00:00+08:00' --label today
+python scripts/generate_timing_reading.py '1988-10-09T20:30:00+08:00' '2026-04-23T10:00:00+08:00' --label today
+python scripts/generate_timing_product.py '1988-10-09T20:30:00+08:00' '2026-04-23T10:00:00+08:00' --label today --focus decision --question '我现在要不要推进这个决定？'
+python scripts/evaluate_timing.py
+python scripts/evaluate_v2.py
 python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？' --format markdown --citation-mode sources
@@ -139,6 +149,7 @@ python scripts/evaluate_narrative.py
 从 `1.1.0` 开始，`reading.sections[*]` 和 `llm_package.context_blocks[*]` 还会附带结构化 `sources`，把每段输出对应到具体知识卡路径，方便 runtime 做可解释性、trace 和二次评测。
 从 `1.2.0` 开始，`llm_package` 还会附带 `answer_citations`，并支持通过 `citation_mode=sources` 把最终回答直接映射回具体知识卡。
 当前 narrative eval 也已经覆盖 `citation_mode=sources` 的回答渲染一致性。
+从 `2.0.0` 开始，single / relationship / timing 三条产品线统一支持 `brief / standard / deep` 三档输出深度，并把 `session_state` 暴露成结构化会话连续性对象，供 runtime 和评测层直接复用。
 
 ## 当前知识库状态
 
@@ -184,6 +195,24 @@ python scripts/evaluate_narrative.py
 - 带 `sources` 的关系回答 markdown
 - relationship smoke / narrative eval
 
+`V2.0` 的第三阶段 `timing` 也已经进入结构化基线。
+现在可以对本命盘和指定时点的 transit/timing 场做对照，输出：
+
+- 当前被放大的开放中心
+- 当前锚定的稳定中心
+- 本命与当前时机共享 / 独有的通道和闸门
+- timing reading
+- timing LLM product package
+- timing smoke / narrative eval
+
+`V2.0` 的第四、五阶段 `output/session` 与 `full release` 也已经收口完成。
+现在三条产品线已经统一具备：
+
+- `delivery_depth`
+- `session_state`
+- `evaluate_v2.py` 真实行为评分
+- `>= 90` 的停止条件验证
+
 `generate_reading.py` 默认输出 Markdown 成稿，也支持 `--format json` 输出完整结构化阅读对象。
 `generate_llm_product.py` 默认输出完整 JSON 产品包，也支持 `--format markdown` 只输出最终回答成稿。
 
@@ -215,6 +244,8 @@ python scripts/evaluate_narrative.py
 详细版本路线见 [docs/roadmap.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/roadmap.md)。
 详细开发、评审、提交节奏见 [docs/execution-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/execution-plan.md)。
 `V2.0` 的持续开发循环见 [docs/v2-delivery-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/v2-delivery-plan.md)。
+完整规划与停止条件见 [docs/v2-master-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/v2-master-plan.md)。
+评分标准见 [docs/v2-scorecard.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/v2-scorecard.md)。
 结构契约见：
 
 - [docs/contracts/chart.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/chart.md)
@@ -224,3 +255,8 @@ python scripts/evaluate_narrative.py
 - [docs/contracts/relationship.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/relationship.md)
 - [docs/contracts/relationship-reading.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/relationship-reading.md)
 - [docs/contracts/relationship-package.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/relationship-package.md)
+- [docs/contracts/timing.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/timing.md)
+- [docs/contracts/timing-reading.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/timing-reading.md)
+- [docs/contracts/timing-package.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/timing-package.md)
+- [docs/contracts/output-depth.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/output-depth.md)
+- [docs/contracts/session.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/session.md)

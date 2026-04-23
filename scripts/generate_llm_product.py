@@ -64,6 +64,12 @@ def parse_args() -> argparse.Namespace:
         default="none",
         help="Optional citation rendering mode for answer_markdown.",
     )
+    parser.add_argument(
+        "--depth",
+        choices=("brief", "standard", "deep"),
+        default="standard",
+        help="Answer depth mode.",
+    )
     return parser.parse_args()
 
 
@@ -87,6 +93,7 @@ def main() -> int:
         focus=args.focus,
         question=args.question,
         citation_mode=args.citation_mode,
+        depth=args.depth,
     )
     if args.format == "markdown":
         print(package.answer_markdown, end="")

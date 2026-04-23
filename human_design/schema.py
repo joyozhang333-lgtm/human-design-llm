@@ -234,6 +234,45 @@ class RelationshipReading(JsonMixin):
 
 
 @dataclass(frozen=True)
+class TimingCodeDelta(JsonMixin):
+    shared: tuple[str, ...]
+    natal_only: tuple[str, ...]
+    transit_only: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class TimingIntDelta(JsonMixin):
+    shared: tuple[int, ...]
+    natal_only: tuple[int, ...]
+    transit_only: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class TimingAnalysisResult(JsonMixin):
+    generated_at_utc: str
+    timing_label: str
+    transit_datetime_local: str
+    transit_datetime_utc: str
+    pressured_open_centers: tuple[str, ...]
+    anchored_defined_centers: tuple[str, ...]
+    centers: TimingCodeDelta
+    channels: TimingCodeDelta
+    gates: TimingIntDelta
+    natal_chart: HumanDesignChart
+    transit_chart: HumanDesignChart
+
+
+@dataclass(frozen=True)
+class TimingReading(JsonMixin):
+    generated_at_utc: str
+    headline: str
+    quick_facts: tuple[str, ...]
+    sections: tuple["ReadingSection", ...]
+    suggested_questions: tuple[str, ...]
+    timing: TimingAnalysisResult
+
+
+@dataclass(frozen=True)
 class SourceReference(JsonMixin):
     kind: str
     code: str
@@ -248,6 +287,16 @@ class ReadingSection(JsonMixin):
     summary: str
     bullets: tuple[str, ...]
     sources: tuple[SourceReference, ...] = ()
+
+
+@dataclass(frozen=True)
+class SessionState(JsonMixin):
+    product_line: str
+    focus: str
+    headline: str
+    carry_facts: tuple[str, ...]
+    carry_block_keys: tuple[str, ...]
+    suggested_next_questions: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -281,6 +330,7 @@ class LLMProductPackage(JsonMixin):
     product_name: str
     product_version: str
     focus: str
+    delivery_depth: str
     question: str | None
     system_prompt: str
     assistant_instructions: tuple[str, ...]
@@ -289,6 +339,7 @@ class LLMProductPackage(JsonMixin):
     answer_citations: tuple[AnswerCitation, ...]
     answer_markdown: str
     suggested_followups: tuple[str, ...]
+    session_state: SessionState
     reading: HumanDesignReading
 
 
@@ -298,6 +349,7 @@ class RelationshipProductPackage(JsonMixin):
     product_name: str
     product_version: str
     focus: str
+    delivery_depth: str
     question: str | None
     system_prompt: str
     assistant_instructions: tuple[str, ...]
@@ -306,5 +358,26 @@ class RelationshipProductPackage(JsonMixin):
     answer_citations: tuple[AnswerCitation, ...]
     answer_markdown: str
     suggested_followups: tuple[str, ...]
+    session_state: SessionState
     comparison: RelationshipComparisonResult
     reading: RelationshipReading
+
+
+@dataclass(frozen=True)
+class TimingProductPackage(JsonMixin):
+    generated_at_utc: str
+    product_name: str
+    product_version: str
+    focus: str
+    delivery_depth: str
+    question: str | None
+    system_prompt: str
+    assistant_instructions: tuple[str, ...]
+    context_blocks: tuple[LLMContextBlock, ...]
+    answer_citation_mode: str
+    answer_citations: tuple[AnswerCitation, ...]
+    answer_markdown: str
+    suggested_followups: tuple[str, ...]
+    session_state: SessionState
+    timing: TimingAnalysisResult
+    reading: TimingReading
