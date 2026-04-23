@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.1 - 2026-04-23
+
+- 新增 `run_relationship_smoke_suite()` 与 `run_relationship_narrative_eval_suite()`
+- 新增 `scripts/evaluate_relationship.py`
+- 新增 3 组 relationship smoke fixture 与 3 组 narrative case
+- 让 `Phase 2: Relationship` 的 sources / citations / narrative gate 可验证
+- 将产品版本切到 `1.5.1`
+
 ## 1.5.0 - 2026-04-23
 
 - 新增 `RelationshipReading` 与 `RelationshipProductPackage`

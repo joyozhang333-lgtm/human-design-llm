@@ -1,0 +1,38 @@
+[
+  {
+    "id": "projector-generator-pair",
+    "left_label": "我",
+    "right_label": "对方",
+    "left_input": {
+      "birth_time": "1988-10-09T20:30:00+08:00"
+    },
+    "right_input": {
+      "birth_time": "1992-01-03T06:15:00-05:00"
+    }
+  },
+  {
+    "id": "mixed-precision-pair",
+    "left_label": "A",
+    "right_label": "B",
+    "left_input": {
+      "birth_time": "2001-06-21T14:45:00",
+      "timezone_name": "Europe/London"
+    },
+    "right_input": {
+      "birth_time": "1999-03-14T08:05:00"
+    }
+  },
+  {
+    "id": "asia-pair",
+    "left_label": "左侧",
+    "right_label": "右侧",
+    "left_input": {
+      "birth_time": "1977-12-01T23:59:00",
+      "timezone_name": "Asia/Tokyo"
+    },
+    "right_input": {
+      "birth_time": "1988-10-09T20:30:00",
+      "timezone_name": "Asia/Shanghai"
+    }
+  }
+]

@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.5.0`
+当前版本：`1.5.1`
 
 这版已经完成三层收口：
 
@@ -87,6 +87,7 @@ python scripts/analyze_uncertainty.py '1988-10-09T20:00:00' '1988-10-09T21:00:00
 python scripts/compare_relationship.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方
 python scripts/generate_relationship_reading.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方
 python scripts/generate_relationship_product.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方 --focus communication --question '我们为什么一沟通就容易拉扯？'
+python scripts/evaluate_relationship.py
 python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？' --format markdown --citation-mode sources
@@ -181,6 +182,7 @@ python scripts/evaluate_narrative.py
 - relationship LLM product package
 - relationship answer citations
 - 带 `sources` 的关系回答 markdown
+- relationship smoke / narrative eval
 
 `generate_reading.py` 默认输出 Markdown 成稿，也支持 `--format json` 输出完整结构化阅读对象。
 `generate_llm_product.py` 默认输出完整 JSON 产品包，也支持 `--format markdown` 只输出最终回答成稿。

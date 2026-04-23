@@ -237,12 +237,12 @@
 
 当前已进入：
 
-- `Phase 2: Relationship`
+- `Phase 3: Timing`
 
 当前动作：
 
-- relationship comparison schema 已落地
-- relationship reading / product package 已接入
-- 下一轮补 relationship eval、narrative case 和 release gate
+- relationship phase 已完成 comparison / reading / product / eval gate
+- 冻结 timing schema 与输入边界
+- 下一轮落 timing baseline、脚本与测试
 
-这一轮完成前，不切去 timing。
+这一轮完成前，不切去 output/session。
