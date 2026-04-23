@@ -6,17 +6,25 @@
     },
     "focus": "career",
     "question": "我在工作里最该怎么用这张图？",
+    "citation_mode": "sources",
     "required_substrings": [
       "当前聚焦：career",
       "问题切口",
       "团队与协作场景",
-      "焦点提示"
+      "焦点提示",
+      "来源："
     ],
     "required_block_keys": ["question-lens", "focus-highlights"],
     "required_source_blocks": ["focus-highlights", "decision", "profile-definition", "channels"],
     "required_block_source_kinds": {
       "decision": ["authority"],
       "profile-definition": ["profile", "definition"],
+      "channels": ["channel"]
+    },
+    "required_citation_keys": ["focus-highlights", "decision", "channels"],
+    "required_citation_source_kinds": {
+      "focus-highlights": ["type", "authority"],
+      "decision": ["authority"],
       "channels": ["channel"]
     },
     "forbidden_substrings": ["医疗建议", "法律建议"]

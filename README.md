@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.2.0`
+当前版本：`1.2.1`
 
 这版已经完成三层收口：
 
@@ -129,6 +129,7 @@ python scripts/evaluate_narrative.py
 
 从 `1.1.0` 开始，`reading.sections[*]` 和 `llm_package.context_blocks[*]` 还会附带结构化 `sources`，把每段输出对应到具体知识卡路径，方便 runtime 做可解释性、trace 和二次评测。
 从 `1.2.0` 开始，`llm_package` 还会附带 `answer_citations`，并支持通过 `citation_mode=sources` 把最终回答直接映射回具体知识卡。
+当前 narrative eval 也已经覆盖 `citation_mode=sources` 的回答渲染一致性。
 
 ## 当前知识库状态
 

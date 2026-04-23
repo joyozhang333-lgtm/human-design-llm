@@ -11,6 +11,7 @@
 - 抽样检查至少一例 `input.warnings` 场景
 - 确认 narrative eval 已覆盖关键 block 的 `sources` 与 source kind 校验
 - 抽样运行一例 `python scripts/generate_llm_product.py ... --format markdown --citation-mode sources`
+- 确认 answer-level `answer_citations` 与 `citation_mode=sources` 的 markdown 渲染一致
 - `README.md`、`SKILL.md`、`docs/install.md` 已同步当前行为
 - `agents/openai.yaml` 存在且描述未过时
 - `runtimes/` 至少包含 `codex / hermes / openclaw`

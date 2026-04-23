@@ -99,6 +99,7 @@ def run_smoke_suite(fixtures_path: str | Path) -> EvalSuiteResult:
         focus_outputs: dict[str, str] = {}
         for focus in FOCUSES:
             package = build_llm_product(chart, focus=focus)
+            cited_package = build_llm_product(chart, focus=focus, citation_mode="sources")
             focus_outputs[focus] = package.answer_markdown
             checks.append(
                 EvalCheck(
@@ -111,6 +112,13 @@ def run_smoke_suite(fixtures_path: str | Path) -> EvalSuiteResult:
             )
             checks.append(
                 EvalCheck(
+                    name=f"product-{focus}-answer-citation-mode-stable",
+                    passed=package.answer_citations == cited_package.answer_citations,
+                    detail=f"citations={len(package.answer_citations)}",
+                )
+            )
+            checks.append(
+                EvalCheck(
                     name=f"product-{focus}-answer-citation-integrity",
                     passed=_answer_citations_are_valid(package.answer_citations),
                     detail=_answer_citation_detail(package.answer_citations),
@@ -118,9 +126,24 @@ def run_smoke_suite(fixtures_path: str | Path) -> EvalSuiteResult:
             )
             checks.append(
                 EvalCheck(
-                    name=f"product-{focus}-answer-citation-sync",
-                    passed=_answer_citations_match_sections(package.answer_citations, package.reading.sections),
-                    detail=_answer_citation_sync_detail(package.answer_citations, package.reading.sections),
+                    name=f"product-{focus}-answer-citation-scope-sync",
+                    passed=_answer_citations_match_scope(
+                        package.answer_citations,
+                        package.context_blocks,
+                        package.reading.sections,
+                    ),
+                    detail=_answer_citation_scope_detail(
+                        package.answer_citations,
+                        package.context_blocks,
+                        package.reading.sections,
+                    ),
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"product-{focus}-answer-markdown-citation-render",
+                    passed=_answer_markdown_renders_citations(cited_package),
+                    detail=_answer_markdown_citation_detail(cited_package),
                 )
             )
             checks.append(
@@ -178,9 +201,18 @@ def run_narrative_eval_suite(cases_path: str | Path) -> EvalSuiteResult:
             chart,
             focus=case["focus"],
             question=case.get("question"),
+            citation_mode=case.get("citation_mode", "none"),
         )
         text = package.answer_markdown
         checks: list[EvalCheck] = []
+
+        checks.append(
+            EvalCheck(
+                name="citation-mode",
+                passed=package.answer_citation_mode == case.get("citation_mode", "none"),
+                detail=package.answer_citation_mode,
+            )
+        )
 
         checks.append(
             EvalCheck(
@@ -247,6 +279,37 @@ def run_narrative_eval_suite(cases_path: str | Path) -> EvalSuiteResult:
                 )
             )
 
+        for key in case.get("required_citation_keys", []):
+            citation = _find_answer_citation(package.answer_citations, key)
+            checks.append(
+                EvalCheck(
+                    name=f"answer-citation:{key}",
+                    passed=citation is not None and bool(citation.sources),
+                    detail=f"sources={len(citation.sources) if citation else 0}",
+                )
+            )
+            if citation is not None and case.get("citation_mode", "none") == "sources":
+                rendered_line = _render_expected_source_line(citation.sources)
+                checks.append(
+                    EvalCheck(
+                        name=f"answer-citation-render:{key}",
+                        passed=rendered_line in text,
+                        detail=rendered_line,
+                    )
+                )
+
+        for key, expected_kinds in case.get("required_citation_source_kinds", {}).items():
+            citation = _find_answer_citation(package.answer_citations, key)
+            present_kinds = {source.kind for source in citation.sources} if citation is not None else set()
+            missing = [kind for kind in expected_kinds if kind not in present_kinds]
+            checks.append(
+                EvalCheck(
+                    name=f"answer-citation-kinds:{key}",
+                    passed=not missing,
+                    detail=f"present={sorted(present_kinds)} missing={missing}",
+                )
+            )
+
         results.append(
             EvalCaseResult(
                 case_id=case["id"],
@@ -272,6 +335,13 @@ def _suite_from_results(name: str, results: list[EvalCaseResult]) -> EvalSuiteRe
 
 def _find_block(blocks: tuple[LLMContextBlock, ...], key: str) -> LLMContextBlock | None:
     return next((block for block in blocks if block.key == key), None)
+
+
+def _find_answer_citation(
+    citations: tuple[AnswerCitation, ...],
+    key: str,
+) -> AnswerCitation | None:
+    return next((citation for citation in citations if citation.key == key), None)
 
 
 def _collect_reading_sources(sections: tuple[ReadingSection, ...]) -> tuple[SourceReference, ...]:
@@ -341,30 +411,78 @@ def _answer_citation_detail(citations: tuple[AnswerCitation, ...]) -> str:
     return f"citations={len(citations)} invalid={invalid}"
 
 
-def _answer_citations_match_sections(
+def _answer_citations_match_scope(
     citations: tuple[AnswerCitation, ...],
+    blocks: tuple[LLMContextBlock, ...],
     sections: tuple[ReadingSection, ...],
 ) -> bool:
-    return not _answer_citation_mismatches(citations, sections)
+    return not _answer_citation_mismatches(citations, blocks, sections)
 
 
-def _answer_citation_sync_detail(
+def _answer_citation_scope_detail(
     citations: tuple[AnswerCitation, ...],
+    blocks: tuple[LLMContextBlock, ...],
     sections: tuple[ReadingSection, ...],
 ) -> str:
-    return f"mismatches={_answer_citation_mismatches(citations, sections)}"
+    return f"mismatches={_answer_citation_mismatches(citations, blocks, sections)}"
 
 
 def _answer_citation_mismatches(
     citations: tuple[AnswerCitation, ...],
+    blocks: tuple[LLMContextBlock, ...],
     sections: tuple[ReadingSection, ...],
 ) -> list[str]:
     citation_map = {citation.key: citation for citation in citations}
+    block_map = {block.key: block for block in blocks}
+    selected_section_keys = {section.key for section in sections if section.key in block_map}
+    allowed_keys = set(selected_section_keys)
+    if "focus-highlights" in block_map:
+        allowed_keys.add("focus-highlights")
     mismatches: list[str] = []
+    for citation in citations:
+        if citation.key not in allowed_keys:
+            mismatches.append(citation.key)
+            continue
+        if citation.key == "focus-highlights":
+            block = block_map.get("focus-highlights")
+            if block is None or _source_signature(citation.sources) != _source_signature(block.sources):
+                mismatches.append(citation.key)
+    highlight_block = block_map.get("focus-highlights")
+    if highlight_block is not None and highlight_block.sources and "focus-highlights" not in citation_map:
+        mismatches.append("focus-highlights")
     for section in sections:
+        if section.key not in selected_section_keys:
+            continue
         citation = citation_map.get(section.key)
+        if section.sources and citation is None:
+            mismatches.append(section.key)
+            continue
         if citation is None:
             continue
         if _source_signature(citation.sources) != _source_signature(section.sources):
             mismatches.append(section.key)
     return mismatches
+
+
+def _answer_markdown_renders_citations(package) -> bool:
+    if package.answer_citation_mode != "sources":
+        return False
+    return not _answer_markdown_citation_mismatches(package)
+
+
+def _answer_markdown_citation_detail(package) -> str:
+    return f"mismatches={_answer_markdown_citation_mismatches(package)}"
+
+
+def _answer_markdown_citation_mismatches(package) -> list[str]:
+    mismatches: list[str] = []
+    for citation in package.answer_citations:
+        rendered_line = _render_expected_source_line(citation.sources)
+        if rendered_line not in package.answer_markdown:
+            mismatches.append(citation.key)
+    return mismatches
+
+
+def _render_expected_source_line(sources: tuple[SourceReference, ...]) -> str:
+    items = [f"[{source.kind}:{source.code}]({source.path})" for source in sources]
+    return "来源：" + "；".join(items)

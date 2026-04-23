@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 - 2026-04-23
+
+- 扩展 smoke，增加 `answer_citations` scope/sync 与 markdown 渲染检查
+- 扩展 narrative eval，支持 case 级 `citation_mode` 与 answer citation 校验
+- 把 `citation_mode=sources` 正式纳入 narrative fixture 回归
+- 将产品版本切到 `1.2.1`
+
 ## 1.2.0 - 2026-04-23
 
 - 为 `llm_package` 增加 `answer_citation_mode` 与 `answer_citations`
