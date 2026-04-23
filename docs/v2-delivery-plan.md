@@ -237,13 +237,13 @@
 
 当前已进入：
 
-- `Phase 1: Uncertainty`
+- `Phase 2: Relationship`
 
 当前动作：
 
-- 冻结 uncertainty schema
-- 落地 range input
-- 增加 uncertainty analysis
-- 增加 script 和 tests
+- 冻结 relationship comparison schema
+- 落地双人盘对照逻辑
+- 增加 comparison script 和 tests
+- 下一轮把 relationship reading / product package 接进来
 
-这一阶段完成前，不切去 relationship 或 timing。
+这一轮完成前，不切去 timing。

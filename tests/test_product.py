@@ -17,7 +17,7 @@ def test_build_llm_product_generates_session_package() -> None:
     )
 
     assert package.product_name == "human-design-llm"
-    assert package.product_version == __version__ == "1.3.0"
+    assert package.product_version == __version__ == "1.4.0"
     assert package.focus == "career"
     assert package.question == "我在工作里最该怎么用这张图？"
     assert package.answer_citation_mode == "none"

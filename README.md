@@ -4,7 +4,7 @@
 
 当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
 
-当前版本：`1.3.0`
+当前版本：`1.4.0`
 
 这版已经完成三层收口：
 
@@ -44,6 +44,7 @@ human-design-product/
 │   ├── product.py
 │   ├── pyhd_adapter.py
 │   ├── reading.py
+│   ├── relationship.py
 │   ├── schema.py
 │   └── version.py
 ├── references/
@@ -56,6 +57,7 @@ human-design-product/
 │   └── openclaw/SYSTEM_PROMPT.md
 ├── scripts/
 │   ├── calculate_chart.py
+│   ├── compare_relationship.py
 │   ├── evaluate_narrative.py
 │   ├── generate_llm_product.py
 │   ├── install_skill.py
@@ -80,6 +82,7 @@ python scripts/calculate_chart.py '1988-10-09T20:30:00+08:00'
 python scripts/calculate_chart.py '1988-10-09T20:30:00' --timezone Asia/Shanghai
 python scripts/calculate_chart.py '1988-10-09T20:30:00' --city Shanghai --country China
 python scripts/analyze_uncertainty.py '1988-10-09T20:00:00' '1988-10-09T21:00:00' --timezone Asia/Shanghai --interval-minutes 30
+python scripts/compare_relationship.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方
 python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？'
 python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？' --format markdown --citation-mode sources
@@ -159,6 +162,15 @@ python scripts/evaluate_narrative.py
 - 哪些中心 / 通道 / 闸门会漂移
 - 每个采样点的轻量盘面结果
 
+`V2.0` 的第二阶段 `relationship` 也已经进入结构化基线。
+现在可以对两张盘做对照，输出：
+
+- 核心摘要字段是否相同
+- 双方共享 / 各自独有的定义中心
+- 双方共享 / 各自独有的通道
+- 双方共享 / 各自独有的激活闸门
+- 左右两侧完整 chart，便于后续关系 reading / package 复用
+
 `generate_reading.py` 默认输出 Markdown 成稿，也支持 `--format json` 输出完整结构化阅读对象。
 `generate_llm_product.py` 默认输出完整 JSON 产品包，也支持 `--format markdown` 只输出最终回答成稿。
 
@@ -196,3 +208,4 @@ python scripts/evaluate_narrative.py
 - [docs/contracts/reading.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/reading.md)
 - [docs/contracts/llm-package.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/llm-package.md)
 - [docs/contracts/uncertainty.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/uncertainty.md)
+- [docs/contracts/relationship.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/relationship.md)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 - 2026-04-23
+
+- 新增 `RelationshipComparisonResult` 与 `compare_relationship()`
+- 新增双人盘 CLI `scripts/compare_relationship.py`
+- 新增 relationship contract 与测试覆盖
+- 将 `V2.0` 当前阶段推进到 `Phase 2: Relationship`
+- 将产品版本切到 `1.4.0`
+
 ## 1.3.0 - 2026-04-23
 
 - 新增 `normalize_birth_time_range()`，支持出生时间区间归一化

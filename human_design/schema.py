@@ -189,6 +189,41 @@ class ChartUncertaintyResult(JsonMixin):
 
 
 @dataclass(frozen=True)
+class RelationshipFacetComparison(JsonMixin):
+    key: str
+    left: LabeledValue
+    right: LabeledValue
+    same: bool
+
+
+@dataclass(frozen=True)
+class RelationshipCodeDelta(JsonMixin):
+    shared: tuple[str, ...]
+    left_only: tuple[str, ...]
+    right_only: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class RelationshipIntDelta(JsonMixin):
+    shared: tuple[int, ...]
+    left_only: tuple[int, ...]
+    right_only: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class RelationshipComparisonResult(JsonMixin):
+    generated_at_utc: str
+    left_label: str
+    right_label: str
+    summary_facets: tuple[RelationshipFacetComparison, ...]
+    centers: RelationshipCodeDelta
+    channels: RelationshipCodeDelta
+    gates: RelationshipIntDelta
+    left_chart: HumanDesignChart
+    right_chart: HumanDesignChart
+
+
+@dataclass(frozen=True)
 class SourceReference(JsonMixin):
     kind: str
     code: str
