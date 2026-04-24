@@ -4,6 +4,7 @@ from pathlib import Path
 
 from human_design.evals import (
     run_narrative_eval_suite,
+    run_empirical_readiness_suite,
     run_public_figure_accuracy_suite,
     run_relationship_narrative_eval_suite,
     run_relationship_smoke_suite,
@@ -106,3 +107,20 @@ def test_run_public_figure_accuracy_suite_scores_above_90() -> None:
     assert any(check.name == "utc-conversion" for check in first_public_result.checks)
     assert any(check.name == "career-no-invented-channels" for check in first_public_result.checks)
     assert any(check.name == "bodygraph-svg-render" for check in first_public_result.checks)
+
+
+def test_run_empirical_readiness_suite_scores_above_90() -> None:
+    report = run_empirical_readiness_suite(
+        ROOT.parent / "docs" / "empirical-validation-protocol.md",
+        ROOT.parent / "docs" / "contracts" / "empirical-trial.md",
+        ROOT / "fixtures" / "empirical_forced_choice_demo.json",
+    )
+
+    assert report.failed == 0
+    assert report.total == 1
+    assert report.passed == 1
+    assert score_eval_checks(report) >= 90
+    checks = report.results[0].checks
+    assert any(check.name == "protocol-scientific-controls" for check in checks)
+    assert any(check.name == "demo-not-misrepresented-as-proof" for check in checks)
+    assert any(check.name == "truth-claim-discipline" for check in checks)

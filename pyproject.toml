@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "human-design-llm"
-version = "2.2.1"
+version = "2.3.0"
 description = "LLM-native Human Design BodyGraph chart engine, reading generator, career analysis, relationship comparison, timing context, and AI skill toolkit."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,6 +31,8 @@ keywords = [
   "career reading",
   "relationship chart",
   "transit analysis",
+  "empirical validation",
+  "blind test",
   "source citations",
   "人类图",
   "人类图排盘",

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.3.0 - 2026-04-24
+
+- 新增 `docs/empirical-validation-protocol.md`，把“人类图是否客观准确”拆成可证伪盲测命题、对照组、机会基线、p 值、置信区间和独立复现门槛
+- 新增 `docs/contracts/empirical-trial.md`，定义真实实验数据格式
+- 新增 `human_design.empirical.analyze_forced_choice_experiment()` 与 `scripts/analyze_empirical_trial.py`，支持分析 4 选 1 盲测数据、Wilson 置信区间和精确二项检验
+- 新增 `scripts/evaluate_empirical_readiness.py` 与 readiness suite，确保产品达到科学评估准备度 `>= 90`，同时防止把 demo fixture 误表述为科学证据
+- 将 `evaluate_v2.py` 接入经验验证准备度硬门槛
+- 将产品版本切到 `2.3.0`
+
 ## 2.2.1 - 2026-04-24
 
 - 新增 10 位公开人物 Astro-Databank AA/A 评级 fixture，用于真实样本回归

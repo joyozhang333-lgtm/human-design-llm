@@ -11,6 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from human_design.evals import (
+    run_empirical_readiness_suite,
     run_narrative_eval_suite,
     run_public_figure_accuracy_suite,
     run_relationship_narrative_eval_suite,
@@ -111,6 +112,12 @@ def evaluate_v2() -> dict:
         ROOT / "tests" / "fixtures" / "public_figures.json"
     )
     public_figure_score = score_eval_checks(public_figure_accuracy)
+    empirical_readiness = run_empirical_readiness_suite(
+        ROOT / "docs" / "empirical-validation-protocol.md",
+        ROOT / "docs" / "contracts" / "empirical-trial.md",
+        ROOT / "tests" / "fixtures" / "empirical_forced_choice_demo.json",
+    )
+    empirical_readiness_score = score_eval_checks(empirical_readiness)
 
     uncertainty = analyze_birth_time_range(
         "1988-10-09T20:00:00",
@@ -163,15 +170,22 @@ def evaluate_v2() -> dict:
     )
 
     public_figure_passed = public_figure_accuracy.failed == 0 and public_figure_score >= 90
+    empirical_readiness_passed = empirical_readiness.failed == 0 and empirical_readiness_score >= 90
     total = single_score + relationship_score + timing_score + output_session_score + release_score
     return {
         "score": total,
         "target": 90,
-        "passed": total >= 90 and public_figure_passed,
+        "passed": total >= 90 and public_figure_passed and empirical_readiness_passed,
         "public_figure_accuracy": {
             "score": public_figure_score,
             "target": 90,
             "passed": public_figure_passed,
+        },
+        "empirical_readiness": {
+            "score": empirical_readiness_score,
+            "target": 90,
+            "passed": empirical_readiness_passed,
+            "truth_claim_status": "not-established-without-real-preregistered-trial-data",
         },
         "breakdown": {
             "single": single_score,
@@ -189,6 +203,7 @@ def evaluate_v2() -> dict:
             "timing_smoke": timing_smoke.to_dict(),
             "timing_narrative": timing_narrative.to_dict(),
             "public_figure_accuracy": public_figure_accuracy.to_dict(),
+            "empirical_readiness": empirical_readiness.to_dict(),
         },
     }
 

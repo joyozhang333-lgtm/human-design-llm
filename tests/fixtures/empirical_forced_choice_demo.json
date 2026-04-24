@@ -1,0 +1,25 @@
+{
+  "id": "forced-choice-demo-format-only",
+  "experiment_type": "forced-choice-self-identification",
+  "status": "demo-format-only-not-evidence",
+  "claim": "Participants can identify their own Human Design report from decoys above chance.",
+  "preregistered": true,
+  "blinded": true,
+  "randomized": true,
+  "control_conditions": [
+    "shuffled-chart-decoys",
+    "generic-barnum-decoys",
+    "same-age-window-decoys"
+  ],
+  "options_per_trial": 4,
+  "minimum_sample_size": 120,
+  "alpha": 0.01,
+  "success_threshold": {
+    "accuracy": 0.45,
+    "ci_lower_above_chance": true
+  },
+  "summary": {
+    "trials": 120,
+    "correct": 66
+  }
+}

@@ -9,9 +9,9 @@ It is not a static Human Design website. It is a Python product layer that turns
 它不是一个静态网页，也不是单纯 prompt 模板，而是把出生资料转成结构化人类图事实，再把这些事实封装成大模型可直接使用的产品包。
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-2.2.1-black)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.3.0-black)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-66%20passing-brightgreen)](./tests)
+[![Tests](https://img.shields.io/badge/tests-69%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
 ## What It Does
@@ -55,7 +55,7 @@ This repository is designed for developers and AI builders who want to create:
 - **Source traceability**: output sections point back to local markdown reference cards under `references/`.
 - **Chinese-first reading quality**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
 - **Template-driven BodyGraph**: SVG rendering uses a stable bodygraph template, not ad-hoc drawing from scratch.
-- **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, public-figure accuracy checks, and `evaluate_v2.py` protect the product from shallow or generic output.
+- **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, public-figure accuracy checks, empirical-readiness checks, and `evaluate_v2.py` protect the product from shallow or generic output.
 
 ## Search Phrases This Repository Targets
 
@@ -70,6 +70,8 @@ English search intent:
 - Human Design career reading
 - Human Design relationship chart
 - Human Design transit analysis
+- Human Design empirical validation
+- Human Design blind test
 - AI astrology toolkit
 - Codex skill for Human Design
 
@@ -84,11 +86,13 @@ English search intent:
 - 人类图关系分析
 - 人类图流年
 - 人类图 BodyGraph
+- 人类图客观准确性
+- 人类图盲测
 - 大模型命理工具
 
 ## Current Release
 
-`2.2.1` is the open-source release for the current development cycle.
+`2.3.0` is the open-source release for the current development cycle.
 
 Release scope:
 
@@ -101,6 +105,7 @@ Release scope:
 - Codex-compatible skill metadata and runtime prompt adapters.
 - SEO-ready bilingual README, MIT license, package metadata, and release documentation.
 - Public-figure accuracy suite with 10 Astro-Databank AA/A-rated fixtures.
+- Empirical validation protocol, blinded forced-choice statistics script, and no-proof-without-data guardrails.
 
 ## Installation
 
@@ -235,12 +240,14 @@ These files are intentionally local and source-traceable so that LLM output can 
 
 Current local release validation:
 
-- `66` pytest cases passing.
+- `69` pytest cases passing.
 - `evaluate_v2.py` product score: `100/100`.
 - `evaluate_public_figures.py` public-figure accuracy score: `100/90`.
+- `evaluate_empirical_readiness.py` scientific validation readiness score: `100/90`.
 - Smoke tests for chart, reading, relationship, timing, citations, context blocks, delivery depth, and session state.
 - Narrative evals for focused answers and source rendering.
 - Public-figure evals for source rating, UTC conversion, chart structure, Chinese term quality, citation rendering, no invented gates/channels, and BodyGraph SVG rendering.
+- Empirical-readiness evals for falsifiable claims, blinded design, randomization, controls, chance baseline, p value, confidence interval, and truth-claim discipline.
 
 ## Documentation
 
@@ -256,6 +263,8 @@ Current local release validation:
 - [Timing contracts](./docs/contracts/timing.md)
 - [Output depth contract](./docs/contracts/output-depth.md)
 - [Session contract](./docs/contracts/session.md)
+- [Empirical validation protocol](./docs/empirical-validation-protocol.md)
+- [Empirical trial contract](./docs/contracts/empirical-trial.md)
 - [SEO documentation](./docs/SEO.md)
 
 ## Important Notes
@@ -263,6 +272,10 @@ Current local release validation:
 Human Design is used here as a reflective and interpretive framework. This project does not provide medical, legal, financial, psychological, or guaranteed life advice.
 
 人类图在本项目中被视为自我观察和反思工具，不应替代医学、法律、财务、心理咨询或任何现实专业建议。
+
+The empirical validation tooling is for falsifiable testing. Demo fixtures are not evidence, and the project should not claim Human Design is scientifically proven without real preregistered blinded trials and independent replication.
+
+本项目的实验评估工具用于可证伪测试。Demo fixture 不是科学证据；没有真实预注册盲测数据和独立复现前，不能宣称人类图已被科学证明。
 
 ## License
 

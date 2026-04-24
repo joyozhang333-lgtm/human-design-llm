@@ -16,7 +16,7 @@ Reason:
 
 Primary English:
 
-> Human Design AI toolkit for BodyGraph chart calculation, structured readings, career analysis, relationship comparison, timing context, source citations, and LLM skills.
+> Human Design AI toolkit for BodyGraph chart calculation, structured readings, career analysis, relationship comparison, timing context, empirical validation, source citations, and LLM skills.
 
 Technical English:
 
@@ -24,7 +24,7 @@ Technical English:
 
 中文：
 
-> 开源人类图 AI 工具库：BodyGraph 排盘、结构化解读、职业深读、关系合盘、时机分析、来源引用与 LLM skill。
+> 开源人类图 AI 工具库：BodyGraph 排盘、结构化解读、职业深读、关系合盘、时机分析、实验评估、来源引用与 LLM skill。
 
 ## GitHub Topics
 
@@ -46,6 +46,8 @@ Recommended topics:
 - `career-reading`
 - `relationship-analysis`
 - `transit-analysis`
+- `empirical-validation`
+- `blind-test`
 - `chart-calculator`
 - `human-design-api`
 - `chinese`
@@ -53,11 +55,11 @@ Recommended topics:
 
 ## English Keywords
 
-Human Design LLM, Human Design AI, Human Design chart calculator, BodyGraph chart generator, BodyGraph Python, Human Design reading generator, Human Design career reading, Human Design relationship chart, Human Design transit analysis, Human Design API backend, AI astrology toolkit, LLM-native Human Design, Codex skill Human Design, OpenAI skill Human Design.
+Human Design LLM, Human Design AI, Human Design chart calculator, BodyGraph chart generator, BodyGraph Python, Human Design reading generator, Human Design career reading, Human Design relationship chart, Human Design transit analysis, Human Design empirical validation, Human Design blind test, Human Design API backend, AI astrology toolkit, LLM-native Human Design, Codex skill Human Design, OpenAI skill Human Design.
 
 ## 中文关键词
 
-人类图，人类图排盘，人类图解读，人类图 AI，人类图大模型，人类图职业解读，人类图合盘，人类图关系分析，人类图流年，人类图 transit，人类图 BodyGraph，人类图 Python，人类图 API，人类图 skill，AI 命理工具，大模型命理工具。
+人类图，人类图排盘，人类图解读，人类图 AI，人类图大模型，人类图职业解读，人类图合盘，人类图关系分析，人类图流年，人类图 transit，人类图 BodyGraph，人类图客观准确性，人类图盲测，人类图实验评估，人类图 Python，人类图 API，人类图 skill，AI 命理工具，大模型命理工具。
 
 ## Content Structure
 
@@ -74,6 +76,7 @@ First paragraph target:
 - `career analysis`
 - `relationship comparison`
 - `timing/transit context`
+- `empirical validation`
 - `source-traceable LLM prompts`
 
 Chinese first paragraph target:
@@ -85,6 +88,7 @@ Chinese first paragraph target:
 - `人类图职业解读`
 - `人类图合盘`
 - `时机分析`
+- `实验评估`
 - `Codex skill`
 
 ## README Search Strategy
@@ -100,11 +104,11 @@ The README deliberately includes:
 
 One-line English positioning:
 
-> An open-source LLM-native Human Design toolkit for BodyGraph calculation, structured readings, career analysis, relationship comparison, timing context, and source-traceable AI answers.
+> An open-source LLM-native Human Design toolkit for BodyGraph calculation, structured readings, career analysis, relationship comparison, timing context, empirical validation, and source-traceable AI answers.
 
 One-line Chinese positioning:
 
-> 一个面向大模型和 AI Agent 的开源人类图工具库，覆盖 BodyGraph 排盘、结构化解读、职业深读、关系合盘、时机分析和可追溯引用回答。
+> 一个面向大模型和 AI Agent 的开源人类图工具库，覆盖 BodyGraph 排盘、结构化解读、职业深读、关系合盘、时机分析、实验评估和可追溯引用回答。
 
 ## Safety Positioning
 

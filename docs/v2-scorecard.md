@@ -18,6 +18,8 @@
 
 - `scripts/evaluate_public_figures.py` 必须达到 `>= 90`
 - 10 位公开人物样本必须全部通过来源、UTC、盘面结构、术语、引用、通道 / 闸门防幻觉和 SVG 出图检查
+- `scripts/evaluate_empirical_readiness.py` 必须达到 `>= 90`
+- 经验验证层必须明确区分“科学评估准备度”和“客观准确性已被证明”
 
 ## 当前门槛
 
@@ -45,3 +47,4 @@
 - `score = 100`
 - `passed = true`
 - `public_figure_accuracy.score = 100`
+- `empirical_readiness.score = 100`

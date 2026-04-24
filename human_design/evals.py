@@ -7,6 +7,7 @@ import re
 from typing import Any
 
 from .bodygraph import render_bodygraph_svg
+from .empirical import analyze_forced_choice_experiment
 from .engine import calculate_chart
 from .input import normalize_birth_input
 from .product import build_llm_product
@@ -36,6 +37,16 @@ PUBLIC_FIGURE_BANNED_TERMS = (
     "Mental Projector",
     "Ego Projected",
     "Wait for the Invitation",
+)
+EMPIRICAL_PROTOCOL_REQUIRED_TERMS = (
+    "可证伪",
+    "盲测",
+    "随机",
+    "对照",
+    "机会基线",
+    "p 值",
+    "置信区间",
+    "不能宣称",
 )
 
 
@@ -543,6 +554,88 @@ def score_eval_checks(report: EvalSuiteResult) -> int:
         return 0
     passed = sum(1 for check in checks if check.passed)
     return round(passed / len(checks) * 100)
+
+
+def run_empirical_readiness_suite(
+    protocol_path: str | Path,
+    contract_path: str | Path,
+    demo_experiment_path: str | Path,
+) -> EvalSuiteResult:
+    protocol = Path(protocol_path)
+    contract = Path(contract_path)
+    demo = Path(demo_experiment_path)
+    checks: list[EvalCheck] = []
+
+    protocol_text = protocol.read_text(encoding="utf-8") if protocol.exists() else ""
+    contract_text = contract.read_text(encoding="utf-8") if contract.exists() else ""
+
+    checks.append(
+        EvalCheck(
+            name="protocol-exists",
+            passed=protocol.exists() and len(protocol_text) > 2000,
+            detail=f"path={protocol} chars={len(protocol_text)}",
+        )
+    )
+    missing_terms = [term for term in EMPIRICAL_PROTOCOL_REQUIRED_TERMS if term not in protocol_text]
+    checks.append(
+        EvalCheck(
+            name="protocol-scientific-controls",
+            passed=not missing_terms,
+            detail=f"missing={missing_terms}",
+        )
+    )
+    checks.append(
+        EvalCheck(
+            name="contract-exists",
+            passed=contract.exists() and "experiment_type" in contract_text and "summary" in contract_text,
+            detail=f"path={contract} chars={len(contract_text)}",
+        )
+    )
+
+    result = analyze_forced_choice_experiment(demo)
+    checks.append(
+        EvalCheck(
+            name="demo-experiment-analyzes",
+            passed=(
+                result.total_trials >= 120
+                and result.options_per_trial >= 4
+                and result.exact_p_value <= result.alpha
+                and result.ci_lower_above_chance
+            ),
+            detail=(
+                f"trials={result.total_trials} options={result.options_per_trial} "
+                f"accuracy={result.observed_accuracy:.3f} p={result.exact_p_value:.6g}"
+            ),
+        )
+    )
+    checks.append(
+        EvalCheck(
+            name="demo-not-misrepresented-as-proof",
+            passed=result.evidence_status == "demo-only-not-evidence",
+            detail=f"evidence_status={result.evidence_status}",
+        )
+    )
+    checks.append(
+        EvalCheck(
+            name="truth-claim-discipline",
+            passed=(
+                "不能宣称人类图已经被科学证明" in protocol_text
+                and "独立复现实验" in protocol_text
+            ),
+            detail="requires explicit no-proof-without-real-data language",
+        )
+    )
+
+    return _suite_from_results(
+        "empirical-validation-readiness",
+        [
+            EvalCaseResult(
+                case_id="empirical-readiness",
+                passed=all(check.passed for check in checks),
+                checks=tuple(checks),
+            )
+        ],
+    )
 
 
 def run_relationship_smoke_suite(fixtures_path: str | Path) -> EvalSuiteResult:
