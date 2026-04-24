@@ -14,13 +14,17 @@ Reason:
 
 ## GitHub Description
 
-English:
+Primary English:
 
-> LLM-native Human Design BodyGraph engine, AI reading generator, career analysis, relationship chart, timing context, source citations, and Codex skill.
+> Human Design AI toolkit for BodyGraph chart calculation, structured readings, career analysis, relationship comparison, timing context, source citations, and LLM skills.
+
+Technical English:
+
+> LLM-native Human Design Python toolkit: BodyGraph schema, chart calculator, reading generator, career and relationship packages, timing analysis, citations, and Codex skill.
 
 中文：
 
-> 面向 LLM / AI Agent 的人类图排盘、BodyGraph、职业解读、关系合盘、时机分析、来源引用与 Codex skill 工具库。
+> 开源人类图 AI 工具库：BodyGraph 排盘、结构化解读、职业深读、关系合盘、时机分析、来源引用与 LLM skill。
 
 ## GitHub Topics
 
@@ -28,9 +32,13 @@ Recommended topics:
 
 - `human-design`
 - `human-design-chart`
+- `human-design-ai`
+- `human-design-reading`
 - `bodygraph`
 - `bodygraph-chart`
+- `bodygraph-python`
 - `llm`
+- `llm-toolkit`
 - `ai-agent`
 - `ai-astrology`
 - `codex-skill`
@@ -38,6 +46,8 @@ Recommended topics:
 - `career-reading`
 - `relationship-analysis`
 - `transit-analysis`
+- `chart-calculator`
+- `human-design-api`
 - `chinese`
 - `openai`
 
@@ -48,6 +58,34 @@ Human Design LLM, Human Design AI, Human Design chart calculator, BodyGraph char
 ## 中文关键词
 
 人类图，人类图排盘，人类图解读，人类图 AI，人类图大模型，人类图职业解读，人类图合盘，人类图关系分析，人类图流年，人类图 transit，人类图 BodyGraph，人类图 Python，人类图 API，人类图 skill，AI 命理工具，大模型命理工具。
+
+## Content Structure
+
+README title:
+
+> Human Design LLM - Human Design AI Toolkit | 人类图 AI 解读引擎
+
+First paragraph target:
+
+- `Human Design LLM`
+- `Human Design AI toolkit`
+- `BodyGraph chart calculation`
+- `Human Design reading generation`
+- `career analysis`
+- `relationship comparison`
+- `timing/transit context`
+- `source-traceable LLM prompts`
+
+Chinese first paragraph target:
+
+- `人类图 LLM`
+- `人类图排盘`
+- `BodyGraph 出图`
+- `人类图解读`
+- `人类图职业解读`
+- `人类图合盘`
+- `时机分析`
+- `Codex skill`
 
 ## README Search Strategy
 

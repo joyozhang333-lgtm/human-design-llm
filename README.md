@@ -1,8 +1,12 @@
-# Human Design LLM | 人类图 AI 解读引擎
+# Human Design LLM - Human Design AI Toolkit | 人类图 AI 解读引擎
 
-LLM-native Human Design BodyGraph toolkit for chart calculation, structured readings, career analysis, relationship comparison, timing/transit context, source-traceable prompts, and installable AI skills.
+**Human Design LLM** is an open-source Human Design AI toolkit for **BodyGraph chart calculation, Human Design reading generation, career analysis, relationship comparison, timing/transit context, source-traceable LLM prompts, and installable AI skills**.
 
-人类图 LLM 是一个面向 AI Agent / LLM Runtime 的开源人类图产品层：它不是网页应用，而是把 **人类图排盘、BodyGraph 图像、结构化解读、知识卡、引用追踪、会话协议和评测工具链** 打包成可直接被大模型消费的 Python 工具库与 skill。
+**人类图 LLM** 是一个面向 AI Agent / LLM Runtime 的开源人类图产品底座，覆盖 **人类图排盘、BodyGraph 出图、人类图解读、人类图职业解读、人类图合盘、时机分析、知识卡引用追踪、会话协议和 Codex skill**。
+
+It is not a static Human Design website. It is a Python product layer that turns birth data into structured chart facts, then packages those facts into LLM-ready context blocks and grounded interpretation workflows.
+
+它不是一个静态网页，也不是单纯 prompt 模板，而是把出生资料转成结构化人类图事实，再把这些事实封装成大模型可直接使用的产品包。
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/version-2.2.0-black)](./CHANGELOG.md)
@@ -10,56 +14,83 @@ LLM-native Human Design BodyGraph toolkit for chart calculation, structured read
 [![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
-## SEO Keywords
+## What It Does
 
-Human Design LLM, Human Design AI, Human Design chart calculator, BodyGraph Python, BodyGraph SVG, Human Design reading generator, Human Design career reading, Human Design relationship chart, Human Design transit analysis, AI astrology toolkit, Codex skill, LLM prompt package, 人类图, 人类图排盘, 人类图解读, 人类图职业解读, 人类图合盘, 人类图流年, 人类图 AI, 大模型技能, AI 命理工具。
+Human Design LLM turns a birth time into four layers of reusable product data:
 
-## English Introduction
+| Layer | English | 中文 |
+| --- | --- | --- |
+| Chart | Human Design chart calculator and BodyGraph schema | 人类图排盘与 BodyGraph 结构化数据 |
+| Reading | Source-backed Human Design reading generator | 带知识卡来源的人类图解读生成器 |
+| Product Package | LLM-ready prompts, context blocks, citations, follow-ups, session state | 大模型可直接消费的 prompts、上下文块、引用、追问和会话状态 |
+| Visuals | Template-based BodyGraph SVG rendering | 模板驱动的人类图 BodyGraph 出图 |
 
-Human Design LLM is an open-source Python toolkit for building AI-native Human Design products. It wraps the `ppo/pyhd` calculation engine with a stable local schema, then adds interpretation layers that are designed for LLMs rather than static websites.
+## Who It Is For
 
-The project produces:
+This repository is designed for developers and AI builders who want to create:
 
-- A JSON-friendly Human Design chart schema with type, strategy, authority, profile, definition, incarnation cross, variables, centers, channels, gates, and planetary activations.
-- Source-traceable reading sections backed by local markdown reference cards for types, authorities, profiles, centers, definitions, gates, and channels.
-- LLM product packages containing system prompts, assistant instructions, focus-aware context blocks, answer citations, suggested follow-ups, delivery depth, and session state.
-- Focused product lines for single-chart readings, career readings, relationship comparison, timing/transit context, and birth-time uncertainty analysis.
-- Template-driven BodyGraph SVG rendering for repeatable chart images and reading-booklet output.
-- Regression tests and narrative evaluation scripts so product quality can be checked before release.
+- Human Design AI assistants.
+- Human Design chart calculator APIs.
+- BodyGraph interpretation agents.
+- Human Design career reading products.
+- Human Design relationship chart and compatibility tools.
+- Human Design timing, transit, and cycle analysis workflows.
+- Codex / OpenAI / Hermes / OpenClaw skills that need structured chart facts.
 
-This repository is useful if you are building a Human Design AI assistant, a BodyGraph interpretation agent, a Human Design API backend, a Codex/OpenAI skill, or an LLM workflow that needs structured chart facts instead of prompt-only guessing.
-
-## 中文介绍
-
-Human Design LLM 是一个开源的人类图 AI 产品底座，重点解决三件事：
-
-- **先算准**：用本地 Python 链路计算人类图，把上游 `pyhd` 的原始对象转换成稳定、可测试、可序列化的统一 chart schema。
-- **再解读**：把类型、策略、权威、人生角色、九大中心、通道、闸门、变量、合盘和时机分析整理成结构化阅读对象。
-- **给 LLM 用**：直接生成大模型可以消费的产品包，包括上下文块、引用来源、回答草稿、后续追问、输出深度和会话状态。
-
-它适合做：
+这个项目适合用来搭建：
 
 - 人类图 AI 解读助手
 - 人类图排盘 API
+- BodyGraph 自动出图工具
 - 人类图职业解读产品
 - 人类图合盘 / 关系分析工具
-- 人类图流年 / transit / timing 辅助分析
-- Codex / OpenAI / Hermes / OpenClaw 等 runtime 的本地 skill
+- 人类图流年 / transit / timing 分析流程
+- 面向 Codex / OpenAI / Hermes / OpenClaw 的本地 skill
 
-## Highlights
+## Why This Project Is Different
 
-- **LLM-native product package**: `build_llm_product()` returns prompts, context blocks, citations, answer markdown, session state, and structured reading data.
-- **Career deep reading**: `focus="career"` injects career thesis, money engine, opportunity entry, career role, distortion loop, and direction filters.
-- **Chinese terminology layer**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
-- **Source traceability**: reading sections and answer citations point back to markdown reference cards under `references/`.
-- **BodyGraph rendering**: `render_bodygraph_svg()` uses a stable SVG template rather than drawing a chart from scratch each time.
+- **Chart facts before interpretation**: every answer starts from calculated chart data, not prompt-only guessing.
+- **LLM-native contract**: `build_llm_product()` returns system prompts, assistant instructions, focus-aware context blocks, answer citations, suggested follow-ups, delivery depth, and session state.
+- **Career reading that is not generic**: `focus="career"` adds career thesis, money engine, opportunity entry, role architecture, distortion loop, and direction filters while guarding against invented gates or channels.
+- **Source traceability**: output sections point back to local markdown reference cards under `references/`.
+- **Chinese-first reading quality**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
+- **Template-driven BodyGraph**: SVG rendering uses a stable bodygraph template, not ad-hoc drawing from scratch.
 - **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, and `evaluate_v2.py` protect the product from shallow or generic output.
 
-## Current Version
+## Search Phrases This Repository Targets
 
-`2.2.0` is the open-source closing release for the current development cycle.
+English search intent:
 
-This release includes:
+- Human Design LLM
+- Human Design AI
+- Human Design chart calculator
+- BodyGraph Python
+- BodyGraph SVG generator
+- Human Design reading generator
+- Human Design career reading
+- Human Design relationship chart
+- Human Design transit analysis
+- AI astrology toolkit
+- Codex skill for Human Design
+
+中文搜索意图：
+
+- 人类图
+- 人类图排盘
+- 人类图解读
+- 人类图 AI
+- 人类图职业解读
+- 人类图合盘
+- 人类图关系分析
+- 人类图流年
+- 人类图 BodyGraph
+- 大模型命理工具
+
+## Current Release
+
+`2.2.0` is the open-source release for the current development cycle.
+
+Release scope:
 
 - Single-chart Human Design reading.
 - Career deep reading for work, money, positioning, and direction.
@@ -214,6 +245,7 @@ Current local release validation:
 - [Install guide](./docs/install.md)
 - [Versioning policy](./docs/versioning.md)
 - [Release checklist](./docs/release-checklist.md)
+- [Introduction pack](./docs/INTRODUCTION.md)
 - [Chart contract](./docs/contracts/chart.md)
 - [Reading contract](./docs/contracts/reading.md)
 - [LLM package contract](./docs/contracts/llm-package.md)
