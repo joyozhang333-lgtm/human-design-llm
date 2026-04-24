@@ -1,0 +1,142 @@
+[
+  {
+    "id": "barack-obama",
+    "name": "Barack Obama",
+    "input": {
+      "birth_time": "1961-08-04T19:24:00-10:00"
+    },
+    "expected_utc": "1961-08-05T05:24:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/adbvip/adbvip_08_04.htm?lang=r&nho2=14680314&nhor=1&pa=nmo",
+      "rodden_rating": "AA",
+      "birth_data": "4 August 1961 at 19:24, Honolulu, Hawaii, AHST h10w"
+    }
+  },
+  {
+    "id": "donald-trump",
+    "name": "Donald Trump",
+    "input": {
+      "birth_time": "1946-06-14T10:54:00-04:00"
+    },
+    "expected_utc": "1946-06-14T14:54:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/astro-databank/Trump%2C_Donald",
+      "rodden_rating": "AA",
+      "birth_data": "14 June 1946 at 10:54, Jamaica Hospital Queens, New York, EDT h4w"
+    }
+  },
+  {
+    "id": "marilyn-monroe",
+    "name": "Marilyn Monroe",
+    "input": {
+      "birth_time": "1926-06-01T09:30:00-08:00"
+    },
+    "expected_utc": "1926-06-01T17:30:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/astro-databank/Monroe%2C_Marilyn",
+      "rodden_rating": "AA",
+      "birth_data": "1 June 1926 at 09:30, Los Angeles, California, PST h8w"
+    }
+  },
+  {
+    "id": "steve-jobs",
+    "name": "Steve Jobs",
+    "input": {
+      "birth_time": "1955-02-24T19:15:00-08:00"
+    },
+    "expected_utc": "1955-02-25T03:15:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/adbvip/adbvip_02_24.htm?lang=r&nho2=860596&nhor=432317",
+      "rodden_rating": "AA",
+      "birth_data": "24 February 1955 at 19:15, San Francisco, California, PST h8w"
+    }
+  },
+  {
+    "id": "queen-elizabeth-ii",
+    "name": "Queen Elizabeth II",
+    "input": {
+      "birth_time": "1926-04-21T02:40:00+01:00"
+    },
+    "expected_utc": "1926-04-21T01:40:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/adbvip/adbvip_04_21.htm?lang=r&nho2=432308&nhor=1",
+      "rodden_rating": "AA",
+      "birth_data": "21 April 1926 at 02:40, Mayfair, London, GDT h1e"
+    }
+  },
+  {
+    "id": "princess-diana",
+    "name": "Diana, Princess of Wales",
+    "input": {
+      "birth_time": "1961-07-01T19:45:00+01:00"
+    },
+    "expected_utc": "1961-07-01T18:45:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/astro-databank/Diana%2C_Princess_of_Wales",
+      "rodden_rating": "A",
+      "birth_data": "1 July 1961 at 19:45, Sandringham, England, BST h1e"
+    }
+  },
+  {
+    "id": "oprah-winfrey",
+    "name": "Oprah Winfrey",
+    "input": {
+      "birth_time": "1954-01-29T04:30:00-06:00"
+    },
+    "expected_utc": "1954-01-29T10:30:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/astro-databank/Winfrey%2C_Oprah",
+      "rodden_rating": "A",
+      "birth_data": "29 January 1954 at 04:30, Kosciusko, Mississippi, CST h6w"
+    }
+  },
+  {
+    "id": "steve-wozniak",
+    "name": "Steve Wozniak",
+    "input": {
+      "birth_time": "1950-08-11T09:45:00-07:00"
+    },
+    "expected_utc": "1950-08-11T16:45:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/astro-databank/Wozniak%2C_Steve",
+      "rodden_rating": "AA",
+      "birth_data": "11 August 1950 at 09:45, San Jose, California, PDT h7w"
+    }
+  },
+  {
+    "id": "marilyn-manson",
+    "name": "Marilyn Manson",
+    "input": {
+      "birth_time": "1969-01-05T20:05:00-05:00"
+    },
+    "expected_utc": "1969-01-06T01:05:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/astro-databank/Manson%2C_Marilyn",
+      "rodden_rating": "AA",
+      "birth_data": "5 January 1969 at 20:05, Canton, Ohio, EST h5w"
+    }
+  },
+  {
+    "id": "martin-luther-king-jr",
+    "name": "Martin Luther King Jr.",
+    "input": {
+      "birth_time": "1929-01-15T12:00:00-05:00"
+    },
+    "expected_utc": "1929-01-15T17:00:00+00:00",
+    "source": {
+      "name": "Astro-Databank",
+      "url": "https://www.astro.com/adbvip/adbvip_01_15.htm?lang=r&nho2=2590612&nhor=1",
+      "rodden_rating": "A",
+      "birth_data": "15 January 1929 at 12:00, Atlanta, Georgia, EST h5w"
+    }
+  }
+]

@@ -3,8 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 from typing import Any
 
+from .bodygraph import render_bodygraph_svg
 from .engine import calculate_chart
 from .input import normalize_birth_input
 from .product import build_llm_product
@@ -22,6 +24,18 @@ RELATIONSHIP_FOCUSES = ("overview", "intimacy", "partnership", "decision", "comm
 TIMING_FOCUSES = ("overview", "decision", "timing", "energy", "growth")
 VALID_SOURCE_KINDS = frozenset(
     ("type", "authority", "profile", "definition", "center", "channel", "gate")
+)
+PUBLIC_FIGURE_ALLOWED_RATINGS = frozenset(("AA", "A"))
+PUBLIC_FIGURE_BANNED_TERMS = (
+    "骶骨",
+    "额骨",
+    "阿扎那",
+    "阿基那",
+    "Energy Projector",
+    "Classic Projector",
+    "Mental Projector",
+    "Ego Projected",
+    "Wait for the Invitation",
 )
 
 
@@ -327,6 +341,208 @@ def run_narrative_eval_suite(cases_path: str | Path) -> EvalSuiteResult:
         )
 
     return _suite_from_results("narrative", results)
+
+
+def run_public_figure_accuracy_suite(fixtures_path: str | Path) -> EvalSuiteResult:
+    fixtures = json.loads(Path(fixtures_path).read_text(encoding="utf-8"))
+    results: list[EvalCaseResult] = []
+
+    for fixture in fixtures:
+        checks: list[EvalCheck] = []
+        source = fixture.get("source", {})
+
+        checks.append(
+            EvalCheck(
+                name="public-source-present",
+                passed=bool(source.get("url")) and "astro.com" in source.get("url", ""),
+                detail=source.get("url", ""),
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="public-source-rating",
+                passed=source.get("rodden_rating") in PUBLIC_FIGURE_ALLOWED_RATINGS,
+                detail=f"rating={source.get('rodden_rating')}",
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="public-birth-data-present",
+                passed=bool(source.get("birth_data")) and bool(fixture.get("name")),
+                detail=source.get("birth_data", ""),
+            )
+        )
+
+        normalized = normalize_birth_input(**fixture["input"])
+        chart = calculate_chart(normalized)
+        reading = generate_reading(chart)
+        career_package = build_llm_product(
+            chart,
+            focus="career",
+            question="我最适合怎么工作、赚钱、选方向？",
+            citation_mode="sources",
+            depth="deep",
+        )
+        overview_package = build_llm_product(chart, focus="overview", citation_mode="sources")
+
+        checks.append(
+            EvalCheck(
+                name="utc-conversion",
+                passed=normalized.birth_datetime_utc.isoformat() == fixture["expected_utc"],
+                detail=f"{normalized.birth_datetime_utc.isoformat()} expected={fixture['expected_utc']}",
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="input-precision",
+                passed=not chart.input.warnings and chart.input.source_precision == "explicit-offset",
+                detail=f"precision={chart.input.source_precision} warnings={chart.input.warnings}",
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="chart-core-fields",
+                passed=all(
+                    (
+                        chart.summary.type.code,
+                        chart.summary.strategy.code,
+                        chart.summary.authority.code,
+                        chart.summary.profile.code,
+                        chart.summary.definition.code,
+                        chart.summary.incarnation_cross.label,
+                    )
+                ),
+                detail=(
+                    f"type={chart.summary.type.code} authority={chart.summary.authority.code} "
+                    f"profile={chart.summary.profile.code} definition={chart.summary.definition.code}"
+                ),
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="chart-structure-fields",
+                passed=(
+                    len(chart.centers) == 9
+                    and len(chart.personality.activations) >= 13
+                    and len(chart.design.activations) >= 13
+                    and bool(chart.activated_gates)
+                ),
+                detail=(
+                    f"centers={len(chart.centers)} personality={len(chart.personality.activations)} "
+                    f"design={len(chart.design.activations)} gates={len(chart.activated_gates)}"
+                ),
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="reading-completeness",
+                passed=len(reading.sections) >= 8 and bool(reading.quick_facts) and fixture["name"].split()[0] not in reading.headline,
+                detail=f"sections={len(reading.sections)} quick_facts={len(reading.quick_facts)}",
+            )
+        )
+
+        for focus, package in (("career", career_package), ("overview", overview_package)):
+            checks.append(
+                EvalCheck(
+                    name=f"{focus}-product-package",
+                    passed=bool(package.answer_markdown.strip())
+                    and bool(package.context_blocks)
+                    and bool(package.answer_citations),
+                    detail=f"context_blocks={len(package.context_blocks)} citations={len(package.answer_citations)}",
+                )
+            )
+            checks.append(
+                EvalCheck(
+                    name=f"{focus}-citation-integrity",
+                    passed=_answer_citations_are_valid(package.answer_citations)
+                    and _answer_citations_match_scope(
+                        package.answer_citations,
+                        package.context_blocks,
+                        package.reading.sections,
+                    )
+                    and _answer_markdown_renders_citations(package),
+                    detail=(
+                        f"valid={_answer_citation_detail(package.answer_citations)} "
+                        f"scope={_answer_citation_scope_detail(package.answer_citations, package.context_blocks, package.reading.sections)} "
+                        f"markdown={_answer_markdown_citation_detail(package)}"
+                    ),
+                )
+            )
+
+        checks.append(
+            EvalCheck(
+                name="career-no-invented-channels",
+                passed=_mentioned_channels(career_package.answer_markdown).issubset(
+                    {channel.code for channel in chart.channels}
+                ),
+                detail=(
+                    f"mentioned={sorted(_mentioned_channels(career_package.answer_markdown))} "
+                    f"actual={sorted(channel.code for channel in chart.channels)}"
+                ),
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="career-no-invented-gates",
+                passed=_mentioned_gate_numbers(career_package.answer_markdown).issubset(
+                    {gate.gate for gate in chart.activated_gates}
+                ),
+                detail=(
+                    f"mentioned={sorted(_mentioned_gate_numbers(career_package.answer_markdown))} "
+                    f"actual={sorted(gate.gate for gate in chart.activated_gates)}"
+                ),
+            )
+        )
+        checks.append(
+            EvalCheck(
+                name="zh-term-quality",
+                passed=not _banned_terms(career_package.answer_markdown),
+                detail=f"banned={_banned_terms(career_package.answer_markdown)}",
+            )
+        )
+        svg = render_bodygraph_svg(chart, title=fixture["name"])
+        checks.append(
+            EvalCheck(
+                name="bodygraph-svg-render",
+                passed=svg.startswith("<svg") and fixture["name"] in svg and len(svg) > 1000,
+                detail=f"svg_bytes={len(svg)}",
+            )
+        )
+
+        results.append(
+            EvalCaseResult(
+                case_id=fixture["id"],
+                passed=all(check.passed for check in checks),
+                checks=tuple(checks),
+            )
+        )
+
+    suite_checks: list[EvalCheck] = [
+        EvalCheck(
+            name="fixture-count",
+            passed=len(fixtures) >= 10,
+            detail=f"fixtures={len(fixtures)}",
+        )
+    ]
+    if suite_checks:
+        results.insert(
+            0,
+            EvalCaseResult(
+                case_id="suite",
+                passed=all(check.passed for check in suite_checks),
+                checks=tuple(suite_checks),
+            ),
+        )
+
+    return _suite_from_results("public-figure-accuracy", results)
+
+
+def score_eval_checks(report: EvalSuiteResult) -> int:
+    checks = [check for result in report.results for check in result.checks]
+    if not checks:
+        return 0
+    passed = sum(1 for check in checks if check.passed)
+    return round(passed / len(checks) * 100)
 
 
 def run_relationship_smoke_suite(fixtures_path: str | Path) -> EvalSuiteResult:
@@ -1025,3 +1241,34 @@ def _answer_markdown_citation_mismatches(package) -> list[str]:
 def _render_expected_source_line(sources: tuple[SourceReference, ...]) -> str:
     items = [f"[{source.kind}:{source.code}]({source.path})" for source in sources]
     return "来源：" + "；".join(items)
+
+
+def _mentioned_channels(text: str) -> set[str]:
+    channels: set[str] = set()
+    channel_patterns = (
+        r"通道\s*(\d{1,2})-(\d{1,2})",
+        r"\[channel:(\d{1,2})-(\d{1,2})\]",
+        r"/channels/(\d{1,2})-(\d{1,2})\.md",
+    )
+    for pattern in channel_patterns:
+        for left, right in re.findall(pattern, text):
+            channels.add(f"{int(left):02d}-{int(right):02d}")
+    return channels
+
+
+def _mentioned_gate_numbers(text: str) -> set[int]:
+    gates: set[int] = set()
+    for match in re.finditer(r"(?<!\d)(\d{1,2})\s*号闸门", text):
+        gates.add(int(match.group(1)))
+    for match in re.finditer(r"\[gate:(\d{1,2})\]", text):
+        gates.add(int(match.group(1)))
+    for match in re.finditer(r"/gates/(\d{1,2})\.md", text):
+        gates.add(int(match.group(1)))
+    for match in re.finditer(r"(?<!\d)(\d{1,2})/(\d{1,2})(?:\s*(?:号闸门|闸门|主题|压力)|\s*的压力)", text):
+        gates.add(int(match.group(1)))
+        gates.add(int(match.group(2)))
+    return gates
+
+
+def _banned_terms(text: str) -> tuple[str, ...]:
+    return tuple(term for term in PUBLIC_FIGURE_BANNED_TERMS if term in text)

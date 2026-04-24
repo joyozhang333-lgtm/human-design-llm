@@ -16,7 +16,9 @@ TYPE_LABELS = {
 STRATEGY_LABELS = {
     "respond": "等待回应",
     "to-respond": "等待回应",
+    "invitation": "等待邀请",
     "wait-invite": "等待邀请",
+    "wait-for-the-invitation": "等待邀请",
     "inform": "先告知再行动",
     "respond-inform": "等待回应后告知",
     "wait-lunar-cycle": "等待月亮周期",

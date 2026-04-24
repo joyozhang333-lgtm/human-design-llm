@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.1 - 2026-04-24
+
+- 新增 10 位公开人物 Astro-Databank AA/A 评级 fixture，用于真实样本回归
+- 新增 `run_public_figure_accuracy_suite()` 与 `scripts/evaluate_public_figures.py`
+- 将公开人物准确度纳入质量门槛，覆盖来源、UTC 换算、盘面结构、中文术语、引用、通道 / 闸门防幻觉和 BodyGraph SVG 渲染
+- 修复职业深读在只有 63 或 64 单闸门激活时仍写成 `63/64` 的问题，避免出现非本盘闸门
+- 补齐 `等待邀请` 策略的中文本地化，避免投射者输出回退到英文
+- 将产品版本切到 `2.2.1`
+
 ## 2.2.0 - 2026-04-24
 
 - 将项目正式命名为 `human-design-llm`，定位为 LLM-native Human Design / 人类图 AI 解读引擎

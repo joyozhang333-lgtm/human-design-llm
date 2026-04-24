@@ -4,11 +4,13 @@ from pathlib import Path
 
 from human_design.evals import (
     run_narrative_eval_suite,
+    run_public_figure_accuracy_suite,
     run_relationship_narrative_eval_suite,
     run_relationship_smoke_suite,
     run_smoke_suite,
     run_timing_narrative_eval_suite,
     run_timing_smoke_suite,
+    score_eval_checks,
 )
 
 
@@ -91,3 +93,16 @@ def test_run_timing_narrative_eval_suite_passes_case_set() -> None:
     assert any(check.name == "source-kinds:decision-window" for check in first_result.checks)
     assert any(check.name == "citation-mode" and check.detail == "sources" for check in first_result.checks)
     assert any(check.name == "answer-citation:decision-window" for check in first_result.checks)
+
+
+def test_run_public_figure_accuracy_suite_scores_above_90() -> None:
+    report = run_public_figure_accuracy_suite(ROOT / "fixtures" / "public_figures.json")
+
+    assert report.failed == 0
+    assert report.total == 11
+    assert report.passed == 11
+    assert score_eval_checks(report) >= 90
+    first_public_result = report.results[1]
+    assert any(check.name == "utc-conversion" for check in first_public_result.checks)
+    assert any(check.name == "career-no-invented-channels" for check in first_public_result.checks)
+    assert any(check.name == "bodygraph-svg-render" for check in first_public_result.checks)

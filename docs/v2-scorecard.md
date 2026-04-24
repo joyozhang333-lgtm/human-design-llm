@@ -14,6 +14,11 @@
 | `output_session` | 15 | depth mode / session continuity |
 | `release` | 15 | contracts / docs / regression / runtime readiness |
 
+附加硬门槛：
+
+- `scripts/evaluate_public_figures.py` 必须达到 `>= 90`
+- 10 位公开人物样本必须全部通过来源、UTC、盘面结构、术语、引用、通道 / 闸门防幻觉和 SVG 出图检查
+
 ## 当前门槛
 
 - `< 70`：远未完成
@@ -33,8 +38,10 @@
 - 分项得分
 - 总分
 - 是否达到 `>= 90`
+- 公开人物准确度附加门槛
 
 当前基线：
 
 - `score = 100`
 - `passed = true`
+- `public_figure_accuracy.score = 100`

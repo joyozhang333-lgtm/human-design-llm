@@ -239,8 +239,14 @@ def _distortion_loop_section(chart: HumanDesignChart) -> ReadingSection:
         loop_parts.append("开放喉中心容易为了被看见而抢表达、抢机会")
     if _has_gate(chart, 29):
         loop_parts.append("29 号闸门会让你在错误时机答应到底")
-    if _has_gate(chart, 63) or _has_gate(chart, 64):
+    has_gate_63 = _has_gate(chart, 63)
+    has_gate_64 = _has_gate(chart, 64)
+    if has_gate_63 and has_gate_64:
         loop_parts.append("63/64 的压力会把怀疑和混乱推成过度分析")
+    elif has_gate_63:
+        loop_parts.append("63 号闸门的怀疑压力会把验证需求推成过度分析")
+    elif has_gate_64:
+        loop_parts.append("64 号闸门的混乱压力会把想不清楚推成过度分析")
     loop = "，".join(loop_parts) if loop_parts else "这张盘的职业误判更可能来自跳过自己的权威、被外界节奏带走，或把短期机会误当长期方向"
     bullets = [
         f"第一步：先分辨当前决定是来自「{authority_label}」，还是来自焦虑、证明、怕错过和外界催促。",

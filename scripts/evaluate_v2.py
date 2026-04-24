@@ -12,11 +12,13 @@ if str(ROOT) not in sys.path:
 
 from human_design.evals import (
     run_narrative_eval_suite,
+    run_public_figure_accuracy_suite,
     run_relationship_narrative_eval_suite,
     run_relationship_smoke_suite,
     run_smoke_suite,
     run_timing_narrative_eval_suite,
     run_timing_smoke_suite,
+    score_eval_checks,
 )
 from human_design.engine import calculate_chart
 from human_design.input import normalize_birth_time_range
@@ -105,6 +107,10 @@ def evaluate_v2() -> dict:
     timing_narrative = run_timing_narrative_eval_suite(
         ROOT / "tests" / "fixtures" / "timing_narrative_cases.json"
     )
+    public_figure_accuracy = run_public_figure_accuracy_suite(
+        ROOT / "tests" / "fixtures" / "public_figures.json"
+    )
+    public_figure_score = score_eval_checks(public_figure_accuracy)
 
     uncertainty = analyze_birth_time_range(
         "1988-10-09T20:00:00",
@@ -156,11 +162,17 @@ def evaluate_v2() -> dict:
         + (5 if single_smoke.failed == relationship_smoke.failed == timing_smoke.failed == 0 else 0)
     )
 
+    public_figure_passed = public_figure_accuracy.failed == 0 and public_figure_score >= 90
     total = single_score + relationship_score + timing_score + output_session_score + release_score
     return {
         "score": total,
         "target": 90,
-        "passed": total >= 90,
+        "passed": total >= 90 and public_figure_passed,
+        "public_figure_accuracy": {
+            "score": public_figure_score,
+            "target": 90,
+            "passed": public_figure_passed,
+        },
         "breakdown": {
             "single": single_score,
             "relationship": relationship_score,
@@ -176,6 +188,7 @@ def evaluate_v2() -> dict:
             "relationship_narrative": relationship_narrative.to_dict(),
             "timing_smoke": timing_smoke.to_dict(),
             "timing_narrative": timing_narrative.to_dict(),
+            "public_figure_accuracy": public_figure_accuracy.to_dict(),
         },
     }
 

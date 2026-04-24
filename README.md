@@ -9,9 +9,9 @@ It is not a static Human Design website. It is a Python product layer that turns
 它不是一个静态网页，也不是单纯 prompt 模板，而是把出生资料转成结构化人类图事实，再把这些事实封装成大模型可直接使用的产品包。
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-2.2.0-black)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.2.1-black)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)](./tests)
+[![Tests](https://img.shields.io/badge/tests-66%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
 ## What It Does
@@ -55,7 +55,7 @@ This repository is designed for developers and AI builders who want to create:
 - **Source traceability**: output sections point back to local markdown reference cards under `references/`.
 - **Chinese-first reading quality**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
 - **Template-driven BodyGraph**: SVG rendering uses a stable bodygraph template, not ad-hoc drawing from scratch.
-- **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, and `evaluate_v2.py` protect the product from shallow or generic output.
+- **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, public-figure accuracy checks, and `evaluate_v2.py` protect the product from shallow or generic output.
 
 ## Search Phrases This Repository Targets
 
@@ -88,7 +88,7 @@ English search intent:
 
 ## Current Release
 
-`2.2.0` is the open-source release for the current development cycle.
+`2.2.1` is the open-source release for the current development cycle.
 
 Release scope:
 
@@ -100,6 +100,7 @@ Release scope:
 - BodyGraph SVG/PNG rendering scripts.
 - Codex-compatible skill metadata and runtime prompt adapters.
 - SEO-ready bilingual README, MIT license, package metadata, and release documentation.
+- Public-figure accuracy suite with 10 Astro-Databank AA/A-rated fixtures.
 
 ## Installation
 
@@ -234,10 +235,12 @@ These files are intentionally local and source-traceable so that LLM output can 
 
 Current local release validation:
 
-- `65` pytest cases passing.
+- `66` pytest cases passing.
 - `evaluate_v2.py` product score: `100/100`.
+- `evaluate_public_figures.py` public-figure accuracy score: `100/90`.
 - Smoke tests for chart, reading, relationship, timing, citations, context blocks, delivery depth, and session state.
 - Narrative evals for focused answers and source rendering.
+- Public-figure evals for source rating, UTC conversion, chart structure, Chinese term quality, citation rendering, no invented gates/channels, and BodyGraph SVG rendering.
 
 ## Documentation
 
