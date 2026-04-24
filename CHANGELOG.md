@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.2.0 - 2026-04-24
+
+- 将项目正式命名为 `human-design-llm`，定位为 LLM-native Human Design / 人类图 AI 解读引擎
+- 重写 README 为中英文开源介绍，加入 Human Design / BodyGraph / AI / LLM / 人类图排盘 / 职业解读等 SEO 关键词
+- 新增 `pyproject.toml`，补齐 Python 包元数据、依赖、关键词、GitHub URL 和测试配置
+- 新增 MIT `LICENSE`
+- 新增 `docs/SEO.md`，记录 GitHub description、topics、英文关键词、中文关键词和公开定位
+- 将 `outputs/` 标记为本地生成物，避免把真实用户样例图提交到开源仓库
+- 更新 Nominatim User-Agent，指向公开仓库名称与地址
+- 修复职业深读的图谱安全问题，确保不同盘只引用实际存在的通道、闸门、中心和权威
+- 本地化 career focus 高亮，避免中文回答混入 `Energy Projector` / `Ego Projected` 等英文标签
+- 将产品版本切到 `2.2.0`
+
+## 2.1.0 - 2026-04-24
+
+- 新增 `human_design/career.py`，把职业解读升级为独立的深读产品层
+- 新增 `scripts/generate_career_reading.py`，支持直接输出职业深读 Markdown / JSON
+- `build_llm_product(..., focus="career")` 现在会自动注入职业命题、赚钱结构、机会入口、职业位置、误判环路和方向筛选门槛
+- `career` focus 现在会识别“赚钱/方向”类问题，并生成职业主轴、职业决策阀门、市场入口、赚钱误判点和承诺风险等高密度焦点提示
+- 修复变量方向摘要重复和 L/R 统计错误，避免 `PLL DLR` 这类标签被误读
+- 新增 career report 回归测试，避免职业输出退回泛化建议
+- 将产品版本切到 `2.1.0`
+
 ## 2.0.0 - 2026-04-23
 
 - 为 single / relationship / timing 三条产品线统一加入 `delivery_depth`

@@ -1,262 +1,234 @@
-# human-design-product
+# Human Design LLM | 人类图 AI 解读引擎
 
-独立的人类图产品工作目录。这个仓库只服务于人类图相关能力，不复用也不混入 `mayan-kin` 的代码、目录或 Git 历史。
+LLM-native Human Design BodyGraph toolkit for chart calculation, structured readings, career analysis, relationship comparison, timing/transit context, source-traceable prompts, and installable AI skills.
 
-当前定位不是 web 应用，而是 **LLM 原生产品**：把排盘、知识、解读和会话协议包装成可直接给模型消费的产品层。
+人类图 LLM 是一个面向 AI Agent / LLM Runtime 的开源人类图产品层：它不是网页应用，而是把 **人类图排盘、BodyGraph 图像、结构化解读、知识卡、引用追踪、会话协议和评测工具链** 打包成可直接被大模型消费的 Python 工具库与 skill。
 
-当前版本：`2.0.0`
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![Version](https://img.shields.io/badge/version-2.2.0-black)](./CHANGELOG.md)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)](./tests)
+[![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
-这版已经完成三层收口：
+## SEO Keywords
 
-1. 选定一个可控的人类图计算底座
-2. 形成可安装的 skill 结构
-3. 形成可回归的 runtime / eval / release 工具链
+Human Design LLM, Human Design AI, Human Design chart calculator, BodyGraph Python, BodyGraph SVG, Human Design reading generator, Human Design career reading, Human Design relationship chart, Human Design transit analysis, AI astrology toolkit, Codex skill, LLM prompt package, 人类图, 人类图排盘, 人类图解读, 人类图职业解读, 人类图合盘, 人类图流年, 人类图 AI, 大模型技能, AI 命理工具。
 
-## 当前判断
+## English Introduction
 
-- 计算引擎优先看 Python 方案，便于后续把排盘和 skill 集成在同一个仓库里
-- 解读知识库大概率需要我们自己建设，因为 GitHub 上暂时没看到成熟、可直接复用的人类图解释数据仓库
-- 产品路线拆成三层：`calculation engine`、`reading layer`、`llm product layer`
-- 第一版计算底座已接到 `ppo/pyhd`
-- 当前上游 `pyhd` 在 Python 3.11 下需要一个 runtime 兼容补丁，而且它自己的 `Chart.to_model()` 导出当前主线是坏的；本仓库已经绕开这两个问题，直接输出自己的统一 schema
+Human Design LLM is an open-source Python toolkit for building AI-native Human Design products. It wraps the `ppo/pyhd` calculation engine with a stable local schema, then adds interpretation layers that are designed for LLMs rather than static websites.
 
-## 仓库结构
+The project produces:
 
-```text
-human-design-product/
-├── CHANGELOG.md
-├── agents/
-│   └── openai.yaml
-├── SKILL.md
-├── docs/
-│   ├── contracts/
-│   ├── github-research.md
-│   ├── install.md
-│   ├── release-checklist.md
-│   ├── versioning.md
-│   ├── execution-plan.md
-│   └── roadmap.md
-├── human_design/
-│   ├── engine.py
-│   ├── evals.py
-│   ├── installer.py
-│   ├── knowledge.py
-│   ├── product.py
-│   ├── pyhd_adapter.py
-│   ├── reading.py
-│   ├── relationship.py
-│   ├── schema.py
-│   └── version.py
-├── references/
-├── requirements.txt
-├── requirements-dev.txt
-├── runtimes/
-│   ├── README.md
-│   ├── codex/SYSTEM_PROMPT.md
-│   ├── hermes/SYSTEM_PROMPT.md
-│   └── openclaw/SYSTEM_PROMPT.md
-├── scripts/
-│   ├── calculate_chart.py
-│   ├── compare_relationship.py
-│   ├── evaluate_relationship.py
-│   ├── evaluate_timing.py
-│   ├── evaluate_v2.py
-│   ├── evaluate_narrative.py
-│   ├── generate_llm_product.py
-│   ├── generate_relationship_product.py
-│   ├── generate_relationship_reading.py
-│   ├── generate_timing_product.py
-│   ├── generate_timing_reading.py
-│   ├── install_skill.py
-│   ├── generate_reading.py
-│   └── smoke_all.py
-└── tests/
-    ├── test_evals.py
-    ├── test_engine.py
-    ├── test_installer.py
-    ├── test_knowledge.py
-    ├── test_product.py
-    └── test_reading.py
-```
+- A JSON-friendly Human Design chart schema with type, strategy, authority, profile, definition, incarnation cross, variables, centers, channels, gates, and planetary activations.
+- Source-traceable reading sections backed by local markdown reference cards for types, authorities, profiles, centers, definitions, gates, and channels.
+- LLM product packages containing system prompts, assistant instructions, focus-aware context blocks, answer citations, suggested follow-ups, delivery depth, and session state.
+- Focused product lines for single-chart readings, career readings, relationship comparison, timing/transit context, and birth-time uncertainty analysis.
+- Template-driven BodyGraph SVG rendering for repeatable chart images and reading-booklet output.
+- Regression tests and narrative evaluation scripts so product quality can be checked before release.
 
-## 本地使用
+This repository is useful if you are building a Human Design AI assistant, a BodyGraph interpretation agent, a Human Design API backend, a Codex/OpenAI skill, or an LLM workflow that needs structured chart facts instead of prompt-only guessing.
+
+## 中文介绍
+
+Human Design LLM 是一个开源的人类图 AI 产品底座，重点解决三件事：
+
+- **先算准**：用本地 Python 链路计算人类图，把上游 `pyhd` 的原始对象转换成稳定、可测试、可序列化的统一 chart schema。
+- **再解读**：把类型、策略、权威、人生角色、九大中心、通道、闸门、变量、合盘和时机分析整理成结构化阅读对象。
+- **给 LLM 用**：直接生成大模型可以消费的产品包，包括上下文块、引用来源、回答草稿、后续追问、输出深度和会话状态。
+
+它适合做：
+
+- 人类图 AI 解读助手
+- 人类图排盘 API
+- 人类图职业解读产品
+- 人类图合盘 / 关系分析工具
+- 人类图流年 / transit / timing 辅助分析
+- Codex / OpenAI / Hermes / OpenClaw 等 runtime 的本地 skill
+
+## Highlights
+
+- **LLM-native product package**: `build_llm_product()` returns prompts, context blocks, citations, answer markdown, session state, and structured reading data.
+- **Career deep reading**: `focus="career"` injects career thesis, money engine, opportunity entry, career role, distortion loop, and direction filters.
+- **Chinese terminology layer**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
+- **Source traceability**: reading sections and answer citations point back to markdown reference cards under `references/`.
+- **BodyGraph rendering**: `render_bodygraph_svg()` uses a stable SVG template rather than drawing a chart from scratch each time.
+- **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, and `evaluate_v2.py` protect the product from shallow or generic output.
+
+## Current Version
+
+`2.2.0` is the open-source closing release for the current development cycle.
+
+This release includes:
+
+- Single-chart Human Design reading.
+- Career deep reading for work, money, positioning, and direction.
+- Relationship chart comparison and relationship LLM packages.
+- Timing/transit comparison and timing LLM packages.
+- Birth-time uncertainty sampling.
+- BodyGraph SVG/PNG rendering scripts.
+- Codex-compatible skill metadata and runtime prompt adapters.
+- SEO-ready bilingual README, MIT license, package metadata, and release documentation.
+
+## Installation
 
 ```bash
+git clone https://github.com/joyozhang333-lgtm/human-design-llm.git
+cd human-design-llm
+
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install -r requirements-dev.txt
-python scripts/calculate_chart.py '1988-10-09T20:30:00+08:00'
-python scripts/calculate_chart.py '1988-10-09T20:30:00' --timezone Asia/Shanghai
-python scripts/calculate_chart.py '1988-10-09T20:30:00' --city Shanghai --country China
-python scripts/analyze_uncertainty.py '1988-10-09T20:00:00' '1988-10-09T21:00:00' --timezone Asia/Shanghai --interval-minutes 30
-python scripts/compare_relationship.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方
-python scripts/generate_relationship_reading.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方
-python scripts/generate_relationship_product.py '1988-10-09T20:30:00+08:00' '1992-01-03T06:15:00-05:00' --left-label 我 --right-label 对方 --focus communication --question '我们为什么一沟通就容易拉扯？'
-python scripts/evaluate_relationship.py
-python scripts/analyze_timing.py '1988-10-09T20:30:00+08:00' '2026-04-23T10:00:00+08:00' --label today
-python scripts/generate_timing_reading.py '1988-10-09T20:30:00+08:00' '2026-04-23T10:00:00+08:00' --label today
-python scripts/generate_timing_product.py '1988-10-09T20:30:00+08:00' '2026-04-23T10:00:00+08:00' --label today --focus decision --question '我现在要不要推进这个决定？'
-python scripts/evaluate_timing.py
-python scripts/evaluate_v2.py
-python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
-python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？'
-python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' --focus career --question '我在工作里最该怎么用这张图？' --format markdown --citation-mode sources
-python scripts/install_skill.py --mode link --force
-python scripts/smoke_all.py
-python scripts/evaluate_narrative.py
+python -m pip install -U pip
+python -m pip install -e ".[dev]"
 ```
 
-输入支持四种方式：
+If editable install is not needed, the legacy requirements path also works:
 
-- 带显式 UTC offset 的 ISO 时间
-- 不带 offset，但显式传 `--timezone`
-- 不带 offset，但传 `--city` + `--country`（可选 `--region`）
-- 什么都不补时，默认按 UTC 处理，并在结果里带精度 warning
+```bash
+python -m pip install -r requirements-dev.txt
+```
 
-## 当前输出
+## Quick Start
 
-第一版统一 chart schema 已包含：
+Calculate a chart:
 
-- 摘要字段：类型、策略、权威、Profile、Definition、Signature、Not-Self Theme、Incarnation Cross
-- Variables：orientation、determination、cognition、environment、perspective、motivation、sense
-- 结构字段：definitions、centers、channels、activated_gates
-- 原始激活：personality/design 两套 planetary activations
+```bash
+python scripts/calculate_chart.py '1988-10-09T20:30:00+08:00'
+```
 
-输出目标是“JSON 友好、可复用、与上游内部实现解耦”，方便后续同时服务脚本、skill、API 和解释模板。
+Generate a Chinese reading:
 
-`chart.input` 现在会保留：
+```bash
+python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
+```
 
-- `raw_birth_time`
-- `birth_datetime_local`
-- `timezone_name`
-- `source_precision`
-- `warnings`
-- `location`
+Generate a career deep reading:
 
-## 当前 LLM 产品输出
+```bash
+python scripts/generate_career_reading.py '1988-10-09T20:30:00+08:00'
+```
 
-除了 chart schema 和阅读对象，现在这个仓库还会生成一层 LLM 产品包，包含：
+Generate an LLM-ready career answer:
 
-- `system_prompt`
-- `assistant_instructions`
-- `focus-aware context_blocks`
-- `answer_markdown`
-- `suggested_followups`
-- 完整 `reading`
+```bash
+python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' \
+  --focus career \
+  --question '我最适合怎么工作、赚钱、选方向？' \
+  --format markdown \
+  --depth deep
+```
 
-这层的目标是：让任何 LLM runtime 不需要再现场拼 prompt，而是直接消费本仓库产出的产品包。
+Render a BodyGraph SVG:
 
-从 `1.1.0` 开始，`reading.sections[*]` 和 `llm_package.context_blocks[*]` 还会附带结构化 `sources`，把每段输出对应到具体知识卡路径，方便 runtime 做可解释性、trace 和二次评测。
-从 `1.2.0` 开始，`llm_package` 还会附带 `answer_citations`，并支持通过 `citation_mode=sources` 把最终回答直接映射回具体知识卡。
-当前 narrative eval 也已经覆盖 `citation_mode=sources` 的回答渲染一致性。
-从 `2.0.0` 开始，single / relationship / timing 三条产品线统一支持 `brief / standard / deep` 三档输出深度，并把 `session_state` 暴露成结构化会话连续性对象，供 runtime 和评测层直接复用。
+```bash
+python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' \
+  --output outputs/bodygraphs/example.svg
+```
 
-## 当前知识库状态
+Run the release checks:
 
-`references/` 已经开始承载运行时知识，而不再只是预留目录。当前已经落地：
+```bash
+python -m pytest -q
+python scripts/evaluate_v2.py
+```
 
-- `types / authorities / profiles / centers / definitions`
-- `64 gates` draft 覆盖
-- `36 channels` draft 覆盖
+## Python API
 
-`reading.py` 和 `product.py` 现在会优先读取这些引用卡；`knowledge.py` 中的硬编码 guide 仍作为 fallback 存在。
+```python
+from human_design import build_llm_product, calculate_chart, normalize_birth_input
 
-## 当前完整产品能力
+chart = calculate_chart(normalize_birth_input("1988-10-09T20:30:00+08:00"))
+package = build_llm_product(
+    chart,
+    focus="career",
+    question="我最适合怎么工作、赚钱、选方向？",
+    depth="deep",
+    citation_mode="sources",
+)
 
-现在这个 repo 已经具备一条完整本地链路：
+print(package.answer_markdown)
+```
 
-1. 输入出生时间
-2. 计算 BodyGraph
-3. 生成统一 chart schema
-4. 输出完整解读
-5. 输出 LLM 会话产品包
+## Supported Input
 
-此外，当前已经开始进入 `V2.0` 的第一阶段：`uncertainty`。
-现在可以对一个出生时间区间做采样分析，输出：
+- ISO datetime with explicit UTC offset, such as `1988-10-09T20:30:00+08:00`.
+- Naive datetime plus `--timezone`, such as `--timezone Asia/Shanghai`.
+- Naive datetime plus location fields, such as `--city Shanghai --country China`.
+- If timezone and location are missing, the system falls back to UTC and returns explicit precision warnings.
 
-- 哪些核心摘要字段稳定
-- 哪些中心 / 通道 / 闸门会漂移
-- 每个采样点的轻量盘面结果
+## Product Lines
 
-`V2.0` 的第二阶段 `relationship` 也已经进入结构化基线。
-现在可以对两张盘做对照，输出：
+| Product line | Main API | CLI | Output |
+| --- | --- | --- | --- |
+| Chart | `calculate_chart()` | `scripts/calculate_chart.py` | structured chart JSON |
+| Reading | `generate_reading()` | `scripts/generate_reading.py` | markdown / JSON reading |
+| Career | `generate_career_report()` | `scripts/generate_career_reading.py` | career deep reading |
+| LLM package | `build_llm_product()` | `scripts/generate_llm_product.py` | LLM-ready context and answer |
+| Relationship | `compare_relationship()` | `scripts/compare_relationship.py` | dual-chart comparison |
+| Timing | `analyze_timing()` | `scripts/analyze_timing.py` | natal/transit comparison |
+| Uncertainty | `analyze_birth_time_range()` | `scripts/analyze_uncertainty.py` | birth-time range sampling |
+| BodyGraph | `render_bodygraph_svg()` | `scripts/render_bodygraph.py` | template-based SVG |
 
-- 核心摘要字段是否相同
-- 双方共享 / 各自独有的定义中心
-- 双方共享 / 各自独有的通道
-- 双方共享 / 各自独有的激活闸门
-- 左右两侧完整 chart，便于后续关系 reading / package 复用
+## Repository Structure
 
-在这个基线上，现在也已经能直接生成：
+```text
+human-design-llm/
+├── human_design/          # Python package: engine, schema, readings, LLM products
+├── references/            # Markdown knowledge cards for HD types, centers, gates, channels
+├── scripts/               # CLI tools for chart, reading, career, relationship, timing, evals
+├── tests/                 # pytest regression suite
+├── docs/                  # contracts, roadmap, release notes, SEO documentation
+├── runtimes/              # Codex / Hermes / OpenClaw prompt adapters
+├── agents/openai.yaml     # installable skill metadata
+├── SKILL.md               # Codex skill instructions
+├── pyproject.toml         # package metadata and SEO keywords
+└── CHANGELOG.md
+```
 
-- 关系 reading
-- relationship LLM product package
-- relationship answer citations
-- 带 `sources` 的关系回答 markdown
-- relationship smoke / narrative eval
+## Reference Coverage
 
-`V2.0` 的第三阶段 `timing` 也已经进入结构化基线。
-现在可以对本命盘和指定时点的 transit/timing 场做对照，输出：
+The local knowledge base currently includes:
 
-- 当前被放大的开放中心
-- 当前锚定的稳定中心
-- 本命与当前时机共享 / 独有的通道和闸门
-- timing reading
-- timing LLM product package
-- timing smoke / narrative eval
+- Human Design types.
+- Authorities.
+- Profiles / 人生角色.
+- Centers.
+- Definitions.
+- 64 gates.
+- 36 channels.
 
-`V2.0` 的第四、五阶段 `output/session` 与 `full release` 也已经收口完成。
-现在三条产品线已经统一具备：
+These files are intentionally local and source-traceable so that LLM output can cite where each interpretation block came from.
 
-- `delivery_depth`
-- `session_state`
-- `evaluate_v2.py` 真实行为评分
-- `>= 90` 的停止条件验证
+## Quality Gates
 
-`generate_reading.py` 默认输出 Markdown 成稿，也支持 `--format json` 输出完整结构化阅读对象。
-`generate_llm_product.py` 默认输出完整 JSON 产品包，也支持 `--format markdown` 只输出最终回答成稿。
+Current local release validation:
 
-## 当前安装与 runtime 状态
+- `65` pytest cases passing.
+- `evaluate_v2.py` product score: `100/100`.
+- Smoke tests for chart, reading, relationship, timing, citations, context blocks, delivery depth, and session state.
+- Narrative evals for focused answers and source rendering.
 
-- 已提供 `agents/openai.yaml`
-- 已提供本地安装脚本 `scripts/install_skill.py`
-- 已提供 `Codex / Hermes / OpenClaw` 三套 runtime adapter
-- 已有安装文档 [docs/install.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/install.md)
-- 已有 release 文档和 changelog
+## Documentation
 
-## 当前评测与发布状态
+- [Changelog](./CHANGELOG.md)
+- [Install guide](./docs/install.md)
+- [Versioning policy](./docs/versioning.md)
+- [Release checklist](./docs/release-checklist.md)
+- [Chart contract](./docs/contracts/chart.md)
+- [Reading contract](./docs/contracts/reading.md)
+- [LLM package contract](./docs/contracts/llm-package.md)
+- [Relationship contracts](./docs/contracts/relationship.md)
+- [Timing contracts](./docs/contracts/timing.md)
+- [Output depth contract](./docs/contracts/output-depth.md)
+- [Session contract](./docs/contracts/session.md)
+- [SEO documentation](./docs/SEO.md)
 
-- 版本号来自 [human_design/version.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/human_design/version.py)
-- smoke runner: [scripts/smoke_all.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/scripts/smoke_all.py)
-- narrative eval: [scripts/evaluate_narrative.py](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/scripts/evaluate_narrative.py)
-- narrative eval 当前已覆盖 block source trace 校验
-- release checklist: [docs/release-checklist.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/release-checklist.md)
-- versioning: [docs/versioning.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/versioning.md)
-- changelog: [CHANGELOG.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/CHANGELOG.md)
+## Important Notes
 
-## 后续方向
+Human Design is used here as a reflective and interpretive framework. This project does not provide medical, legal, financial, psychological, or guaranteed life advice.
 
-1. 细化 64 闸门与 36 通道的专属知识卡
-2. 继续扩充 fixtures 和线上计算器一致性验证
-3. 细化不同 runtime 的 prompt adapter
-4. 在 skill / API / 其他 LLM runtime 中消费这套 chart + reading + product package
+人类图在本项目中被视为自我观察和反思工具，不应替代医学、法律、财务、心理咨询或任何现实专业建议。
 
-详细版本路线见 [docs/roadmap.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/roadmap.md)。
-详细开发、评审、提交节奏见 [docs/execution-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/execution-plan.md)。
-`V2.0` 的持续开发循环见 [docs/v2-delivery-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/v2-delivery-plan.md)。
-完整规划与停止条件见 [docs/v2-master-plan.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/v2-master-plan.md)。
-评分标准见 [docs/v2-scorecard.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/v2-scorecard.md)。
-结构契约见：
+## License
 
-- [docs/contracts/chart.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/chart.md)
-- [docs/contracts/reading.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/reading.md)
-- [docs/contracts/llm-package.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/llm-package.md)
-- [docs/contracts/uncertainty.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/uncertainty.md)
-- [docs/contracts/relationship.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/relationship.md)
-- [docs/contracts/relationship-reading.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/relationship-reading.md)
-- [docs/contracts/relationship-package.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/relationship-package.md)
-- [docs/contracts/timing.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/timing.md)
-- [docs/contracts/timing-reading.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/timing-reading.md)
-- [docs/contracts/timing-package.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/timing-package.md)
-- [docs/contracts/output-depth.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/output-depth.md)
-- [docs/contracts/session.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/session.md)
+MIT License. See [LICENSE](./LICENSE).

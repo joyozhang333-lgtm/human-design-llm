@@ -64,7 +64,7 @@
 
 ## `delivery_depth`
 
-统一规则见 [output-depth.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/output-depth.md)。
+统一规则见 [output-depth.md](docs/contracts/output-depth.md)。
 
 relationship 基线要求：
 
@@ -73,7 +73,7 @@ relationship 基线要求：
 
 ## `session_state`
 
-统一规则见 [session.md](/Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product/docs/contracts/session.md)。
+统一规则见 [session.md](docs/contracts/session.md)。
 
 relationship 基线要求：
 

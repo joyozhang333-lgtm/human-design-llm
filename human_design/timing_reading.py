@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from .labels import display_authority, display_type, normalize_center_title
 from .knowledge import (
     get_authority_card,
     get_center_card,
@@ -14,13 +15,15 @@ from .schema import ReadingSection, SourceReference, TimingAnalysisResult, Timin
 
 def generate_timing_reading(timing: TimingAnalysisResult) -> TimingReading:
     natal = timing.natal_chart
+    authority_label = display_authority(natal.summary.authority.code, natal.summary.authority.label)
+    type_label = display_type(natal.summary.type.code, natal.summary.type.label)
     headline = (
-        f"{timing.timing_label} | {natal.summary.authority.label} "
-        f"{natal.summary.type.label} 当前时机解读"
+        f"{timing.timing_label} | {authority_label} "
+        f"{type_label} 当前时机解读"
     )
     quick_facts = (
         f"当前时点：{timing.transit_datetime_local}",
-        f"你的权威：{natal.summary.authority.label}",
+        f"你的权威：{authority_label}",
         f"锚定中心：{_format_center_codes(timing.anchored_defined_centers) or '无'}",
         f"被当前时机放大的开放中心：{_format_center_codes(timing.pressured_open_centers) or '无'}",
         f"当前新增通道：{_format_codes(timing.channels.transit_only) or '无'}",
@@ -146,6 +149,10 @@ def _pressure_section(timing: TimingAnalysisResult) -> ReadingSection:
 
 
 def _decision_section(timing: TimingAnalysisResult) -> ReadingSection:
+    authority_label = display_authority(
+        timing.natal_chart.summary.authority.code,
+        timing.natal_chart.summary.authority.label,
+    )
     authority_card = get_authority_card(timing.natal_chart.summary.authority.code)
     authority_summary = (
         authority_card.summary
@@ -156,7 +163,7 @@ def _decision_section(timing: TimingAnalysisResult) -> ReadingSection:
         "Timing 的价值不是替你下结论，而是提醒你：在这个阶段，什么会扰动你的判断，什么又能帮你回到自己的权威。"
     )
     bullets = (
-        f"你的主决策方式仍然是「{timing.natal_chart.summary.authority.label}」。{authority_summary}",
+        f"你的主决策方式仍然是「{authority_label}」。{authority_summary}",
         (
             f"如果最近最强的是「{_format_center_codes(timing.pressured_open_centers[:1])}」压力，做重大决定时更要避免被一时情绪或场域节奏推着走。"
             if timing.pressured_open_centers
@@ -226,7 +233,7 @@ def _pressured_center_bullet(code: str) -> str:
     card = get_center_card(code)
     if card is None:
         return code
-    return f"{card.title}：{card.undefined}"
+    return f"{normalize_center_title(card.title)}：{card.undefined}"
 
 
 def _authority_source(code: str) -> SourceReference | None:
@@ -253,7 +260,7 @@ def _center_label(code: str | None) -> str:
     if code is None:
         return "该中心"
     card = get_center_card(code)
-    return card.title if card is not None else code
+    return normalize_center_title(card.title) if card is not None else code
 
 
 def _format_codes(values) -> str:

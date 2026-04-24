@@ -17,7 +17,7 @@ def test_build_llm_product_generates_session_package() -> None:
     )
 
     assert package.product_name == "human-design-llm"
-    assert package.product_version == __version__ == "2.0.0"
+    assert package.product_version == __version__ == "2.2.0"
     assert package.focus == "career"
     assert package.question == "我在工作里最该怎么用这张图？"
     assert package.answer_citation_mode == "none"
@@ -34,6 +34,10 @@ def test_build_llm_product_generates_session_package() -> None:
     assert "当前问题：我在工作里最该怎么用这张图？" in package.answer_markdown
     assert "## 问题切口" in package.answer_markdown
     assert "## 焦点提示" in package.answer_markdown
+    assert "## 职业命题" in package.answer_markdown
+    assert "## 赚钱结构" in package.answer_markdown
+    assert "## 职业误判环路" in package.answer_markdown
+    assert "## 方向筛选门槛" in package.answer_markdown
     assert len(package.suggested_followups) == 2
 
 
@@ -82,3 +86,35 @@ def test_build_llm_product_question_changes_highlight_priority() -> None:
     focus_block = next(block for block in package.context_blocks if block.key == "focus-highlights")
     assert "权威" in focus_block.content or "定义" in focus_block.content
     assert "现实决策压力" in package.answer_markdown
+
+
+def test_career_money_direction_question_gets_deep_lens() -> None:
+    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    package = build_llm_product(
+        chart,
+        focus="career",
+        question="我最适合怎么工作、赚钱、选方向？",
+        depth="deep",
+    )
+
+    focus_block = next(block for block in package.context_blocks if block.key == "focus-highlights")
+    assert "职业方向与赚钱结构场景" in package.answer_markdown
+    assert "职业主轴 02-14" in focus_block.content
+    assert "赚钱误判点" in focus_block.content
+    assert "承诺风险" in focus_block.content
+
+
+def test_career_focus_uses_type_specific_decision_language() -> None:
+    chart = calculate_chart(normalize_birth_input("1988-10-09T20:30:00+08:00"))
+    package = build_llm_product(
+        chart,
+        focus="career",
+        question="我最适合怎么工作、赚钱、选方向？",
+        depth="deep",
+    )
+    focus_block = next(block for block in package.context_blocks if block.key == "focus-highlights")
+
+    assert "被正确看见" in focus_block.content
+    assert "身体真正有回应" not in focus_block.content
+    assert "Energy Projector" not in focus_block.content
+    assert "Ego Projected" not in focus_block.content

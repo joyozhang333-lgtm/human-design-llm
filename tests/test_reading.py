@@ -14,7 +14,7 @@ def test_generate_reading_produces_complete_sections() -> None:
     channels_section = reading.sections[5]
     gates_section = reading.sections[6]
 
-    assert "Energy Projector" in reading.headline
+    assert "投射者" in reading.headline
     assert len(reading.sections) == 8
     assert core_section.title == "核心身份"
     assert any(source.kind == "type" for source in core_section.sources)
@@ -45,3 +45,11 @@ def test_generate_reading_surfaces_precision_warnings() -> None:
 
     assert any("默认按 UTC" in fact for fact in reading.quick_facts)
     assert any("影响人类图结果精度" in fact for fact in reading.quick_facts)
+
+
+def test_variable_orientation_counts_only_l_r_tokens() -> None:
+    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    reading = generate_reading(chart)
+    cross_section = next(section for section in reading.sections if section.key == "cross-variables")
+
+    assert any("3 左 / 1 右" in bullet for bullet in cross_section.bullets)

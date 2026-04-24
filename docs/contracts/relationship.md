@@ -32,7 +32,7 @@
 {
   "key": "authority",
   "left": {"code": "ego-projected", "label": "Ego Projected"},
-  "right": {"code": "sacral", "label": "Sacral"},
+  "right": {"code": "sacral", "label": "荐骨权威"},
   "same": false
 }
 ```

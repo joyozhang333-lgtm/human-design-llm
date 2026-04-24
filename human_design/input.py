@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from .schema import ChartInput, InputLocation
 
 NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/search"
-NOMINATIM_USER_AGENT = "human-design-product/0.3 (+https://github.com/openai/codex)"
+NOMINATIM_USER_AGENT = "human-design-llm/2.2 (+https://github.com/joyozhang333-lgtm/human-design-llm)"
 TIMEAPI_ENDPOINT = "https://timeapi.io/api/TimeZone/coordinate"
 
 

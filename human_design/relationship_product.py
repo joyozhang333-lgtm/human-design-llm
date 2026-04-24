@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from .knowledge import get_authority_card, get_center_card, get_channel_card, get_profile_card, to_source_reference
+from .labels import normalize_center_title
 from .relationship_reading import generate_relationship_reading
 from .session import build_session_state, followups_by_depth, highlight_limit, normalize_depth, select_sections_by_depth
 from .schema import (
@@ -245,7 +246,7 @@ def _render_answer(
 ) -> str:
     citation_map = {citation.key: citation for citation in answer_citations}
     lines: list[str] = []
-    lines.append("# Human Design Relationship Session")
+    lines.append("# 人类图关系解读")
     lines.append("")
     lines.append(headline)
     lines.append("")
@@ -375,14 +376,14 @@ def _summary_highlights(
         )
     )
     profile_text = (
-        "双方的 Profile 节奏相近，比较容易理解彼此的角色展开方式。"
+        "双方的人生角色节奏相近，比较容易理解彼此的角色展开方式。"
         if comparison.left_chart.summary.profile.code == comparison.right_chart.summary.profile.code
-        else "双方的 Profile 不同，意味着一个人要的独处、试错或关系支持，未必和另一方一样。"
+        else "双方的人生角色不同，意味着一个人要的独处、试错或关系支持，未必和另一方一样。"
     )
     highlights.append(
         RelationshipHighlight(
             key="profile",
-            label="Profile 节奏",
+            label="人生角色节奏",
             text=profile_text,
             priority=96 if focus == "intimacy" else 84,
             source=_profile_source(left.profile.code),
@@ -401,12 +402,12 @@ def _center_highlights(
         card = get_center_card(code)
         if card is not None:
             text = (
-                f"共享「{card.title}」说明你们在这个主题上更容易觉得彼此懂、也更容易在这里形成稳定感。"
+                f"共享「{normalize_center_title(card.title)}」说明你们在这个主题上更容易觉得彼此懂、也更容易在这里形成稳定感。"
             )
             highlights.append(
                 RelationshipHighlight(
                     key=f"shared-center:{code}",
-                    label=f"共享中心 {card.title}",
+                    label=f"共享中心 {normalize_center_title(card.title)}",
                     text=text,
                     priority=94 if focus in {"intimacy", "communication"} else 82,
                     source=to_source_reference("center", card),
@@ -420,7 +421,7 @@ def _center_highlights(
                 RelationshipHighlight(
                     key=f"left-center:{code}",
                     label=f"{comparison.left_label} 的独有中心",
-                    text=f"{comparison.left_label} 在「{card.title}」议题上更可能自然地主导节奏，另一方未必同步。",
+                    text=f"{comparison.left_label} 在「{normalize_center_title(card.title)}」议题上更可能自然地主导节奏，另一方未必同步。",
                     priority=92 if focus in {"communication", "partnership"} else 78,
                     source=to_source_reference("center", card),
                 )
@@ -433,7 +434,7 @@ def _center_highlights(
                 RelationshipHighlight(
                     key=f"right-center:{code}",
                     label=f"{comparison.right_label} 的独有中心",
-                    text=f"{comparison.right_label} 在「{card.title}」议题上更可能自然地主导节奏，另一方未必同步。",
+                    text=f"{comparison.right_label} 在「{normalize_center_title(card.title)}」议题上更可能自然地主导节奏，另一方未必同步。",
                     priority=92 if focus in {"communication", "partnership"} else 78,
                     source=to_source_reference("center", card),
                 )

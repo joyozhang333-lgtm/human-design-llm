@@ -1,6 +1,6 @@
 # Install Guide
 
-更新时间：2026-04-22
+更新时间：2026-04-24
 
 ## 目标
 
@@ -18,7 +18,7 @@
 开发期建议用软链接，更新仓库后不需要重复复制。
 
 ```bash
-cd /Users/zhangzhaoyang/Desktop/禅拍课程/human-design-product
+cd human-design-llm
 . .venv/bin/activate
 python scripts/install_skill.py --mode link --force
 ```

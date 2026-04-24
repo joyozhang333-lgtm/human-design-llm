@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
+from .career import career_report_sections
 from .knowledge import (
     get_authority_card,
     get_center_card,
@@ -12,6 +13,13 @@ from .knowledge import (
     get_profile_card,
     get_type_card,
     to_source_reference,
+)
+from .labels import (
+    display_authority,
+    display_definition,
+    display_profile,
+    display_type,
+    normalize_center_title,
 )
 from .reading import generate_reading
 from .session import build_session_state, followups_by_depth, highlight_limit, normalize_depth, select_sections_by_depth
@@ -80,6 +88,14 @@ FOCUS_GUIDANCE = {
     "growth": "重点把图里的卡点、练习方向和 30 天实验建议说清楚。",
 }
 
+FOCUS_LABELS = {
+    "overview": "总览",
+    "career": "职业",
+    "relationship": "关系",
+    "decision": "决策",
+    "growth": "成长",
+}
+
 FOCUS_FOLLOWUPS = {
     "overview": (
         "如果只先抓一件事开始练，我最该先练策略还是权威？",
@@ -119,12 +135,14 @@ Operating rules:
 
 ASSISTANT_INSTRUCTIONS = (
     "先给一句高密度结论，再展开，不要一上来铺术语。",
-    "先引用 chart 中真实存在的类型、权威、Profile、定义、中心和通道，再解释。",
+    "先引用 chart 中真实存在的类型、权威、人生角色、定义、中心和通道，再解释。",
     "当用户问题有明确焦点时，只展开和焦点最相关的 3 到 5 个结构，不要把整份盘重讲一遍。",
     "结尾给 2 个可以继续追问的问题。",
 )
 
 QUESTION_PATTERNS = {
+    "career_money": ("赚钱", "收入", "钱", "商业", "变现", "客户", "定价", "现金流"),
+    "career_direction": ("方向", "赛道", "定位", "路线", "主航道", "选方向"),
     "career_transition": ("换工作", "转岗", "跳槽", "辞职", "创业", "副业", "职业"),
     "career_team": ("工作", "事业", "团队", "合作", "老板", "管理", "带人", "同事"),
     "relationship_intimacy": ("关系", "亲密", "伴侣", "婚姻", "恋爱", "相处"),
@@ -202,9 +220,16 @@ def build_llm_product(
     depth_key = normalize_depth(depth)
     reading = generate_reading(chart)
     selected_keys = set(FOCUS_SECTIONS[focus_key])
-    selected_sections = select_sections_by_depth(tuple(
+    base_sections = select_sections_by_depth(tuple(
         section for section in reading.sections if section.key in selected_keys
     ), depth_key)
+    career_sections = career_report_sections(chart) if focus_key == "career" else ()
+    selected_sections = (*career_sections, *base_sections)
+    package_reading = (
+        replace(reading, sections=(*career_sections, *reading.sections))
+        if career_sections
+        else reading
+    )
     question_lens = _build_question_lens(focus_key, question)
     focus_highlights, focus_highlight_sources = _build_focus_highlights(chart, focus_key, question, depth_key)
     answer_citations = _build_answer_citations(
@@ -305,7 +330,7 @@ def build_llm_product(
         answer_markdown=answer_markdown,
         suggested_followups=suggested_followups,
         session_state=session_state,
-        reading=reading,
+        reading=package_reading,
     )
 
 
@@ -323,11 +348,11 @@ def _render_focus_answer(
 ) -> str:
     citation_map = {citation.key: citation for citation in answer_citations}
     lines: list[str] = []
-    lines.append("# Human Design LLM Session")
+    lines.append("# 人类图对话解读")
     lines.append("")
     lines.append(headline)
     lines.append("")
-    lines.append(f"当前聚焦：{focus}")
+    lines.append(f"当前聚焦：{focus}（{FOCUS_LABELS.get(focus, focus)}）")
     if question:
         lines.append(f"当前问题：{question}")
     precision_note = _precision_note(chart)
@@ -418,6 +443,12 @@ def _build_question_lens(focus: str, question: str | None) -> str | None:
         return None
 
     if focus == "career":
+        if "career_money" in hits and "career_direction" in hits:
+            return "这个问题更像职业方向与赚钱结构场景。回答时要优先看什么方向值得长期供能、钱从哪里沉淀成资产，以及哪些承诺会吞掉生命力。"
+        if "career_direction" in hits:
+            return "这个问题更像职业方向筛选场景。回答时要优先看主航道、资源投放、长期节律和身体是否愿意持续回应。"
+        if "career_money" in hits:
+            return "这个问题更像赚钱结构场景。回答时要优先看资源配置、承诺边界、资产沉淀和信任网络，而不是只列适合行业。"
         if "career_transition" in hits:
             return "这个问题更像职业转向场景。回答时要优先看邀请/回应是否对位、合作关系是否支持你，以及资源承诺能否长期承接。"
         if "career_team" in hits:
@@ -450,6 +481,8 @@ def _build_focus_highlights(
     candidates.extend(_build_center_candidates(chart, focus))
     candidates.extend(_build_channel_candidates(chart, focus))
     candidates.extend(_build_gate_candidates(chart, focus))
+    if focus == "career":
+        candidates.extend(_build_career_synthesis_candidates(chart))
 
     if not candidates:
         return None, ()
@@ -486,8 +519,8 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
             HighlightCandidate(
                 key=f"type:{chart.summary.type.code}",
                 source_type="type",
-                label=f"类型 {chart.summary.type.label}",
-                text=type_card.focus[focus],
+                label=f"类型 {display_type(chart.summary.type.code, chart.summary.type.label)}",
+                text=_localize_focus_text(type_card.focus[focus]),
                 priority=priority["type"],
                 source=_source_from_card("type", type_card),
             )
@@ -499,8 +532,8 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
             HighlightCandidate(
                 key=f"authority:{chart.summary.authority.code}",
                 source_type="authority",
-                label=f"权威 {chart.summary.authority.label}",
-                text=authority_card.focus[focus],
+                label=f"权威 {display_authority(chart.summary.authority.code, chart.summary.authority.label)}",
+                text=_localize_focus_text(authority_card.focus[focus]),
                 priority=priority["authority"],
                 source=_source_from_card("authority", authority_card),
             )
@@ -512,8 +545,8 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
             HighlightCandidate(
                 key=f"profile:{chart.summary.profile.code}",
                 source_type="profile",
-                label=f"Profile {chart.summary.profile.label}",
-                text=profile_card.focus[focus],
+                label=f"人生角色 {display_profile(chart.summary.profile.code, chart.summary.profile.label)}",
+                text=_localize_focus_text(profile_card.focus[focus]),
                 priority=priority["profile"],
                 source=_source_from_card("profile", profile_card),
             )
@@ -525,12 +558,151 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
             HighlightCandidate(
                 key=f"definition:{chart.summary.definition.code}",
                 source_type="definition",
-                label=f"定义 {chart.summary.definition.label}",
-                text=definition_card.focus[focus],
+                label=f"定义 {display_definition(chart.summary.definition.code, chart.summary.definition.label)}",
+                text=_localize_focus_text(definition_card.focus[focus]),
                 priority=priority["definition"],
                 source=_source_from_card("definition", definition_card),
             )
         )
+    return candidates
+
+
+def _build_career_synthesis_candidates(chart: HumanDesignChart) -> list[HighlightCandidate]:
+    candidates: list[HighlightCandidate] = []
+    type_card = get_type_card(chart.summary.type.code)
+    if type_card is not None:
+        type_label = display_type(chart.summary.type.code, chart.summary.type.label)
+        if "projector" in chart.summary.type.code:
+            type_text = (
+                f"{type_label} 的工作优势不是硬推，而是在被正确看见、正确邀请、正确识别的场域里，"
+                "把洞察、校准和系统理解转成影响力。先筛掉需要你长期硬撑的机会，再谈岗位、产品和商业模式。"
+            )
+        elif "generator" in chart.summary.type.code:
+            type_text = (
+                f"{type_label} 的工作优势不是硬推，而是把身体真正有回应的事情持续做深。"
+                "先用回应筛掉假机会，再谈岗位、产品和商业模式。"
+            )
+        elif chart.summary.type.code == "manifestor":
+            type_text = (
+                f"{type_label} 的工作优势在于发起和启动，但职业上仍要分清哪些冲动值得通知、落地和承担后果。"
+                "不要把每个短期冲动都变成长期身份。"
+            )
+        else:
+            type_text = (
+                f"{type_label} 的工作优势来自正确环境与周期读取。职业选择要先看场域是否对位，"
+                "再决定要不要投入具体角色。"
+            )
+        candidates.append(
+            HighlightCandidate(
+                key=f"career-type:{chart.summary.type.code}",
+                source_type="type",
+                label="职业供能方式",
+                text=type_text,
+                priority=132,
+                source=_source_from_card("type", type_card),
+            )
+        )
+
+    authority_card = get_authority_card(chart.summary.authority.code)
+    if authority_card is not None:
+        candidates.append(
+            HighlightCandidate(
+                key=f"career-authority:{chart.summary.authority.code}",
+                source_type="authority",
+                label="职业决策阀门",
+                text=(
+                    f"{display_authority(chart.summary.authority.code, chart.summary.authority.label)} 要参与工作、合作、"
+                    "收费和长期承诺。不要只用头脑列利弊表，要把问题拆成你的权威可以确认的现实选项。"
+                ),
+                priority=131,
+                source=_source_from_card("authority", authority_card),
+            )
+        )
+
+    if _has_channel(chart, "02-14"):
+        channel_card = get_channel_card("02-14")
+        if channel_card is not None:
+            candidates.append(
+                HighlightCandidate(
+                    key="career-channel:02-14",
+                    source_type="channel",
+                    label="职业主轴 02-14",
+                    text=(
+                        "02-14 不是单纯忙碌通道，而是方向与资源投放通道。"
+                        "赚钱要围绕主航道做资产，不适合把生命力分散给一堆短期需求。"
+                    ),
+                    priority=130,
+                    source=_source_from_card("channel", channel_card),
+                )
+            )
+
+    profile_card = get_profile_card(chart.summary.profile.code)
+    if profile_card is not None:
+        candidates.append(
+            HighlightCandidate(
+                key=f"career-profile:{chart.summary.profile.code}",
+                source_type="profile",
+                label="市场入口",
+                text=(
+                    f"{display_profile(chart.summary.profile.code, chart.summary.profile.label)} 更适合先在独处中把能力养熟，"
+                    "再通过信任网络、熟人转介绍和被看见的作品进入市场。"
+                ),
+                priority=129,
+                source=_source_from_card("profile", profile_card),
+            )
+        )
+
+    if _center_is_open(chart, "heart"):
+        center_card = get_center_card("heart")
+        if center_card is not None:
+            candidates.append(
+                HighlightCandidate(
+                    key="career-center:heart-open",
+                    source_type="center",
+                    label="赚钱误判点",
+                    text=(
+                        "开放意志中心容易把收入和自我价值绑死，表现为低价多接、过度承诺、"
+                        "用成果证明自己。职业定价要先守边界，再谈增长。"
+                    ),
+                    priority=124,
+                    source=_source_from_card("center", center_card),
+                )
+            )
+
+    if _center_is_open(chart, "throat"):
+        center_card = get_center_card("throat")
+        if center_card is not None:
+            candidates.append(
+                HighlightCandidate(
+                    key="career-center:throat-open",
+                    source_type="center",
+                    label="表达策略",
+                    text=(
+                        "开放喉中心不适合长期靠抢曝光生存。更稳的路径是让作品、案例、方法论和结果替你说话，"
+                        "把表达做成可复用资产。"
+                    ),
+                    priority=123,
+                    source=_source_from_card("center", center_card),
+                )
+            )
+
+    if _has_gate(chart, 29):
+        gate_card = get_gate_card(29)
+        if gate_card is not None:
+            candidates.append(
+                HighlightCandidate(
+                    key="career-gate:29",
+                    source_type="gate",
+                    label="承诺风险",
+                    text=(
+                        "29 号闸门会让你一旦答应就很容易做到底。职业上最要防的不是不努力，"
+                        "而是把错误客户、错误项目、错误身份也做成了。"
+                    ),
+                    priority=122,
+                    source=_source_from_card("gate", gate_card),
+                )
+            )
+
     return candidates
 
 
@@ -550,8 +722,8 @@ def _build_center_candidates(chart: HumanDesignChart, focus: str) -> list[Highli
             HighlightCandidate(
                 key=f"center:{center_code}",
                 source_type="center",
-                label=f"{center_card.title}（{state_label}）",
-                text=center_card.focus[focus],
+                label=f"{normalize_center_title(center_card.title)}（{state_label}）",
+                text=_localize_focus_text(center_card.focus[focus]),
                 priority=base_priority - rank,
                 source=_source_from_card("center", center_card),
             )
@@ -571,7 +743,7 @@ def _build_channel_candidates(chart: HumanDesignChart, focus: str) -> list[Highl
                 key=f"channel:{channel.code}",
                 source_type="channel",
                 label=f"通道 {channel.code}",
-                text=card.focus[focus],
+                text=_localize_focus_text(card.focus[focus]),
                 priority=priority - rank,
                 source=_source_from_card("channel", card),
             )
@@ -591,7 +763,7 @@ def _build_gate_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
                 key=f"gate:{gate.gate}",
                 source_type="gate",
                 label=f"{gate.gate} 号闸门",
-                text=card.focus[focus],
+                text=_localize_focus_text(card.focus[focus]),
                 priority=priority - rank,
                 source=_source_from_card("gate", card),
             )
@@ -615,6 +787,14 @@ def _question_bonus_map(question: str) -> dict[str, int]:
         bonus["authority"] += 6
         bonus["channel"] += 5
         bonus["definition"] += 4
+    if any(token in question for token in QUESTION_PATTERNS["career_money"]):
+        bonus["gate"] += 7
+        bonus["channel"] += 6
+        bonus["authority"] += 5
+    if any(token in question for token in QUESTION_PATTERNS["career_direction"]):
+        bonus["channel"] += 8
+        bonus["authority"] += 5
+        bonus["profile"] += 3
     if any(token in question for token in QUESTION_PATTERNS["career_team"]):
         bonus["type"] += 4
         bonus["center"] += 5
@@ -635,6 +815,45 @@ def _question_bonus_map(question: str) -> dict[str, int]:
         bonus["center"] += 5
         bonus["gate"] += 4
     return bonus
+
+
+def _has_channel(chart: HumanDesignChart, code: str) -> bool:
+    return any(channel.code == code for channel in chart.channels)
+
+
+def _has_gate(chart: HumanDesignChart, gate: int) -> bool:
+    return any(item.gate == gate for item in chart.activated_gates)
+
+
+def _center_is_open(chart: HumanDesignChart, code: str) -> bool:
+    return any(center.code == code and not center.defined for center in chart.centers)
+
+
+def _localize_focus_text(text: str) -> str:
+    replacements = {
+        "Manifesting Generator": "显化生产者",
+        "Pure Generator": "纯生产者",
+        "Energy Projector": "投射者",
+        "Classic Projector": "投射者",
+        "Mental Projector": "投射者",
+        "Manifestor": "显化者",
+        "Reflector": "反映者",
+        "Ego Projected": "意志力权威",
+        "Ego Manifested": "意志力权威",
+        "Self Projected": "自我投射权威",
+        "Solar Plexus": "情绪权威",
+        "Sacral": "荐骨权威",
+        "Splenic": "直觉权威",
+        "Lunar": "月亮周期权威",
+        "Outer Authority": "外在权威",
+        "Profile": "人生角色",
+        "signature": "签名主题",
+        "not-self": "非自己主题",
+    }
+    localized = text
+    for source, target in replacements.items():
+        localized = localized.replace(source, target)
+    return localized
 
 
 def _source_from_card(kind: str, card) -> SourceReference | None:

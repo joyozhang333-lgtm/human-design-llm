@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "human-design-llm"
+version = "2.2.0"
+description = "LLM-native Human Design BodyGraph chart engine, reading generator, career analysis, relationship comparison, timing context, and AI skill toolkit."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Zhang Zhaoyang" }
+]
+keywords = [
+  "human design",
+  "human design ai",
+  "human design llm",
+  "human design chart",
+  "bodygraph",
+  "bodygraph python",
+  "ai astrology",
+  "llm skill",
+  "codex skill",
+  "human design reading",
+  "career reading",
+  "relationship chart",
+  "transit analysis",
+  "人类图",
+  "人类图排盘",
+  "人类图解读",
+  "人类图职业解读",
+  "人类图合盘",
+  "人类图 AI"
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: Chinese (Simplified)",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Text Processing :: Linguistic"
+]
+dependencies = [
+  "pyhd @ git+https://github.com/ppo/pyhd.git@main",
+  "tzdata>=2024.1"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/joyozhang333-lgtm/human-design-llm"
+Repository = "https://github.com/joyozhang333-lgtm/human-design-llm"
+Issues = "https://github.com/joyozhang333-lgtm/human-design-llm/issues"
+Changelog = "https://github.com/joyozhang333-lgtm/human-design-llm/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+include = ["human_design*"]
+
+[tool.setuptools.package-data]
+human_design = ["assets/*.svg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

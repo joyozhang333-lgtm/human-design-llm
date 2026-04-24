@@ -1,5 +1,7 @@
 """Human Design product workspace."""
 
+from .bodygraph import render_bodygraph_svg, write_bodygraph_svg
+from .career import generate_career_report, render_career_report_markdown
 from .engine import calculate_chart, parse_birth_datetime
 from .input import normalize_birth_input, normalize_birth_time_range
 from .product import build_llm_product
@@ -21,6 +23,9 @@ __all__ = [
     "build_llm_product",
     "build_timing_product",
     "calculate_chart",
+    "generate_career_report",
+    "render_bodygraph_svg",
+    "write_bodygraph_svg",
     "analyze_birth_time_range",
     "analyze_timing",
     "compare_relationship",
@@ -29,6 +34,7 @@ __all__ = [
     "normalize_birth_time_range",
     "parse_birth_datetime",
     "generate_reading",
+    "render_career_report_markdown",
     "generate_timing_reading",
     "generate_relationship_reading",
     "render_reading_markdown",

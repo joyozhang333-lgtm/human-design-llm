@@ -22,6 +22,16 @@ from .knowledge import (
     VARIABLE_ORIENTATION_GUIDES,
     to_source_reference,
 )
+from .labels import (
+    display_authority,
+    display_definition,
+    display_not_self,
+    display_profile,
+    display_signature,
+    display_strategy,
+    display_type,
+    normalize_center_title,
+)
 from .schema import HumanDesignChart, HumanDesignReading, ReadingSection, SourceReference
 
 PRECISION_LABELS = {
@@ -33,6 +43,11 @@ PRECISION_LABELS = {
 
 
 def generate_reading(chart: HumanDesignChart) -> HumanDesignReading:
+    type_label = display_type(chart.summary.type.code, chart.summary.type.label)
+    strategy_label = display_strategy(chart.summary.strategy.code, chart.summary.strategy.label)
+    authority_label = display_authority(chart.summary.authority.code, chart.summary.authority.label)
+    profile_label = display_profile(chart.summary.profile.code, chart.summary.profile.label)
+    definition_label = display_definition(chart.summary.definition.code, chart.summary.definition.label)
     precision_facts = (
         f"输入精度：{PRECISION_LABELS.get(chart.input.source_precision, chart.input.source_precision)}",
         *tuple(f"精度提示：{warning}" for warning in chart.input.warnings),
@@ -48,15 +63,15 @@ def generate_reading(chart: HumanDesignChart) -> HumanDesignReading:
         _integration_section(chart),
     )
     headline = (
-        f"{chart.summary.profile.label} | "
-        f"{chart.summary.authority.label} {chart.summary.type.label}"
+        f"{profile_label} | "
+        f"{authority_label} {type_label}"
     )
     quick_facts = (
-        f"类型：{chart.summary.type.label}",
-        f"策略：{chart.summary.strategy.label}",
-        f"权威：{chart.summary.authority.label}",
-        f"Profile：{chart.summary.profile.label}",
-        f"定义：{chart.summary.definition.label}",
+        f"类型：{type_label}",
+        f"策略：{strategy_label}",
+        f"权威：{authority_label}",
+        f"人生角色：{profile_label}",
+        f"定义：{definition_label}",
         f"轮回交叉：{chart.summary.incarnation_cross.label}",
         *precision_facts,
     )
@@ -103,6 +118,11 @@ def render_reading_markdown(reading: HumanDesignReading) -> str:
 
 
 def _core_section(chart: HumanDesignChart) -> ReadingSection:
+    type_label = display_type(chart.summary.type.code, chart.summary.type.label)
+    profile_label = display_profile(chart.summary.profile.code, chart.summary.profile.label)
+    authority_label = display_authority(chart.summary.authority.code, chart.summary.authority.label)
+    signature_label = display_signature(chart.summary.signature.code, chart.summary.signature.label)
+    not_self_label = display_not_self(chart.summary.not_self_theme.code, chart.summary.not_self_theme.label)
     type_card = get_type_card(chart.summary.type.code)
     type_guide = TYPE_GUIDES.get(chart.summary.type.code, {})
     summary_text = type_card.summary if type_card and type_card.summary else type_guide.get(
@@ -114,14 +134,14 @@ def _core_section(chart: HumanDesignChart) -> ReadingSection:
         type_card.shadows if type_card and type_card.shadows else type_guide.get("shadows", ())
     )
     summary = (
-        f"你的基础配置是「{chart.summary.type.label} + {chart.summary.profile.label} + "
-        f"{chart.summary.authority.label}」。"
+        f"你的基础配置是「{type_label} + {profile_label} + "
+        f"{authority_label}」。"
         f"{summary_text}"
     )
     bullets = (
         *gifts,
         *shadows,
-        f"签名主题是「{chart.summary.signature.label}」，不对位时更容易落入「{chart.summary.not_self_theme.label}」。",
+        f"签名主题是「{signature_label}」，不对位时更容易落入「{not_self_label}」。",
     )
     return ReadingSection(
         key="core",
@@ -137,6 +157,9 @@ def _core_section(chart: HumanDesignChart) -> ReadingSection:
 
 
 def _decision_section(chart: HumanDesignChart) -> ReadingSection:
+    strategy_label = display_strategy(chart.summary.strategy.code, chart.summary.strategy.label)
+    authority_label = display_authority(chart.summary.authority.code, chart.summary.authority.label)
+    not_self_label = display_not_self(chart.summary.not_self_theme.code, chart.summary.not_self_theme.label)
     authority_card = get_authority_card(chart.summary.authority.code)
     authority = (
         authority_card.summary
@@ -147,12 +170,12 @@ def _decision_section(chart: HumanDesignChart) -> ReadingSection:
         )
     )
     summary = (
-        f"行动上，你的策略是「{chart.summary.strategy.label}」；决定上，你的权威是「{chart.summary.authority.label}」。"
+        f"行动上，你的策略是「{strategy_label}」；决定上，你的权威是「{authority_label}」。"
         "策略决定你如何进入机会，权威决定你如何在机会里做选择。"
     )
     bullets = (
         authority,
-        f"如果你跳过「{chart.summary.strategy.label}」这一步，常会更快撞上 {chart.summary.not_self_theme.label}。",
+        f"如果你跳过「{strategy_label}」这一步，常会更快撞上 {not_self_label}。",
         "真正的稳定不是更快，而是更对位。先让身体、情绪或表达出现真实信号，再推进动作。",
     )
     return ReadingSection(
@@ -169,13 +192,15 @@ def _decision_section(chart: HumanDesignChart) -> ReadingSection:
 
 
 def _profile_definition_section(chart: HumanDesignChart) -> ReadingSection:
+    profile_label = display_profile(chart.summary.profile.code, chart.summary.profile.label)
+    definition_label = display_definition(chart.summary.definition.code, chart.summary.definition.label)
     profile_card = get_profile_card(chart.summary.profile.code)
     profile = (
         profile_card.summary
         if profile_card and profile_card.summary
         else PROFILE_GUIDES.get(
             chart.summary.profile.code,
-            "你的 Profile 提示你在人生里既有天赋表达，也有必须亲自走过的成长路径。",
+            "你的人生角色提示你在人生里既有天赋表达，也有必须亲自走过的成长路径。",
         )
     )
     definition_card = get_definition_card(chart.summary.definition.code)
@@ -188,8 +213,8 @@ def _profile_definition_section(chart: HumanDesignChart) -> ReadingSection:
         )
     )
     summary = (
-        f"Profile「{chart.summary.profile.label}」更多讲的是你学习、关系和角色展开的方式；"
-        f"定义「{chart.summary.definition.label}」讲的是你内部系统如何连线。"
+        f"人生角色「{profile_label}」更多讲的是你学习、关系和角色展开的方式；"
+        f"定义「{definition_label}」讲的是你内部系统如何连线。"
     )
     bullets = (
         profile,
@@ -251,10 +276,10 @@ def _centers_section(chart: HumanDesignChart) -> ReadingSection:
             continue
         state = "已定义" if center.defined else "开放"
         if center_card:
-            label = center_card.title
+            label = normalize_center_title(center_card.title)
             explanation = center_card.defined if center.defined else center_card.undefined
         else:
-            label = guide["label"]
+            label = normalize_center_title(guide["label"])
             explanation = guide["defined"] if center.defined else guide["undefined"]
         bullets.append(f"{label}：{state}。{explanation}")
         sources.append(_source_from_card("center", center_card))
@@ -308,7 +333,9 @@ def _gates_section(chart: HumanDesignChart) -> ReadingSection:
 
 
 def _integration_section(chart: HumanDesignChart) -> ReadingSection:
-    defined_centers = [center.label for center in chart.centers if center.defined]
+    authority_label = display_authority(chart.summary.authority.code, chart.summary.authority.label)
+    strategy_label = display_strategy(chart.summary.strategy.code, chart.summary.strategy.label)
+    defined_centers = [_center_label(center.code) for center in chart.centers if center.defined]
     type_card = get_type_card(chart.summary.type.code)
     authority_card = get_authority_card(chart.summary.authority.code)
     summary = (
@@ -316,8 +343,8 @@ def _integration_section(chart: HumanDesignChart) -> ReadingSection:
         "你现在最需要的不是再多看一堆标签，而是把图里最关键的 2 到 3 个机制活到日常里。"
     )
     bullets = (
-        f"先从「{chart.summary.authority.label}」练起：未来两周，把所有重要决定都延后到你的权威真正有回应时再定。",
-        f"再从「{chart.summary.strategy.label}」练起：观察自己什么时候顺着策略进入事情，什么时候在逆着自己的方式硬推。",
+        f"先从「{authority_label}」练起：未来两周，把所有重要决定都延后到你的权威真正有回应时再定。",
+        f"再从「{strategy_label}」练起：观察自己什么时候顺着策略进入事情，什么时候在逆着自己的方式硬推。",
         f"最后盯住最关键的结构：当前定义中心 {', '.join(defined_centers) or '无'}，以及通道 {', '.join(channel.code for channel in chart.channels) or '无'}。",
     )
     return ReadingSection(
@@ -378,17 +405,23 @@ def _describe_gate(gate, card=None) -> str:
 
 
 def _describe_variable_orientations(label: str) -> str:
-    parts = []
-    mapping = (
-        ("P-top", label[0:1]),
-        ("P-bottom", label[1:2]),
-        ("D-top", label[3:4]),
-        ("D-bottom", label[4:5]),
-    )
-    for _, token in mapping:
-        orientation = "left" if token == "L" else "right"
-        parts.append(VARIABLE_ORIENTATION_GUIDES[orientation])
-    return "变量方向的整体提醒：" + " ".join(parts)
+    tokens = tuple(token for token in label if token in {"L", "R"})
+    left_count = sum(1 for token in tokens if token == "L")
+    right_count = sum(1 for token in tokens if token == "R")
+    if left_count > right_count:
+        leading = VARIABLE_ORIENTATION_GUIDES["left"]
+    elif right_count > left_count:
+        leading = VARIABLE_ORIENTATION_GUIDES["right"]
+    else:
+        leading = "左右变量数量接近，既需要结构节奏，也需要给感知和环境读取留空间。"
+
+    if left_count and right_count:
+        balance = "同时保留另一侧能力，不要把自己固定成单一工作方式。"
+    elif left_count:
+        balance = "重点是建立可重复节奏，但也要避免过度控制现场变化。"
+    else:
+        balance = "重点是保护接收和观察能力，但也要给行动留出最低限度结构。"
+    return f"变量方向的整体提醒：{left_count} 左 / {right_count} 右。{leading}{balance}"
 
 
 def _find_activation(chart: HumanDesignChart, imprint: str, planet_code: str):
@@ -401,9 +434,9 @@ def _find_activation(chart: HumanDesignChart, imprint: str, planet_code: str):
 def _center_label(code: str) -> str:
     center_card = get_center_card(code)
     if center_card:
-        return center_card.title
+        return normalize_center_title(center_card.title)
     guide = CENTER_GUIDES.get(code)
-    return guide["label"] if guide else code
+    return normalize_center_title(guide["label"]) if guide else code
 
 
 def _limit_bullets(items: tuple[str, ...], limit: int) -> tuple[str, ...]:

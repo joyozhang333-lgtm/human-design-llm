@@ -7,7 +7,7 @@ v0.6 开始把知识从 `human_design/knowledge.py` 拆到 `references/`。
 - `references/index.json` 是索引入口
 - `references/types/*.md` 存类型卡
 - `references/authorities/*.md` 存权威卡
-- `references/profiles/*.md` 存 Profile 卡
+- `references/profiles/*.md` 存 人生角色卡
 - `references/centers/*.md` 存中心卡
 - `references/definitions/*.md` 存定义卡
 - `references/gates/*.md` 存 gate 卡

@@ -20,7 +20,7 @@ def test_build_relationship_product_returns_cited_package() -> None:
         citation_mode="sources",
     )
 
-    assert package.product_version == __version__ == "2.0.0"
+    assert package.product_version == __version__ == "2.2.0"
     assert package.focus == "communication"
     assert any(block.key == "focus-highlights" for block in package.context_blocks)
     assert any(citation.key == "focus-highlights" for citation in package.answer_citations)

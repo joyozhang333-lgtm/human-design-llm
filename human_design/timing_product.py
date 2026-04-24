@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from .knowledge import get_authority_card, get_center_card, get_channel_card, get_gate_card, to_source_reference
+from .labels import display_authority, normalize_center_title
 from .schema import (
     AnswerCitation,
     LLMContextBlock,
@@ -220,7 +221,7 @@ def _render_answer(
 ) -> str:
     citation_map = {citation.key: citation for citation in answer_citations}
     lines: list[str] = []
-    lines.append("# Human Design Timing Session")
+    lines.append("# 人类图时机解读")
     lines.append("")
     lines.append(headline)
     lines.append("")
@@ -307,13 +308,17 @@ def _authority_highlights(timing: TimingAnalysisResult, focus: str) -> list[Timi
     card = get_authority_card(timing.natal_chart.summary.authority.code)
     if card is None:
         return []
+    authority_label = display_authority(
+        timing.natal_chart.summary.authority.code,
+        timing.natal_chart.summary.authority.label,
+    )
     text = (
-        f"无论当前天气如何变化，你的最终决策仍然要回到「{timing.natal_chart.summary.authority.label}」。"
+        f"无论当前天气如何变化，你的最终决策仍然要回到「{authority_label}」。"
     )
     return [
         TimingHighlight(
             key=f"authority:{timing.natal_chart.summary.authority.code}",
-            label=f"权威 {timing.natal_chart.summary.authority.label}",
+            label=f"权威 {authority_label}",
             text=text,
             priority=100 if focus == "decision" else 88,
             source=to_source_reference("authority", card),
@@ -330,7 +335,7 @@ def _center_highlights(timing: TimingAnalysisResult, focus: str) -> list[TimingH
         highlights.append(
             TimingHighlight(
                 key=f"pressure-center:{code}",
-                label=f"被放大的开放中心 {card.title}",
+                label=f"被放大的开放中心 {normalize_center_title(card.title)}",
                 text=f"这个中心当前被短期天气点亮，更容易出现放大、着急或过度解释的反应。",
                 priority=96 - rank if focus in {"decision", "energy"} else 84 - rank,
                 source=to_source_reference("center", card),
@@ -343,7 +348,7 @@ def _center_highlights(timing: TimingAnalysisResult, focus: str) -> list[TimingH
         highlights.append(
             TimingHighlight(
                 key=f"anchor-center:{code}",
-                label=f"锚定中心 {card.title}",
+                label=f"锚定中心 {normalize_center_title(card.title)}",
                 text="这个中心是你当前最适合回去站稳的位置，天气再变，这里仍然更能给你稳定感。",
                 priority=82 - rank,
                 source=to_source_reference("center", card),
@@ -381,7 +386,7 @@ def _gate_highlights(timing: TimingAnalysisResult, focus: str) -> list[TimingHig
             TimingHighlight(
                 key=f"gate:{code}",
                 label=f"当前新增闸门 {code}",
-                text=f"{card.summary or card.title} 这个主题最近更容易被触发，但它是阶段性天气，不一定是长期答案。",
+                text=f"{card.summary or normalize_center_title(card.title)} 这个主题最近更容易被触发，但它是阶段性天气，不一定是长期答案。",
                 priority=74 - rank,
                 source=to_source_reference("gate", card),
             )

@@ -2,6 +2,14 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from .labels import (
+    display_authority,
+    display_definition,
+    display_profile,
+    display_strategy,
+    display_type,
+    normalize_center_title,
+)
 from .knowledge import (
     get_authority_card,
     get_center_card,
@@ -27,7 +35,7 @@ def generate_relationship_reading(
     right = comparison.right_chart
     headline = (
         f"{comparison.left_label} x {comparison.right_label} | "
-        f"{left.summary.type.label} + {right.summary.type.label}"
+        f"{display_type(left.summary.type.code, left.summary.type.label)} + {display_type(right.summary.type.code, right.summary.type.label)}"
     )
     quick_facts = (
         _person_summary(comparison.left_label, left),
@@ -93,25 +101,25 @@ def _relationship_skeleton_section(
     same_authority = _facet_same(comparison, "authority")
     summary = (
         "关系骨架先看两个人是同频展开，还是异质互补。"
-        f"{comparison.left_label} 更像 {left.type.label}，{comparison.right_label} 更像 {right.type.label}；"
+        f"{comparison.left_label} 更像 {display_type(left.type.code, left.type.label)}，{comparison.right_label} 更像 {display_type(right.type.code, right.type.label)}；"
         "这会直接决定彼此进入关系、被看见和推进事情的节奏。"
     )
     bullets = (
-        f"类型层：{comparison.left_label} 是「{left.type.label}」，{comparison.right_label} 是「{right.type.label}」。"
+        f"类型层：{comparison.left_label} 是「{display_type(left.type.code, left.type.label)}」，{comparison.right_label} 是「{display_type(right.type.code, right.type.label)}」。"
         + (" 两人的基础节奏相近，比较容易用相似方式理解彼此。"
            if _facet_same(comparison, 'type')
            else " 两人的能量节奏不同，关键不是谁更对，而是不要逼彼此用同一种启动方式。"),
-        f"权威层：{comparison.left_label} 用「{left.authority.label}」做决定，{comparison.right_label} 用「{right.authority.label}」。"
+        f"权威层：{comparison.left_label} 用「{display_authority(left.authority.code, left.authority.label)}」做决定，{comparison.right_label} 用「{display_authority(right.authority.code, right.authority.label)}」做决定。"
         + (" 决策速度和确认方式相近，比较容易形成共同步调。"
            if same_authority
            else " 做决定时很容易一个人觉得该快，一个人觉得还没到点，这本身不是不合，而是机制不同。"),
-        f"Profile 层：{comparison.left_label} 是「{left.profile.label}」，{comparison.right_label} 是「{right.profile.label}」。"
+        f"人生角色层：{comparison.left_label} 是「{display_profile(left.profile.code, left.profile.label)}」，{comparison.right_label} 是「{display_profile(right.profile.code, right.profile.label)}」。"
         " 这会影响彼此需要多少独处、多少试错、多少关系回声。",
-        f"定义层：两侧都是「{left.definition.label}」。"
+        f"定义层：两侧都是「{display_definition(left.definition.code, left.definition.label)}」。"
         if _facet_same(comparison, "definition")
         else (
-            f"定义层：{comparison.left_label} 是「{left.definition.label}」，"
-            f"{comparison.right_label} 是「{right.definition.label}」。"
+            f"定义层：{comparison.left_label} 是「{display_definition(left.definition.code, left.definition.label)}」，"
+            f"{comparison.right_label} 是「{display_definition(right.definition.code, right.definition.label)}」。"
             " 一个人更容易内部自我整合，另一个人可能更需要关系和场域帮助连线。"
         ),
     )
@@ -218,8 +226,8 @@ def _decision_section(comparison: RelationshipComparisonResult) -> ReadingSectio
         "联合决策要先保留各自权威，再讨论共同现实。"
     )
     bullets = (
-        f"{comparison.left_label}：优先按「{left.strategy.label} + {left.authority.label}」确认自己的真实回应，再表达给对方。",
-        f"{comparison.right_label}：优先按「{right.strategy.label} + {right.authority.label}」确认自己的真实回应，再表达给对方。",
+        f"{comparison.left_label}：优先按「{display_strategy(left.strategy.code, left.strategy.label)} + {display_authority(left.authority.code, left.authority.label)}」确认自己的真实回应，再表达给对方。",
+        f"{comparison.right_label}：优先按「{display_strategy(right.strategy.code, right.strategy.label)} + {display_authority(right.authority.code, right.authority.label)}」确认自己的真实回应，再表达给对方。",
         (
             "联合决策规则：先各自完成自己的确认，再进入讨论；不要用说服替代清晰。"
             if not _facet_same(comparison, "authority")
@@ -284,8 +292,10 @@ def _practice_section(comparison: RelationshipComparisonResult) -> ReadingSectio
 
 def _person_summary(label: str, chart) -> str:
     return (
-        f"{label}：{chart.summary.type.label} / {chart.summary.authority.label} / "
-        f"{chart.summary.profile.label} / {chart.summary.definition.label}"
+        f"{label}：{display_type(chart.summary.type.code, chart.summary.type.label)} / "
+        f"{display_authority(chart.summary.authority.code, chart.summary.authority.label)} / "
+        f"{display_profile(chart.summary.profile.code, chart.summary.profile.label)} / "
+        f"{display_definition(chart.summary.definition.code, chart.summary.definition.label)}"
     )
 
 
@@ -353,7 +363,7 @@ def _center_label(code: str | None) -> str:
     if code is None:
         return "该中心"
     card = get_center_card(code)
-    return card.title if card is not None else code
+    return normalize_center_title(card.title) if card is not None else code
 
 
 def _format_codes(values) -> str:
