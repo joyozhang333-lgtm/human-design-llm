@@ -28,7 +28,7 @@ Human Design LLM is an LLM-native product layer for Human Design. It wraps chart
 
 The core output is not just a markdown reading. The project can produce a full LLM product package containing chart facts, reading sections, source references, assistant instructions, context blocks, answer citations, suggested follow-ups, delivery depth, and session state. This makes it suitable for AI agents, API backends, prompt orchestration systems, and local Codex/OpenAI-style skills.
 
-The current release supports single-chart readings, career deep readings, relationship comparison, timing/transit context, birth-time uncertainty analysis, template-based BodyGraph SVG rendering, and blinded forced-choice empirical analysis. The product is tested with pytest, smoke suites, narrative evaluations, public-figure accuracy checks, empirical-readiness checks, and a V2 scorecard.
+The current release supports single-chart readings, career deep readings, relationship comparison, timing/transit context, birth-time uncertainty analysis, template-based BodyGraph SVG rendering, blinded forced-choice empirical analysis, 1000+ public-figure holdout trials, and prospective prediction registry tooling. The product is tested with pytest, smoke suites, narrative evaluations, public-figure accuracy checks, empirical-readiness checks, benchmark-readiness checks, and a V2 scorecard.
 
 ## 中文长介绍
 
@@ -36,7 +36,7 @@ Human Design LLM 是一个面向大模型的人类图产品层。它把人类图
 
 这个项目的核心输出不只是 Markdown 解读，而是一份完整的 LLM 产品包：包含 chart 事实、阅读章节、来源引用、助手指令、上下文块、回答引用、推荐追问、输出深度和会话状态。因此它适合 AI Agent、API 后端、prompt orchestration、Codex/OpenAI 风格技能，以及任何需要结构化人类图事实的大模型应用。
 
-当前版本支持单盘解读、职业深读、关系合盘、时机 / transit 分析、出生时间不确定性采样、模板驱动的 BodyGraph SVG 出图，以及盲测 forced-choice 实验分析。产品质量通过 pytest、smoke suite、narrative eval、公开人物准确度、经验验证准备度和 V2 scorecard 做回归验证。
+当前版本支持单盘解读、职业深读、关系合盘、时机 / transit 分析、出生时间不确定性采样、模板驱动的 BodyGraph SVG 出图、盲测 forced-choice 实验分析、1000+ 公开人物 holdout trials 和前瞻预测注册表。产品质量通过 pytest、smoke suite、narrative eval、公开人物准确度、经验验证准备度、benchmark readiness 和 V2 scorecard 做回归验证。
 
 ## GitHub Description Options
 

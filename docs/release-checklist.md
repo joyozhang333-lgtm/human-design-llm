@@ -9,6 +9,7 @@
 - `python scripts/evaluate_narrative.py`
 - `python scripts/evaluate_public_figures.py`
 - `python scripts/evaluate_empirical_readiness.py`
+- `python scripts/evaluate_accuracy_benchmark.py`
 - 抽样检查 `career / relationship / decision / growth / overview` 五个 focus
 - 抽样检查至少一例 `input.warnings` 场景
 - 确认 narrative eval 已覆盖关键 block 的 `sources` 与 source kind 校验
@@ -16,6 +17,7 @@
 - 确认 answer-level `answer_citations` 与 `citation_mode=sources` 的 markdown 渲染一致
 - 确认公开人物校验集达到 `>= 90`，并且没有虚构通道 / 闸门、中文术语回退或 SVG 渲染失败
 - 确认经验验证准备度达到 `>= 90`，并且没有把 demo fixture 误表述为科学证据
+- 确认 1000+ benchmark manifest、holdout blind trials、protocol freeze 和 prospective registry 已生成
 - `README.md`、`SKILL.md`、`docs/install.md` 已同步当前行为
 - `agents/openai.yaml` 存在且描述未过时
 - `runtimes/` 至少包含 `codex / hermes / openclaw`

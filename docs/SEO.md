@@ -48,6 +48,8 @@ Recommended topics:
 - `transit-analysis`
 - `empirical-validation`
 - `blind-test`
+- `holdout-benchmark`
+- `prospective-prediction`
 - `chart-calculator`
 - `human-design-api`
 - `chinese`
@@ -55,11 +57,11 @@ Recommended topics:
 
 ## English Keywords
 
-Human Design LLM, Human Design AI, Human Design chart calculator, BodyGraph chart generator, BodyGraph Python, Human Design reading generator, Human Design career reading, Human Design relationship chart, Human Design transit analysis, Human Design empirical validation, Human Design blind test, Human Design API backend, AI astrology toolkit, LLM-native Human Design, Codex skill Human Design, OpenAI skill Human Design.
+Human Design LLM, Human Design AI, Human Design chart calculator, BodyGraph chart generator, BodyGraph Python, Human Design reading generator, Human Design career reading, Human Design relationship chart, Human Design transit analysis, Human Design empirical validation, Human Design blind test, Human Design holdout benchmark, Human Design prospective prediction, Human Design API backend, AI astrology toolkit, LLM-native Human Design, Codex skill Human Design, OpenAI skill Human Design.
 
 ## 中文关键词
 
-人类图，人类图排盘，人类图解读，人类图 AI，人类图大模型，人类图职业解读，人类图合盘，人类图关系分析，人类图流年，人类图 transit，人类图 BodyGraph，人类图客观准确性，人类图盲测，人类图实验评估，人类图 Python，人类图 API，人类图 skill，AI 命理工具，大模型命理工具。
+人类图，人类图排盘，人类图解读，人类图 AI，人类图大模型，人类图职业解读，人类图合盘，人类图关系分析，人类图流年，人类图 transit，人类图 BodyGraph，人类图客观准确性，人类图盲测，人类图实验评估，人类图 holdout，人类图前瞻预测，人类图 Python，人类图 API，人类图 skill，AI 命理工具，大模型命理工具。
 
 ## Content Structure
 
@@ -77,6 +79,8 @@ First paragraph target:
 - `relationship comparison`
 - `timing/transit context`
 - `empirical validation`
+- `holdout benchmark`
+- `prospective prediction`
 - `source-traceable LLM prompts`
 
 Chinese first paragraph target:
@@ -89,6 +93,7 @@ Chinese first paragraph target:
 - `人类图合盘`
 - `时机分析`
 - `实验评估`
+- `前瞻预测`
 - `Codex skill`
 
 ## README Search Strategy

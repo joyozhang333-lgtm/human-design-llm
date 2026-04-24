@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.4.0 - 2026-04-24
+
+- 从 Astro-Databank `c_sample` export 生成 4834 条 AA/A/B timed Public Figure benchmark manifest
+- 固定 `human-design-accuracy-v1` split：train 2801 / validation 960 / holdout 1073
+- 新增 1000 条 blinded forced-choice holdout trials，并将 answer key 分离保存
+- 新增 protocol freeze hash、prospective prediction registry、benchmark readiness evaluator
+- 新增 `scripts/build_public_figure_manifest.py`、`scripts/build_holdout_trials.py`、`scripts/freeze_empirical_protocol.py`、`scripts/evaluate_accuracy_benchmark.py`、`scripts/analyze_prospective_registry.py`
+- 新增 `scripts/analyze_label_predictions.py` 和 label prediction contract，用于性格 / 天赋 / 职业标签 holdout 准确率评分
+- 将 `evaluate_v2.py` 接入 1000+ benchmark infrastructure gate
+- 明确区分 `infrastructure_score=100/90` 与真实 `actual_accuracy_score`；没有盲评和前瞻 outcome 前不能宣称 90% 命运 / 性格 / 天赋准确率
+- 将产品版本切到 `2.4.0`
+
 ## 2.3.0 - 2026-04-24
 
 - 新增 `docs/empirical-validation-protocol.md`，把“人类图是否客观准确”拆成可证伪盲测命题、对照组、机会基线、p 值、置信区间和独立复现门槛

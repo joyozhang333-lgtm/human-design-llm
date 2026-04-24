@@ -11,6 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from human_design.evals import (
+    run_accuracy_benchmark_readiness_suite,
     run_empirical_readiness_suite,
     run_narrative_eval_suite,
     run_public_figure_accuracy_suite,
@@ -118,6 +119,14 @@ def evaluate_v2() -> dict:
         ROOT / "tests" / "fixtures" / "empirical_forced_choice_demo.json",
     )
     empirical_readiness_score = score_eval_checks(empirical_readiness)
+    accuracy_benchmark = run_accuracy_benchmark_readiness_suite(
+        ROOT / "data" / "empirical" / "public_figure_manifest.jsonl",
+        ROOT / "data" / "empirical" / "holdout_trials_blinded.jsonl",
+        ROOT / "data" / "empirical" / "holdout_trials_answer_key.jsonl",
+        ROOT / "docs" / "protocol-freezes" / "human-design-accuracy-v1.freeze.json",
+        ROOT / "data" / "empirical" / "prospective_prediction_registry.jsonl",
+    )
+    accuracy_benchmark_score = score_eval_checks(accuracy_benchmark)
 
     uncertainty = analyze_birth_time_range(
         "1988-10-09T20:00:00",
@@ -171,11 +180,12 @@ def evaluate_v2() -> dict:
 
     public_figure_passed = public_figure_accuracy.failed == 0 and public_figure_score >= 90
     empirical_readiness_passed = empirical_readiness.failed == 0 and empirical_readiness_score >= 90
+    accuracy_benchmark_passed = accuracy_benchmark.failed == 0 and accuracy_benchmark_score >= 90
     total = single_score + relationship_score + timing_score + output_session_score + release_score
     return {
         "score": total,
         "target": 90,
-        "passed": total >= 90 and public_figure_passed and empirical_readiness_passed,
+        "passed": total >= 90 and public_figure_passed and empirical_readiness_passed and accuracy_benchmark_passed,
         "public_figure_accuracy": {
             "score": public_figure_score,
             "target": 90,
@@ -186,6 +196,13 @@ def evaluate_v2() -> dict:
             "target": 90,
             "passed": empirical_readiness_passed,
             "truth_claim_status": "not-established-without-real-preregistered-trial-data",
+        },
+        "accuracy_benchmark": {
+            "infrastructure_score": accuracy_benchmark_score,
+            "target": 90,
+            "passed": accuracy_benchmark_passed,
+            "actual_accuracy_score": None,
+            "actual_accuracy_status": "not-established-until-blind-and-prospective-outcomes-are-scored",
         },
         "breakdown": {
             "single": single_score,
@@ -204,6 +221,7 @@ def evaluate_v2() -> dict:
             "timing_narrative": timing_narrative.to_dict(),
             "public_figure_accuracy": public_figure_accuracy.to_dict(),
             "empirical_readiness": empirical_readiness.to_dict(),
+            "accuracy_benchmark": accuracy_benchmark.to_dict(),
         },
     }
 

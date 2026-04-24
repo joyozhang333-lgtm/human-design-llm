@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from human_design.evals import (
+    run_accuracy_benchmark_readiness_suite,
     run_narrative_eval_suite,
     run_empirical_readiness_suite,
     run_public_figure_accuracy_suite,
@@ -124,3 +125,21 @@ def test_run_empirical_readiness_suite_scores_above_90() -> None:
     assert any(check.name == "protocol-scientific-controls" for check in checks)
     assert any(check.name == "demo-not-misrepresented-as-proof" for check in checks)
     assert any(check.name == "truth-claim-discipline" for check in checks)
+
+
+def test_run_accuracy_benchmark_readiness_suite_scores_above_90() -> None:
+    report = run_accuracy_benchmark_readiness_suite(
+        ROOT.parent / "data" / "empirical" / "public_figure_manifest.jsonl",
+        ROOT.parent / "data" / "empirical" / "holdout_trials_blinded.jsonl",
+        ROOT.parent / "data" / "empirical" / "holdout_trials_answer_key.jsonl",
+        ROOT.parent / "docs" / "protocol-freezes" / "human-design-accuracy-v1.freeze.json",
+        ROOT.parent / "data" / "empirical" / "prospective_prediction_registry.jsonl",
+    )
+
+    assert report.failed == 0
+    assert report.total == 1
+    assert score_eval_checks(report) >= 90
+    checks = report.results[0].checks
+    assert any(check.name == "manifest-1000-plus" for check in checks)
+    assert any(check.name == "blind-answer-key-separated" for check in checks)
+    assert any(check.name == "actual-accuracy-not-overclaimed" for check in checks)

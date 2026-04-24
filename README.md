@@ -9,9 +9,9 @@ It is not a static Human Design website. It is a Python product layer that turns
 它不是一个静态网页，也不是单纯 prompt 模板，而是把出生资料转成结构化人类图事实，再把这些事实封装成大模型可直接使用的产品包。
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-2.3.0-black)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.4.0-black)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-69%20passing-brightgreen)](./tests)
+[![Tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
 ## What It Does
@@ -72,6 +72,8 @@ English search intent:
 - Human Design transit analysis
 - Human Design empirical validation
 - Human Design blind test
+- Human Design holdout benchmark
+- Human Design prospective prediction
 - AI astrology toolkit
 - Codex skill for Human Design
 
@@ -88,11 +90,13 @@ English search intent:
 - 人类图 BodyGraph
 - 人类图客观准确性
 - 人类图盲测
+- 人类图前瞻预测
+- 人类图 holdout
 - 大模型命理工具
 
 ## Current Release
 
-`2.3.0` is the open-source release for the current development cycle.
+`2.4.0` is the open-source release for the current development cycle.
 
 Release scope:
 
@@ -106,6 +110,7 @@ Release scope:
 - SEO-ready bilingual README, MIT license, package metadata, and release documentation.
 - Public-figure accuracy suite with 10 Astro-Databank AA/A-rated fixtures.
 - Empirical validation protocol, blinded forced-choice statistics script, and no-proof-without-data guardrails.
+- 4834-record public-figure benchmark manifest, 1000 blinded holdout trials, frozen protocol hash, and prospective prediction registry.
 
 ## Installation
 
@@ -240,10 +245,12 @@ These files are intentionally local and source-traceable so that LLM output can 
 
 Current local release validation:
 
-- `69` pytest cases passing.
+- `74` pytest cases passing.
 - `evaluate_v2.py` product score: `100/100`.
 - `evaluate_public_figures.py` public-figure accuracy score: `100/90`.
 - `evaluate_empirical_readiness.py` scientific validation readiness score: `100/90`.
+- `evaluate_accuracy_benchmark.py` 1000+ benchmark infrastructure score: `100/90`.
+- 4834 public-figure records collected from Astro-Databank `c_sample`; holdout split contains 1073 records and 1000 blinded forced-choice trials.
 - Smoke tests for chart, reading, relationship, timing, citations, context blocks, delivery depth, and session state.
 - Narrative evals for focused answers and source rendering.
 - Public-figure evals for source rating, UTC conversion, chart structure, Chinese term quality, citation rendering, no invented gates/channels, and BodyGraph SVG rendering.
@@ -265,6 +272,9 @@ Current local release validation:
 - [Session contract](./docs/contracts/session.md)
 - [Empirical validation protocol](./docs/empirical-validation-protocol.md)
 - [Empirical trial contract](./docs/contracts/empirical-trial.md)
+- [Public figure manifest contract](./docs/contracts/public-figure-manifest.md)
+- [Prospective prediction contract](./docs/contracts/prospective-prediction.md)
+- [Label prediction contract](./docs/contracts/label-predictions.md)
 - [SEO documentation](./docs/SEO.md)
 
 ## Important Notes

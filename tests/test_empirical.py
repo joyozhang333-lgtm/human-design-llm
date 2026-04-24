@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from human_design.empirical import analyze_forced_choice_experiment
+from human_design.empirical import analyze_forced_choice_experiment, analyze_label_prediction_experiment
 
 
 ROOT = Path(__file__).parent
@@ -39,3 +39,35 @@ def test_analyze_forced_choice_experiment_rejects_null_result() -> None:
     assert result.observed_accuracy < result.accuracy_threshold
     assert not result.passed_statistical_threshold
     assert result.evidence_status == "not-supported-by-current-data"
+
+
+def test_analyze_label_prediction_experiment_requires_real_accuracy_threshold() -> None:
+    manifest = [
+        {
+            "sample_id": "a",
+            "split": "holdout",
+            "labels": {"vocation": ["Vocation : Writers : Fiction"]},
+        },
+        {
+            "sample_id": "b",
+            "split": "holdout",
+            "labels": {"vocation": ["Vocation : Sports : Baseball"]},
+        },
+    ]
+    predictions = [
+        {"sample_id": "a", "predicted_labels": ["Vocation : Writers : Fiction"]},
+        {"sample_id": "b", "predicted_labels": ["Vocation : Writers : Fiction"]},
+    ]
+
+    result = analyze_label_prediction_experiment(
+        manifest,
+        predictions,
+        minimum_sample_size=2,
+        accuracy_threshold=0.90,
+    )
+
+    assert result.scored_predictions == 2
+    assert result.correct_predictions == 1
+    assert result.observed_accuracy == 0.5
+    assert not result.passed_accuracy_threshold
+    assert result.evidence_status == "not-established-or-below-threshold"

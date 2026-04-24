@@ -2,6 +2,10 @@
 __pycache__/
 .pytest_cache/
 .venv/
+.cache/
 *.pyc
 outputs/
 *.egg-info/
+task_plan.md
+findings.md
+progress.md

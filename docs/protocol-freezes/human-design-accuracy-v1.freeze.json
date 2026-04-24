@@ -1,0 +1,10 @@
+{
+  "protocol_id": "human-design-accuracy-v1",
+  "frozen_at": "2026-04-24T06:54:45+00:00",
+  "files": {
+    "docs/contracts/empirical-trial.md": "dbb69948c19bfbe7f5e605da26eab9d93a2cd619861a68b2190e08127e173a72",
+    "docs/empirical-validation-protocol.md": "f845eeb2d03487381ec6ca8eede02c37f4ccb373c31586e14284b6cc234db1e6"
+  },
+  "combined_sha256": "0d5fdabe6116908ccfdd1635140eee9c79a0ed2859263f0375f1cbb826b03aec",
+  "status": "frozen"
+}

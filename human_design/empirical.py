@@ -30,6 +30,21 @@ class ForcedChoiceExperimentResult(JsonMixin):
     evidence_status: str
 
 
+@dataclass(frozen=True)
+class LabelPredictionExperimentResult(JsonMixin):
+    experiment_id: str
+    label_group: str
+    split: str
+    total_predictions: int
+    scored_predictions: int
+    correct_predictions: int
+    observed_accuracy: float | None
+    minimum_sample_size: int
+    accuracy_threshold: float
+    passed_accuracy_threshold: bool
+    evidence_status: str
+
+
 def analyze_forced_choice_experiment(payload: dict[str, Any] | str | Path) -> ForcedChoiceExperimentResult:
     data = _load_payload(payload)
     total_trials, correct_trials = _extract_counts(data)
@@ -80,6 +95,55 @@ def analyze_forced_choice_experiment(payload: dict[str, Any] | str | Path) -> Fo
         ci_lower_above_chance=ci_lower_above_chance,
         passed_statistical_threshold=passed_statistical_threshold,
         evidence_status=evidence_status,
+    )
+
+
+def analyze_label_prediction_experiment(
+    manifest: list[dict[str, Any]],
+    predictions: list[dict[str, Any]],
+    *,
+    experiment_id: str = "label-prediction",
+    label_group: str = "vocation",
+    split: str = "holdout",
+    minimum_sample_size: int = 1000,
+    accuracy_threshold: float = 0.90,
+) -> LabelPredictionExperimentResult:
+    target_by_id = {
+        record["sample_id"]: set(record.get("labels", {}).get(label_group, ()))
+        for record in manifest
+        if record.get("split") == split
+    }
+    scored = 0
+    correct = 0
+    for prediction in predictions:
+        sample_id = prediction.get("sample_id")
+        if sample_id not in target_by_id:
+            continue
+        targets = target_by_id[sample_id]
+        predicted = set(prediction.get("predicted_labels", ()))
+        if not targets or not predicted:
+            continue
+        scored += 1
+        if targets.intersection(predicted):
+            correct += 1
+    accuracy = (correct / scored) if scored else None
+    passed = (
+        accuracy is not None
+        and scored >= minimum_sample_size
+        and accuracy >= accuracy_threshold
+    )
+    return LabelPredictionExperimentResult(
+        experiment_id=experiment_id,
+        label_group=label_group,
+        split=split,
+        total_predictions=len(predictions),
+        scored_predictions=scored,
+        correct_predictions=correct,
+        observed_accuracy=accuracy,
+        minimum_sample_size=minimum_sample_size,
+        accuracy_threshold=accuracy_threshold,
+        passed_accuracy_threshold=passed,
+        evidence_status="passed-90" if passed else "not-established-or-below-threshold",
     )
 
 

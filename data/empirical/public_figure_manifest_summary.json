@@ -1,0 +1,18 @@
+{
+  "source_xml": "Astro-Databank c_sample.xml extracted from https://www.astro.com/adbexport/c_sample.zip",
+  "output_path": "data/empirical/public_figure_manifest.jsonl",
+  "total_records": 5866,
+  "included_records": 4834,
+  "rating_counts": {
+    "B": 229,
+    "AA": 3608,
+    "A": 997
+  },
+  "split_counts": {
+    "train": 2801,
+    "validation": 960,
+    "holdout": 1073
+  },
+  "holdout_count": 1073,
+  "protocol_seed": "human-design-accuracy-v1"
+}

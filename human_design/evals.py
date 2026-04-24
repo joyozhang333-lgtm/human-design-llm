@@ -8,8 +8,10 @@ from typing import Any
 
 from .bodygraph import render_bodygraph_svg
 from .empirical import analyze_forced_choice_experiment
+from .empirical_dataset import load_manifest
 from .engine import calculate_chart
 from .input import normalize_birth_input
+from .prediction_registry import analyze_prospective_registry
 from .product import build_llm_product
 from .reading import generate_reading
 from .relationship import compare_relationship
@@ -631,6 +633,95 @@ def run_empirical_readiness_suite(
         [
             EvalCaseResult(
                 case_id="empirical-readiness",
+                passed=all(check.passed for check in checks),
+                checks=tuple(checks),
+            )
+        ],
+    )
+
+
+def run_accuracy_benchmark_readiness_suite(
+    manifest_path: str | Path,
+    blind_trials_path: str | Path,
+    answer_key_path: str | Path,
+    freeze_path: str | Path,
+    prospective_registry_path: str | Path,
+) -> EvalSuiteResult:
+    manifest = load_manifest(manifest_path)
+    blind_trials = _load_jsonl(blind_trials_path)
+    answer_key = _load_jsonl(answer_key_path)
+    freeze = json.loads(Path(freeze_path).read_text(encoding="utf-8")) if Path(freeze_path).exists() else {}
+    prospective = analyze_prospective_registry(prospective_registry_path)
+    checks: list[EvalCheck] = []
+
+    holdout_records = [record for record in manifest if record.get("split") == "holdout"]
+    checks.append(
+        EvalCheck(
+            name="manifest-1000-plus",
+            passed=len(manifest) >= 1000 and len(holdout_records) >= 1000,
+            detail=f"manifest={len(manifest)} holdout={len(holdout_records)}",
+        )
+    )
+    rating_set = {record.get("rodden_rating") for record in manifest}
+    checks.append(
+        EvalCheck(
+            name="manifest-rating-quality",
+            passed=rating_set.issubset({"AA", "A", "B"}),
+            detail=f"ratings={sorted(rating_set)}",
+        )
+    )
+    split_counts = {split: sum(1 for record in manifest if record.get("split") == split) for split in ("train", "validation", "holdout")}
+    checks.append(
+        EvalCheck(
+            name="deterministic-splits-present",
+            passed=all(count > 0 for count in split_counts.values()),
+            detail=f"splits={split_counts}",
+        )
+    )
+    answer_ids = {row.get("trial_id") for row in answer_key}
+    blind_ids = {row.get("trial_id") for row in blind_trials}
+    checks.append(
+        EvalCheck(
+            name="blind-holdout-trials-1000",
+            passed=len(blind_trials) >= 1000 and blind_ids == answer_ids,
+            detail=f"blind_trials={len(blind_trials)} answer_key={len(answer_key)}",
+        )
+    )
+    leaked_answer_trials = [row.get("trial_id") for row in blind_trials if "correct_option_id" in row]
+    checks.append(
+        EvalCheck(
+            name="blind-answer-key-separated",
+            passed=not leaked_answer_trials,
+            detail=f"leaked={leaked_answer_trials[:5]}",
+        )
+    )
+    checks.append(
+        EvalCheck(
+            name="frozen-protocol-present",
+            passed=freeze.get("status") == "frozen" and bool(freeze.get("combined_sha256")),
+            detail=f"protocol_id={freeze.get('protocol_id')} hash={freeze.get('combined_sha256')}",
+        )
+    )
+    checks.append(
+        EvalCheck(
+            name="prospective-registry-present",
+            passed=prospective.total_predictions >= 1 and prospective.status == "unresolved",
+            detail=f"total={prospective.total_predictions} status={prospective.status}",
+        )
+    )
+    checks.append(
+        EvalCheck(
+            name="actual-accuracy-not-overclaimed",
+            passed=prospective.status != "passed-90",
+            detail="actual 90% destiny/personality/talent accuracy requires scored blind/prospective outcomes",
+        )
+    )
+
+    return _suite_from_results(
+        "accuracy-benchmark-readiness",
+        [
+            EvalCaseResult(
+                case_id="accuracy-benchmark",
                 passed=all(check.passed for check in checks),
                 checks=tuple(checks),
             )
@@ -1334,6 +1425,14 @@ def _answer_markdown_citation_mismatches(package) -> list[str]:
 def _render_expected_source_line(sources: tuple[SourceReference, ...]) -> str:
     items = [f"[{source.kind}:{source.code}]({source.path})" for source in sources]
     return "来源：" + "；".join(items)
+
+
+def _load_jsonl(path: str | Path) -> list[dict[str, Any]]:
+    return [
+        json.loads(line)
+        for line in Path(path).read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
 
 
 def _mentioned_channels(text: str) -> set[str]:
