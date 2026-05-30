@@ -3,9 +3,17 @@ __pycache__/
 .pytest_cache/
 .venv/
 .cache/
+.env
+.env.*
+!.env.example
 *.pyc
 outputs/
 *.egg-info/
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo
+web/vite.config.d.ts
+web/vite.config.js
 task_plan.md
 findings.md
 progress.md

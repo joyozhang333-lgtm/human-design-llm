@@ -258,7 +258,7 @@ def _resolve_timezone(
     if timezone_name:
         _load_zoneinfo(timezone_name)
         if has_location_hint:
-            warnings.append("已优先使用明确传入的 timezone，地点信息仅保留为参考。")
+            warnings.append("已优先使用明确传入的时区，地点信息仅保留为参考。")
         return ResolvedTimezone(
             timezone_name=timezone_name,
             source_precision="timezone-name",

@@ -19,6 +19,9 @@ keywords = [
   "human design chart",
   "human design chart calculator",
   "human design reading generator",
+  "human design web app",
+  "human design api",
+  "human design body energy",
   "bodygraph",
   "bodygraph python",
   "bodygraph chart generator",
@@ -39,6 +42,9 @@ keywords = [
   "人类图",
   "人类图排盘",
   "人类图解读",
+  "人类图网页产品",
+  "人类图 Web App",
+  "人类图身体能量",
   "人类图职业解读",
   "人类图合盘",
   "人类图 AI"
@@ -63,8 +69,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+web = [
+  "fastapi>=0.110.0",
+  "uvicorn[standard]>=0.27.0"
+]
 dev = [
-  "pytest>=8.0.0"
+  "pytest>=8.0.0",
+  "fastapi>=0.110.0",
+  "httpx>=0.27.0",
+  "uvicorn[standard]>=0.27.0"
 ]
 
 [project.urls]

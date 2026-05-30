@@ -1,8 +1,8 @@
 # Human Design LLM - Human Design AI Toolkit | 人类图 AI 解读引擎
 
-**Human Design LLM** is an open-source Human Design AI toolkit for **BodyGraph chart calculation, Human Design reading generation, career analysis, relationship comparison, timing/transit context, source-traceable LLM prompts, and installable AI skills**.
+**Human Design LLM** is an open-source Human Design AI toolkit and Web/App product foundation for **BodyGraph chart calculation, Human Design reading generation, body-energy interpretation, career analysis, relationship comparison, timing/transit context, source-traceable LLM prompts, installable AI skills, and a Chinese-first user-facing app**.
 
-**人类图 LLM** 是一个面向 AI Agent / LLM Runtime 的开源人类图产品底座，覆盖 **人类图排盘、BodyGraph 出图、人类图解读、人类图职业解读、人类图合盘、时机分析、知识卡引用追踪、会话协议和 Codex skill**。
+**人类图 LLM** 是一个面向 AI Agent / LLM Runtime 与 Web/App 的开源人类图产品底座，覆盖 **人类图排盘、BodyGraph 出图、身体能量解读、人类图职业解读、人类图合盘、时机分析、知识卡引用追踪、会话协议、Web API、React 前端和 Codex skill**。
 
 It is not a static Human Design website. It is a Python product layer that turns birth data into structured chart facts, then packages those facts into LLM-ready context blocks and grounded interpretation workflows.
 
@@ -11,19 +11,21 @@ It is not a static Human Design website. It is a Python product layer that turns
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/version-2.4.0-black)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)](./tests)
+[![Tests](https://img.shields.io/badge/tests-85%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
 ## What It Does
 
-Human Design LLM turns a birth time into four layers of reusable product data:
+Human Design LLM turns a birth time into reusable product layers:
 
 | Layer | English | 中文 |
 | --- | --- | --- |
 | Chart | Human Design chart calculator and BodyGraph schema | 人类图排盘与 BodyGraph 结构化数据 |
 | Reading | Source-backed Human Design reading generator | 带知识卡来源的人类图解读生成器 |
+| Body Energy | Center/channel/gate interpretation for body resources and energy management | 身体资源、九大中心、通道、闸门与能量管理解读 |
 | Product Package | LLM-ready prompts, context blocks, citations, follow-ups, session state | 大模型可直接消费的 prompts、上下文块、引用、追问和会话状态 |
 | Visuals | Template-based BodyGraph SVG rendering | 模板驱动的人类图 BodyGraph 出图 |
+| Web/App | FastAPI endpoints and React/Vite user interface | FastAPI 接口与 React/Vite 用户界面 |
 
 ## Who It Is For
 
@@ -35,6 +37,7 @@ This repository is designed for developers and AI builders who want to create:
 - Human Design career reading products.
 - Human Design relationship chart and compatibility tools.
 - Human Design timing, transit, and cycle analysis workflows.
+- Chinese Human Design Web/App products with chart, report, and chat flows.
 - Codex / OpenAI / Hermes / OpenClaw skills that need structured chart facts.
 
 这个项目适合用来搭建：
@@ -45,6 +48,7 @@ This repository is designed for developers and AI builders who want to create:
 - 人类图职业解读产品
 - 人类图合盘 / 关系分析工具
 - 人类图流年 / transit / timing 分析流程
+- 中文人类图 Web/App 产品：排盘、报告、出图和聊天问答
 - 面向 Codex / OpenAI / Hermes / OpenClaw 的本地 skill
 
 ## Why This Project Is Different
@@ -55,6 +59,8 @@ This repository is designed for developers and AI builders who want to create:
 - **Source traceability**: output sections point back to local markdown reference cards under `references/`.
 - **Chinese-first reading quality**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
 - **Template-driven BodyGraph**: SVG rendering uses a stable bodygraph template, not ad-hoc drawing from scratch.
+- **User-facing Web/App layer**: FastAPI wraps the Python product core, while `web/` provides a real chart/report/chat interface.
+- **Body resource and energy interpretation**: `build_body_energy_profile()` explains defined/open centers, channels, gates, consumption patterns, and practices.
 - **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, public-figure accuracy checks, empirical-readiness checks, and `evaluate_v2.py` protect the product from shallow or generic output.
 
 ## Search Phrases This Repository Targets
@@ -167,6 +173,26 @@ python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' \
   --output outputs/bodygraphs/example.svg
 ```
 
+Run the Web/App product locally:
+
+```bash
+python -m pip install -r requirements-web.txt
+cp .env.example .env
+uvicorn human_design.web_api:app --reload
+
+cd web
+npm install
+npm run dev
+```
+
+Then open `http://127.0.0.1:5173`.
+
+Optional AI providers:
+
+- `DEEPSEEK_API_KEY` enables live personalized chat through DeepSeek Chat Completions. Without it, `/api/chat` falls back to the local grounded reading engine.
+- `MINIMAX_API_KEY` enables report visual cover generation through MiniMax Image Generation. The formal BodyGraph remains template-rendered SVG for chart accuracy.
+- `.env` is ignored by git; keep real keys local and use `.env.example` only as a template.
+
 Run the release checks:
 
 ```bash
@@ -177,7 +203,12 @@ python scripts/evaluate_v2.py
 ## Python API
 
 ```python
-from human_design import build_llm_product, calculate_chart, normalize_birth_input
+from human_design import (
+    build_body_energy_profile,
+    build_llm_product,
+    calculate_chart,
+    normalize_birth_input,
+)
 
 chart = calculate_chart(normalize_birth_input("1988-10-09T20:30:00+08:00"))
 package = build_llm_product(
@@ -187,8 +218,10 @@ package = build_llm_product(
     depth="deep",
     citation_mode="sources",
 )
+body_energy = build_body_energy_profile(chart)
 
 print(package.answer_markdown)
+print(body_energy.headline)
 ```
 
 ## Supported Input
@@ -204,18 +237,21 @@ print(package.answer_markdown)
 | --- | --- | --- | --- |
 | Chart | `calculate_chart()` | `scripts/calculate_chart.py` | structured chart JSON |
 | Reading | `generate_reading()` | `scripts/generate_reading.py` | markdown / JSON reading |
+| Body Energy | `build_body_energy_profile()` | Web/API layer | center/channel/gate energy profile |
 | Career | `generate_career_report()` | `scripts/generate_career_reading.py` | career deep reading |
 | LLM package | `build_llm_product()` | `scripts/generate_llm_product.py` | LLM-ready context and answer |
 | Relationship | `compare_relationship()` | `scripts/compare_relationship.py` | dual-chart comparison |
 | Timing | `analyze_timing()` | `scripts/analyze_timing.py` | natal/transit comparison |
 | Uncertainty | `analyze_birth_time_range()` | `scripts/analyze_uncertainty.py` | birth-time range sampling |
 | BodyGraph | `render_bodygraph_svg()` | `scripts/render_bodygraph.py` | template-based SVG |
+| Web/App API | `human_design.web_api:app` | `uvicorn human_design.web_api:app` | chart/report/chat HTTP API |
 
 ## Repository Structure
 
 ```text
 human-design-llm/
 ├── human_design/          # Python package: engine, schema, readings, LLM products
+├── web/                   # React/Vite user-facing Web/App
 ├── references/            # Markdown knowledge cards for HD types, centers, gates, channels
 ├── scripts/               # CLI tools for chart, reading, career, relationship, timing, evals
 ├── tests/                 # pytest regression suite
@@ -226,6 +262,18 @@ human-design-llm/
 ├── pyproject.toml         # package metadata and SEO keywords
 └── CHANGELOG.md
 ```
+
+## Web/App Product
+
+The Web/App layer turns the existing LLM-native toolkit into a user-facing product:
+
+- `POST /api/charts` creates a formal chart from precise birth data.
+- `POST /api/reports` generates overview, body-energy, career, relationship, or deep reports.
+- `POST /api/chat` answers personalized follow-up questions grounded in chart facts and citations, using DeepSeek when configured.
+- `POST /api/images/reading-visual` generates a MiniMax-powered report cover/energy visual when configured.
+- `web/` renders the birth form, fixed-template BodyGraph, report reader, and chat dock.
+
+Product requirements are documented in [docs/product-requirements-web-app.md](./docs/product-requirements-web-app.md), and the HTTP contract is documented in [docs/contracts/web-api.md](./docs/contracts/web-api.md).
 
 ## Reference Coverage
 
@@ -245,7 +293,7 @@ These files are intentionally local and source-traceable so that LLM output can 
 
 Current local release validation:
 
-- `74` pytest cases passing.
+- `85` pytest cases passing.
 - `evaluate_v2.py` product score: `100/100`.
 - `evaluate_public_figures.py` public-figure accuracy score: `100/90`.
 - `evaluate_empirical_readiness.py` scientific validation readiness score: `100/90`.
@@ -263,7 +311,9 @@ Current local release validation:
 - [Versioning policy](./docs/versioning.md)
 - [Release checklist](./docs/release-checklist.md)
 - [Introduction pack](./docs/INTRODUCTION.md)
+- [Web/App product requirements](./docs/product-requirements-web-app.md)
 - [Chart contract](./docs/contracts/chart.md)
+- [Web/App API contract](./docs/contracts/web-api.md)
 - [Reading contract](./docs/contracts/reading.md)
 - [LLM package contract](./docs/contracts/llm-package.md)
 - [Relationship contracts](./docs/contracts/relationship.md)
