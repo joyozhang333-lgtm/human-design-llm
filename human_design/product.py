@@ -4,6 +4,11 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
 from .career import career_report_sections
+from .deep_synthesis import (
+    build_deep_synthesis_sections,
+    research_context_text,
+    research_source_references,
+)
 from .knowledge import (
     get_authority_card,
     get_center_card,
@@ -78,6 +83,16 @@ FOCUS_SECTIONS = {
         "gates",
         "integration",
     ),
+    "talent": (
+        "core",
+        "decision",
+        "profile-definition",
+        "cross-variables",
+        "centers",
+        "channels",
+        "gates",
+        "integration",
+    ),
 }
 
 FOCUS_GUIDANCE = {
@@ -86,6 +101,7 @@ FOCUS_GUIDANCE = {
     "relationship": "重点把图里的决策、边界、情绪、互动模式翻译成关系建议。",
     "decision": "重点帮助用户用策略与权威做现实决策，不要把结果写成玄学断言。",
     "growth": "重点把图里的卡点、练习方向和 30 天实验建议说清楚。",
+    "talent": "重点深挖用户天赋、身体资源、关系入口、主航道、消耗链和可验证练习，避免泛泛性格话术。",
 }
 
 FOCUS_LABELS = {
@@ -94,6 +110,7 @@ FOCUS_LABELS = {
     "relationship": "关系",
     "decision": "决策",
     "growth": "成长",
+    "talent": "天赋深挖",
 }
 
 FOCUS_FOLLOWUPS = {
@@ -116,6 +133,10 @@ FOCUS_FOLLOWUPS = {
     "growth": (
         "接下来 30 天最值得做的一个具体实验是什么？",
         "我最该从哪个开放中心或已定义结构开始练习？",
+    ),
+    "talent": (
+        "我的天赋里最值得变成产品或事业资产的是哪一块？",
+        "我最容易把哪一个天赋活成消耗，应该怎么修正？",
     ),
 }
 
@@ -149,6 +170,7 @@ QUESTION_PATTERNS = {
     "relationship_boundary": ("边界", "沟通", "争吵", "情绪", "拉扯"),
     "decision_timing": ("要不要", "是否", "该不该", "什么时候", "现在", "时机"),
     "growth_pattern": ("成长", "卡点", "内耗", "练习", "课题", "天赋", "状态"),
+    "talent_deep": ("天赋", "优势", "潜能", "使命", "主航道", "深挖", "挖掘", "适合做什么"),
 }
 
 CENTER_PRIORITY = {
@@ -156,6 +178,7 @@ CENTER_PRIORITY = {
     "relationship": ("g", "solar-plexus", "heart", "sacral", "throat", "spleen"),
     "decision": ("solar-plexus", "spleen", "sacral", "heart", "g"),
     "growth": ("root", "head", "ajna", "g", "spleen", "solar-plexus", "heart"),
+    "talent": ("g", "sacral", "throat", "head", "ajna", "heart", "root", "solar-plexus", "spleen"),
 }
 
 SOURCE_PRIORITY = {
@@ -195,6 +218,15 @@ SOURCE_PRIORITY = {
         "type": 66,
         "authority": 62,
     },
+    "talent": {
+        "channel": 104,
+        "gate": 98,
+        "authority": 94,
+        "profile": 90,
+        "type": 86,
+        "center": 82,
+        "definition": 70,
+    },
 }
 
 
@@ -224,11 +256,15 @@ def build_llm_product(
         section for section in reading.sections if section.key in selected_keys
     ), depth_key)
     career_sections = career_report_sections(chart) if focus_key == "career" else ()
-    selected_sections = (*career_sections, *base_sections)
-    package_reading = (
-        replace(reading, sections=(*career_sections, *reading.sections))
-        if career_sections
-        else reading
+    deep_sections = (
+        build_deep_synthesis_sections(chart, focus=focus_key, question=question)
+        if focus_key == "talent" or (depth_key == "deep" and focus_key in {"career", "growth", "overview"})
+        else ()
+    )
+    selected_sections = (*career_sections, *deep_sections, *base_sections)
+    package_reading = replace(
+        reading,
+        sections=(*career_sections, *deep_sections, *reading.sections),
     )
     question_lens = _build_question_lens(focus_key, question)
     focus_highlights, focus_highlight_sources = _build_focus_highlights(chart, focus_key, question, depth_key)
@@ -269,6 +305,18 @@ def build_llm_product(
             key="quick-facts",
             title="Quick Facts",
             content="\n".join(reading.quick_facts),
+        ),
+        *(
+            (
+                LLMContextBlock(
+                    key="research-method",
+                    title="Research Method",
+                    content=research_context_text(),
+                    sources=research_source_references(),
+                ),
+            )
+            if deep_sections
+            else ()
         ),
         *(
             (
@@ -464,6 +512,9 @@ def _build_question_lens(focus: str, question: str | None) -> str | None:
     if focus == "growth":
         if "growth_pattern" in hits:
             return "这个问题更像自我成长场景。回答时要优先指出重复模式、练习路径和可执行的小实验，而不是给抽象评价。"
+    if focus == "talent":
+        if "talent_deep" in hits or "growth_pattern" in hits:
+            return "这个问题是天赋深挖场景。回答时必须用完整结构叠加，而不是只按人生角色或单个闸门贴标签；重点输出天赋模块、误用方式和可验证练习。"
     return None
 
 
@@ -514,52 +565,56 @@ def _build_core_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
     candidates: list[HighlightCandidate] = []
 
     type_card = get_type_card(chart.summary.type.code)
-    if type_card and type_card.focus.get(focus):
+    type_focus = _focus_text(type_card, focus) if type_card else None
+    if type_card and type_focus:
         candidates.append(
             HighlightCandidate(
                 key=f"type:{chart.summary.type.code}",
                 source_type="type",
                 label=f"类型 {display_type(chart.summary.type.code, chart.summary.type.label)}",
-                text=_localize_focus_text(type_card.focus[focus]),
+                text=_localize_focus_text(type_focus),
                 priority=priority["type"],
                 source=_source_from_card("type", type_card),
             )
         )
 
     authority_card = get_authority_card(chart.summary.authority.code)
-    if authority_card and authority_card.focus.get(focus):
+    authority_focus = _focus_text(authority_card, focus) if authority_card else None
+    if authority_card and authority_focus:
         candidates.append(
             HighlightCandidate(
                 key=f"authority:{chart.summary.authority.code}",
                 source_type="authority",
                 label=f"权威 {display_authority(chart.summary.authority.code, chart.summary.authority.label)}",
-                text=_localize_focus_text(authority_card.focus[focus]),
+                text=_localize_focus_text(authority_focus),
                 priority=priority["authority"],
                 source=_source_from_card("authority", authority_card),
             )
         )
 
     profile_card = get_profile_card(chart.summary.profile.code)
-    if profile_card and profile_card.focus.get(focus):
+    profile_focus = _focus_text(profile_card, focus) if profile_card else None
+    if profile_card and profile_focus:
         candidates.append(
             HighlightCandidate(
                 key=f"profile:{chart.summary.profile.code}",
                 source_type="profile",
                 label=f"人生角色 {display_profile(chart.summary.profile.code, chart.summary.profile.label)}",
-                text=_localize_focus_text(profile_card.focus[focus]),
+                text=_localize_focus_text(profile_focus),
                 priority=priority["profile"],
                 source=_source_from_card("profile", profile_card),
             )
         )
 
     definition_card = get_definition_card(chart.summary.definition.code)
-    if definition_card and definition_card.focus.get(focus):
+    definition_focus = _focus_text(definition_card, focus) if definition_card else None
+    if definition_card and definition_focus:
         candidates.append(
             HighlightCandidate(
                 key=f"definition:{chart.summary.definition.code}",
                 source_type="definition",
                 label=f"定义 {display_definition(chart.summary.definition.code, chart.summary.definition.label)}",
-                text=_localize_focus_text(definition_card.focus[focus]),
+                text=_localize_focus_text(definition_focus),
                 priority=priority["definition"],
                 source=_source_from_card("definition", definition_card),
             )
@@ -715,7 +770,8 @@ def _build_center_candidates(chart: HumanDesignChart, focus: str) -> list[Highli
         if center_state is None:
             continue
         center_card = get_center_card(center_code)
-        if center_card is None or not center_card.focus.get(focus):
+        center_focus = _focus_text(center_card, focus) if center_card else None
+        if center_card is None or not center_focus:
             continue
         state_label = "已定义" if center_state.defined else "开放"
         candidates.append(
@@ -723,7 +779,7 @@ def _build_center_candidates(chart: HumanDesignChart, focus: str) -> list[Highli
                 key=f"center:{center_code}",
                 source_type="center",
                 label=f"{normalize_center_title(center_card.title)}（{state_label}）",
-                text=_localize_focus_text(center_card.focus[focus]),
+                text=_localize_focus_text(center_focus),
                 priority=base_priority - rank,
                 source=_source_from_card("center", center_card),
             )
@@ -736,14 +792,15 @@ def _build_channel_candidates(chart: HumanDesignChart, focus: str) -> list[Highl
     candidates: list[HighlightCandidate] = []
     for rank, channel in enumerate(chart.channels):
         card = get_channel_card(channel.code)
-        if card is None or not card.focus.get(focus):
+        channel_focus = _focus_text(card, focus) if card else None
+        if card is None or not channel_focus:
             continue
         candidates.append(
             HighlightCandidate(
                 key=f"channel:{channel.code}",
                 source_type="channel",
                 label=f"通道 {channel.code}",
-                text=_localize_focus_text(card.focus[focus]),
+                text=_localize_focus_text(channel_focus),
                 priority=priority - rank,
                 source=_source_from_card("channel", card),
             )
@@ -756,14 +813,15 @@ def _build_gate_candidates(chart: HumanDesignChart, focus: str) -> list[Highligh
     candidates: list[HighlightCandidate] = []
     for rank, gate in enumerate(chart.activated_gates):
         card = get_gate_card(gate.gate)
-        if card is None or not card.focus.get(focus):
+        gate_focus = _focus_text(card, focus) if card else None
+        if card is None or not gate_focus:
             continue
         candidates.append(
             HighlightCandidate(
                 key=f"gate:{gate.gate}",
                 source_type="gate",
                 label=f"{gate.gate} 号闸门",
-                text=_localize_focus_text(card.focus[focus]),
+                text=_localize_focus_text(gate_focus),
                 priority=priority - rank,
                 source=_source_from_card("gate", card),
             )
@@ -814,6 +872,11 @@ def _question_bonus_map(question: str) -> dict[str, int]:
         bonus["profile"] += 6
         bonus["center"] += 5
         bonus["gate"] += 4
+    if any(token in question for token in QUESTION_PATTERNS["talent_deep"]):
+        bonus["channel"] += 10
+        bonus["gate"] += 8
+        bonus["authority"] += 5
+        bonus["profile"] += 4
     return bonus
 
 
@@ -827,6 +890,16 @@ def _has_gate(chart: HumanDesignChart, gate: int) -> bool:
 
 def _center_is_open(chart: HumanDesignChart, code: str) -> bool:
     return any(center.code == code and not center.defined for center in chart.centers)
+
+
+def _focus_text(card, focus: str) -> str | None:
+    if card is None:
+        return None
+    if card.focus.get(focus):
+        return card.focus[focus]
+    if focus == "talent":
+        return card.focus.get("growth") or card.focus.get("career")
+    return None
 
 
 def _localize_focus_text(text: str) -> str:

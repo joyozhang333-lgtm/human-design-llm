@@ -80,6 +80,28 @@ def test_body_energy_report_returns_structured_profile_and_export_markdown() -> 
     assert "骶骨" not in payload["export_markdown"]
 
 
+def test_talent_report_returns_deep_synthesis_profile() -> None:
+    client = _client()
+    chart = _create_chart(client)
+    response = client.post(
+        "/api/reports",
+        json={"chart_id": chart["chart_id"], "report_type": "talent"},
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["report_type"] == "talent"
+    assert payload["focus"] == "talent"
+    assert payload["deep_synthesis"]["headline"] == "2/4 | 荐骨权威 纯生产者 天赋深挖"
+    assert "02-14" in payload["deep_synthesis"]["structure_formula"]
+    assert "方向化" in payload["answer_markdown"]
+    assert "天赋深挖补充" in payload["export_markdown"]
+    assert "非泛化检查" in payload["export_markdown"]
+    assert any(block["key"] == "research-method" for block in payload["context_blocks"])
+    assert "/Users/" not in payload["answer_markdown"]
+    assert "骶骨" not in payload["export_markdown"]
+
+
 def test_chat_answers_are_chart_grounded_and_sessionized() -> None:
     client = _client()
     chart = _create_chart(client)
@@ -100,6 +122,24 @@ def test_chat_answers_are_chart_grounded_and_sessionized() -> None:
     assert "当前问题：我的喉咙中心和表达方式应该怎么用？" in payload["answer_markdown"]
     assert payload["citations"]
     assert len(payload["session"]["messages"]) == 2
+
+
+def test_chat_infers_talent_focus_for_deep_talent_questions() -> None:
+    client = _client()
+    chart = _create_chart(client)
+    response = client.post(
+        "/api/chat",
+        json={
+            "chart_id": chart["chart_id"],
+            "question": "请深挖我的天赋和主航道。",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["focus"] == "talent"
+    assert "天赋深挖场景" in payload["answer_markdown"]
+    assert "02-14" in payload["answer_markdown"]
 
 
 def test_chat_session_does_not_cross_charts() -> None:

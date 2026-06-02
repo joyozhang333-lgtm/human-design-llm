@@ -3,6 +3,7 @@
 from .bodygraph import render_bodygraph_svg, write_bodygraph_svg
 from .body_energy import build_body_energy_profile
 from .career import generate_career_report, render_career_report_markdown
+from .deep_synthesis import build_deep_synthesis_profile, render_deep_synthesis_markdown
 from .empirical import analyze_forced_choice_experiment
 from .empirical_dataset import build_public_figure_manifest, load_manifest
 from .prediction_registry import analyze_prospective_registry
@@ -28,6 +29,7 @@ __all__ = [
     "build_llm_product",
     "build_timing_product",
     "build_body_energy_profile",
+    "build_deep_synthesis_profile",
     "DeepSeekClient",
     "MiniMaxImageClient",
     "external_provider_status",
@@ -48,6 +50,7 @@ __all__ = [
     "parse_birth_datetime",
     "generate_reading",
     "render_career_report_markdown",
+    "render_deep_synthesis_markdown",
     "generate_timing_reading",
     "generate_relationship_reading",
     "render_reading_markdown",

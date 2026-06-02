@@ -1,6 +1,6 @@
 # LLM Package Contract
 
-更新时间：2026-04-23
+更新时间：2026-06-03
 
 这份文档定义 `LLMProductPackage` 的结构契约。目标是让 runtime 直接消费产品包，而不是现场重拼 prompt。
 
@@ -11,7 +11,7 @@
 | `generated_at_utc` | `string` | 稳定 | 生成时间，ISO 8601 UTC |
 | `product_name` | `string` | 稳定 | 当前固定为 `human-design-llm` |
 | `product_version` | `string` | 稳定 | 产品包版本 |
-| `focus` | `string` | 稳定 | `overview / career / relationship / decision / growth` |
+| `focus` | `string` | 稳定 | `overview / career / relationship / decision / growth / talent` |
 | `delivery_depth` | `string` | 稳定 | `brief / standard / deep` |
 | `question` | `string|null` | 稳定 | 用户原始问题 |
 | `system_prompt` | `string` | 稳定 | runtime 可直接使用的系统提示 |
@@ -63,6 +63,7 @@
 
 - `focus`
 - `quick-facts`
+- `research-method`（当深度 / 天赋解读注入研究方法时）
 
 条件 block：
 
@@ -78,6 +79,13 @@
 - `channels`
 - `gates`
 - `integration`
+- `deep-method`
+- `deep-structure`
+- `deep-talent-axis`
+- `deep-cross-pressure`
+- `deep-talent-modules`
+- `deep-consumption-loop`
+- `deep-experiments`
 
 规则：
 
@@ -94,6 +102,9 @@
 | `relationship` | `core`, `decision`, `profile-definition`, `centers`, `channels`, `integration` |
 | `decision` | `decision`, `profile-definition`, `cross-variables`, `integration` |
 | `growth` | `core`, `profile-definition`, `centers`, `channels`, `gates`, `integration` |
+| `talent` | `deep-method`, `deep-structure`, `deep-talent-axis`, `deep-cross-pressure`, `deep-talent-modules`, `deep-consumption-loop`, `deep-experiments`, plus core chart sections |
+
+说明：`career / growth / overview` 在 `delivery_depth="deep"` 时也可以注入 `deep-*` 章节。`research-method` block 的 `sources.kind` 可为 `research`，路径必须指向仓库内存在的研究底稿。
 
 ## `answer_markdown` 规则
 

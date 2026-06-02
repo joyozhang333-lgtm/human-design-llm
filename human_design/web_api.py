@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from .body_energy import build_body_energy_profile
 from .bodygraph import render_bodygraph_svg
+from .deep_synthesis import build_deep_synthesis_profile
 from .engine import calculate_chart
 from .input import InputNormalizationError, normalize_birth_input
 from .labels import (
@@ -58,13 +59,18 @@ REPORT_CONFIG = {
         "depth": "deep",
         "question": "我最适合怎么工作、赚钱、选方向？",
     },
+    "talent": {
+        "focus": "talent",
+        "depth": "deep",
+        "question": "请深挖我的天赋、主航道、资源配置方式和容易误用的消耗链。",
+    },
     "relationship": {
         "focus": "relationship",
         "depth": "deep",
         "question": "请解读我在关系里的连接方式、边界、情绪和沟通模式。",
     },
     "deep": {
-        "focus": "overview",
+        "focus": "talent",
         "depth": "deep",
         "question": "请给我一份可长期阅读的人类图深度解读。",
     },
@@ -263,10 +269,15 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         )
         body_energy = (
             build_body_energy_profile(saved_chart.chart).to_dict()
-            if request.report_type in {"body-energy", "deep"}
+            if request.report_type in {"body-energy", "deep", "talent"}
             else None
         )
-        export_markdown = _compose_export_markdown(package.answer_markdown, body_energy)
+        deep_synthesis = (
+            build_deep_synthesis_profile(saved_chart.chart, focus=focus, question=question).to_dict()
+            if request.report_type in {"talent", "deep", "career"} or depth == "deep"
+            else None
+        )
+        export_markdown = _compose_export_markdown(package.answer_markdown, body_energy, deep_synthesis)
         report = ReportPackage(
             report_id=f"report_{uuid4().hex}",
             chart_id=request.chart_id,
@@ -275,6 +286,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             depth=depth,
             package=package,
             body_energy=body_energy,
+            deep_synthesis=deep_synthesis,
             export_markdown=export_markdown,
             created_at_utc=utc_now_iso(),
         )
@@ -418,6 +430,8 @@ def _report_config(report_type: str) -> dict[str, str]:
 
 
 def _infer_focus(question: str) -> str:
+    if any(keyword in question for keyword in ("天赋", "优势", "潜能", "使命", "主航道", "深挖", "挖掘")):
+        return "talent"
     if any(keyword in question for keyword in ("职业", "工作", "赚钱", "收入", "方向", "事业")):
         return "career"
     if any(keyword in question for keyword in ("关系", "亲密", "伴侣", "沟通", "边界")):
@@ -461,6 +475,8 @@ def _build_deepseek_messages(
             "你现在面向简体中文用户，回答必须自然、具体、可执行。",
             "必须使用目标术语：荐骨中心、荐骨权威、阿姬娜中心、喉咙中心；不要使用骶骨中心、额骨中心、阿扎那。",
             "只能基于下方 chart facts、reading context 和历史会话作答；不知道就说明无法从当前图表推出。",
+            "深度解读必须做结构叠加：不要只按人生角色、类型或单个闸门回答；要说明真实通道、已定义/开放中心、关键闸门如何共同作用。",
+            "当用户问天赋、使命、职业主航道或深挖时，必须输出具体天赋模块、误用方式、可观察练习，避免可套给所有人的建议。",
             "不要输出医疗、法律、财务或确定性命运承诺。",
             *package.assistant_instructions,
         )
@@ -572,22 +588,41 @@ def _build_visual_prompt(saved_chart: SavedChart, user_prompt: str | None) -> st
     )
 
 
-def _compose_export_markdown(answer_markdown: str, body_energy: dict[str, Any] | None) -> str:
-    if not body_energy:
+def _compose_export_markdown(
+    answer_markdown: str,
+    body_energy: dict[str, Any] | None,
+    deep_synthesis: dict[str, Any] | None = None,
+) -> str:
+    if not body_energy and not deep_synthesis:
         return answer_markdown
-    lines = [answer_markdown.strip(), "", "## 身体资源与能量管理补充"]
-    lines.append(str(body_energy["summary"]))
-    lines.append("")
-    lines.append("### 九大中心")
-    for item in body_energy["center_notes"]:
-        lines.append(
-            f"- {item['label']}（{item['state_label']}）：{item['body_resource']} "
-            f"消耗模式：{item['consumption_pattern']} 练习：{item['practice']}"
-        )
-    lines.append("")
-    lines.append("### 能量管理")
-    for item in body_energy["energy_management"]:
-        lines.append(f"- {item}")
+    lines = [answer_markdown.strip()]
+    if deep_synthesis:
+        lines.extend(("", "## 天赋深挖补充"))
+        lines.append(str(deep_synthesis["thesis"]))
+        lines.append("")
+        lines.append(f"结构公式：{deep_synthesis['structure_formula']}")
+        lines.append("")
+        lines.append("### 非泛化检查")
+        for item in deep_synthesis["non_genericity_checks"]:
+            lines.append(f"- {item}")
+        lines.append("")
+        lines.append("### 30 天实验")
+        for item in deep_synthesis["suggested_experiments"]:
+            lines.append(f"- {item}")
+    if body_energy:
+        lines.extend(("", "## 身体资源与能量管理补充"))
+        lines.append(str(body_energy["summary"]))
+        lines.append("")
+        lines.append("### 九大中心")
+        for item in body_energy["center_notes"]:
+            lines.append(
+                f"- {item['label']}（{item['state_label']}）：{item['body_resource']} "
+                f"消耗模式：{item['consumption_pattern']} 练习：{item['practice']}"
+            )
+        lines.append("")
+        lines.append("### 能量管理")
+        for item in body_energy["energy_management"]:
+            lines.append(f"- {item}")
     return "\n".join(lines).strip() + "\n"
 
 

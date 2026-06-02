@@ -17,7 +17,7 @@ def test_build_llm_product_generates_session_package() -> None:
     )
 
     assert package.product_name == "human-design-llm"
-    assert package.product_version == __version__ == "2.4.0"
+    assert package.product_version == __version__ == "2.5.0"
     assert package.focus == "career"
     assert package.question == "我在工作里最该怎么用这张图？"
     assert package.answer_citation_mode == "none"
@@ -118,3 +118,27 @@ def test_career_focus_uses_type_specific_decision_language() -> None:
     assert "身体真正有回应" not in focus_block.content
     assert "Energy Projector" not in focus_block.content
     assert "Ego Projected" not in focus_block.content
+
+
+def test_talent_focus_injects_research_and_deep_synthesis_context() -> None:
+    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    package = build_llm_product(
+        chart,
+        focus="talent",
+        question="请深挖我的天赋、主航道和优势",
+        depth="deep",
+    )
+
+    context_keys = {block.key for block in package.context_blocks}
+    assert package.focus == "talent"
+    assert "research-method" in context_keys
+    assert "deep-method" in context_keys
+    assert "deep-structure" in context_keys
+    assert "deep-talent-axis" in context_keys
+    assert "deep-talent-modules" in context_keys
+    assert "天赋深挖场景" in package.answer_markdown
+    assert "02-14" in package.answer_markdown
+    assert "方向化" in package.answer_markdown
+    assert any(citation.key == "deep-method" for citation in package.answer_citations)
+    research_block = next(block for block in package.context_blocks if block.key == "research-method")
+    assert any(source.kind == "research" for source in research_block.sources)

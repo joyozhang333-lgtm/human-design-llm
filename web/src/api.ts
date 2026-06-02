@@ -97,6 +97,16 @@ export type BodyEnergyProfile = {
   suggested_questions: string[];
 };
 
+export type DeepSynthesisProfile = {
+  headline: string;
+  thesis: string;
+  structure_formula: string;
+  research_method_notes: string[];
+  non_genericity_checks: string[];
+  suggested_experiments: string[];
+  research_sources: Array<{ kind: string; code: string; title: string; path: string }>;
+};
+
 export type ReportResponse = {
   report_id: string;
   chart_id: string;
@@ -106,6 +116,7 @@ export type ReportResponse = {
   answer_markdown: string;
   suggested_followups: string[];
   body_energy?: BodyEnergyProfile | null;
+  deep_synthesis?: DeepSynthesisProfile | null;
   export_markdown: string;
 };
 

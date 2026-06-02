@@ -67,6 +67,7 @@ class ReportPackage:
     depth: str
     package: LLMProductPackage
     body_energy: dict[str, Any] | None
+    deep_synthesis: dict[str, Any] | None
     export_markdown: str
     created_at_utc: str
 
@@ -83,6 +84,7 @@ class ReportPackage:
             "suggested_followups": list(self.package.suggested_followups),
             "session_state": self.package.session_state.to_dict(),
             "body_energy": self.body_energy,
+            "deep_synthesis": self.deep_synthesis,
             "export_markdown": self.export_markdown,
             "created_at_utc": self.created_at_utc,
         }

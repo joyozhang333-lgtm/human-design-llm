@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "human-design-llm"
-version = "2.4.0"
+version = "2.5.0"
 description = "LLM-native Human Design BodyGraph chart engine, reading generator, career analysis, relationship comparison, timing context, and AI skill toolkit."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -22,6 +22,8 @@ keywords = [
   "human design web app",
   "human design api",
   "human design body energy",
+  "human design talent reading",
+  "human design deep reading",
   "bodygraph",
   "bodygraph python",
   "bodygraph chart generator",
@@ -39,12 +41,15 @@ keywords = [
   "holdout benchmark",
   "prospective prediction",
   "source citations",
+  "research grounded reading",
   "人类图",
   "人类图排盘",
   "人类图解读",
   "人类图网页产品",
   "人类图 Web App",
   "人类图身体能量",
+  "人类图天赋解读",
+  "人类图深度解读",
   "人类图职业解读",
   "人类图合盘",
   "人类图 AI"

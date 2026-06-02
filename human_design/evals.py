@@ -22,11 +22,11 @@ from .timing import analyze_timing
 from .timing_product import build_timing_product
 from .timing_reading import generate_timing_reading
 
-FOCUSES = ("overview", "career", "relationship", "decision", "growth")
+FOCUSES = ("overview", "career", "relationship", "decision", "growth", "talent")
 RELATIONSHIP_FOCUSES = ("overview", "intimacy", "partnership", "decision", "communication")
 TIMING_FOCUSES = ("overview", "decision", "timing", "energy", "growth")
 VALID_SOURCE_KINDS = frozenset(
-    ("type", "authority", "profile", "definition", "center", "channel", "gate")
+    ("type", "authority", "profile", "definition", "center", "channel", "gate", "research")
 )
 PUBLIC_FIGURE_ALLOWED_RATINGS = frozenset(("AA", "A"))
 PUBLIC_FIGURE_BANNED_TERMS = (

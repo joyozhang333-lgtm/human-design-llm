@@ -9,9 +9,9 @@ It is not a static Human Design website. It is a Python product layer that turns
 它不是一个静态网页，也不是单纯 prompt 模板，而是把出生资料转成结构化人类图事实，再把这些事实封装成大模型可直接使用的产品包。
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-2.4.0-black)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.5.0-black)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-85%20passing-brightgreen)](./tests)
+[![Tests](https://img.shields.io/badge/tests-90%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
 ## What It Does
@@ -35,6 +35,7 @@ This repository is designed for developers and AI builders who want to create:
 - Human Design chart calculator APIs.
 - BodyGraph interpretation agents.
 - Human Design career reading products.
+- Human Design talent and deep-reading products.
 - Human Design relationship chart and compatibility tools.
 - Human Design timing, transit, and cycle analysis workflows.
 - Chinese Human Design Web/App products with chart, report, and chat flows.
@@ -46,6 +47,7 @@ This repository is designed for developers and AI builders who want to create:
 - 人类图排盘 API
 - BodyGraph 自动出图工具
 - 人类图职业解读产品
+- 人类图天赋深挖 / 深度解读产品
 - 人类图合盘 / 关系分析工具
 - 人类图流年 / transit / timing 分析流程
 - 中文人类图 Web/App 产品：排盘、报告、出图和聊天问答
@@ -56,7 +58,9 @@ This repository is designed for developers and AI builders who want to create:
 - **Chart facts before interpretation**: every answer starts from calculated chart data, not prompt-only guessing.
 - **LLM-native contract**: `build_llm_product()` returns system prompts, assistant instructions, focus-aware context blocks, answer citations, suggested follow-ups, delivery depth, and session state.
 - **Career reading that is not generic**: `focus="career"` adds career thesis, money engine, opportunity entry, role architecture, distortion loop, and direction filters while guarding against invented gates or channels.
+- **Talent reading that is not generic**: `focus="talent"` adds research method context, structure stacking, talent modules, non-genericity checks, consumption loops, and 30-day experiments.
 - **Source traceability**: output sections point back to local markdown reference cards under `references/`.
+- **Research-grounded deep synthesis**: `human_design.deep_synthesis` connects official/classic source digestion, YouTube/podcast practice language, Chinese terminology, and anthropological thick-description methods without copying copyrighted texts.
 - **Chinese-first reading quality**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
 - **Template-driven BodyGraph**: SVG rendering uses a stable bodygraph template, not ad-hoc drawing from scratch.
 - **User-facing Web/App layer**: FastAPI wraps the Python product core, while `web/` provides a real chart/report/chat interface.
@@ -74,6 +78,8 @@ English search intent:
 - BodyGraph SVG generator
 - Human Design reading generator
 - Human Design career reading
+- Human Design talent reading
+- Human Design deep reading
 - Human Design relationship chart
 - Human Design transit analysis
 - Human Design empirical validation
@@ -90,6 +96,8 @@ English search intent:
 - 人类图解读
 - 人类图 AI
 - 人类图职业解读
+- 人类图天赋解读
+- 人类图深度解读
 - 人类图合盘
 - 人类图关系分析
 - 人类图流年
@@ -102,12 +110,13 @@ English search intent:
 
 ## Current Release
 
-`2.4.0` is the open-source release for the current development cycle.
+`2.5.0` is the open-source release for the current development cycle.
 
 Release scope:
 
 - Single-chart Human Design reading.
 - Career deep reading for work, money, positioning, and direction.
+- Talent deep synthesis with research method context, structure stacking, non-genericity checks, and 30-day experiments.
 - Relationship chart comparison and relationship LLM packages.
 - Timing/transit comparison and timing LLM packages.
 - Birth-time uncertainty sampling.
@@ -117,6 +126,7 @@ Release scope:
 - Public-figure accuracy suite with 10 Astro-Databank AA/A-rated fixtures.
 - Empirical validation protocol, blinded forced-choice statistics script, and no-proof-without-data guardrails.
 - 4834-record public-figure benchmark manifest, 1000 blinded holdout trials, frozen protocol hash, and prospective prediction registry.
+- Chinese Web/App report tab for `天赋深挖版`, plus API response field `deep_synthesis`.
 
 ## Installation
 

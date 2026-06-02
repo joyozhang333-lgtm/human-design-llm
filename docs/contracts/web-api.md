@@ -56,6 +56,7 @@
 
 - `overview`
 - `body-energy`
+- `talent`
 - `career`
 - `relationship`
 - `deep`
@@ -69,6 +70,7 @@
   "focus": "growth",
   "answer_markdown": "...",
   "body_energy": {},
+  "deep_synthesis": {},
   "citations": [],
   "suggested_followups": [],
   "export_markdown": "..."
@@ -112,6 +114,7 @@
 - 配置 `DEEPSEEK_API_KEY` 后使用 DeepSeek 生成回答。
 - 未配置或外部服务不可用时，接口回退到本地结构化解读引擎。
 - 无论使用哪个 provider，回答都必须基于当前 `chart`、`context_blocks` 和引用，不允许编造图表事实。
+- 当问题包含“天赋、优势、潜能、使命、主航道、深挖”等意图时，默认进入 `focus: talent`，回答必须引用真实结构并输出具体天赋模块、误用方式和可观察练习。
 
 ## `POST /api/images/reading-visual`
 
@@ -172,4 +175,5 @@
 
 - `chart` 继续使用 `HumanDesignChart` 契约。
 - `answer_markdown`、`context_blocks`、`citations` 继续来自 `LLMProductPackage`。
+- `deep_synthesis` 是 Web/App 上层报告包装字段，包含 `headline`、`thesis`、`structure_formula`、`research_method_notes`、`non_genericity_checks`、`suggested_experiments` 和 `research_sources`。
 - Web/App 新增字段只作为上层产品包装，不改变底层 chart 和 LLM package 字段语义。

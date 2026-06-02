@@ -71,7 +71,7 @@
 发布标准：
 
 - 任意一张盘里的已激活 gate/channel 都能命中专属知识
-- `overview / career / relationship / decision / growth` 输出不再高度重复
+- `overview / career / relationship / decision / growth / talent` 输出不再高度重复
 - 同一张盘面对不同问题，context block 选择和答案内容会发生可解释变化
 
 ### v1.0 Release

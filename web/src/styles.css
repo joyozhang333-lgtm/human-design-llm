@@ -432,6 +432,33 @@ button {
   margin: 0 0 8px;
 }
 
+.deep-synthesis {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(199, 146, 61, 0.2), transparent 14rem),
+    rgba(238, 235, 217, 0.82);
+}
+
+.formula-card {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(139, 94, 60, 0.2);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.78);
+  padding: 12px;
+}
+
+.formula-card span {
+  color: var(--earth);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.formula-card strong {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 .center-strip {
   display: grid;
   gap: 10px;

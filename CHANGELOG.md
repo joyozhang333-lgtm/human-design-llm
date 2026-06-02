@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.5.0 - 2026-06-03
+
+- 新增 `human_design.deep_synthesis`，把研究方法、结构叠加、天赋模块、开放中心消耗链、非泛化检查和 30 天实验封装成产品层
+- 新增 `focus="talent"`，`build_llm_product()` 现在可输出天赋深挖上下文、研究来源、结构公式和深读章节
+- Web API 新增 `talent` 报告类型，并在报告响应中返回 `deep_synthesis`
+- 深度版 / 天赋版 / 职业版报告会把研究方法与天赋深挖内容注入 LLM context，DeepSeek 问答可复用同一套 grounding
+- 前端新增「天赋深挖版」报告标签和结构公式 / 30 天实验摘要卡
+- 新增 `docs/research/human-design-source-digest-2026-06.md` 通用研究底稿，并将个人深读样例保持为本地未提交文件
+- 扩展评测来源合法性，允许 `research` 来源，同时保持路径存在校验
+- 将 `talent` 纳入 smoke focus 覆盖，防止新 focus 退回泛泛回答
+- 将产品版本切到 `2.5.0`
+
 ## 2.4.0 - 2026-04-24
 
 - 从 Astro-Databank `c_sample` export 生成 4834 条 AA/A/B timed Public Figure benchmark manifest

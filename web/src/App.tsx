@@ -6,6 +6,7 @@ import {
   createChart,
   createReadingVisual,
   createReport,
+  DeepSynthesisProfile,
   ReadingVisualResponse,
   ReportResponse,
   SavedChartResponse
@@ -15,6 +16,7 @@ import "./styles.css";
 const reportTabs = [
   { key: "overview", label: "总览版" },
   { key: "body-energy", label: "身体能量版" },
+  { key: "talent", label: "天赋深挖版" },
   { key: "career", label: "职业版" },
   { key: "relationship", label: "关系版" },
   { key: "deep", label: "深度解读版" }
@@ -23,6 +25,7 @@ const reportTabs = [
 const visualPrompts: Record<string, string> = {
   overview: "总览解读视觉封面",
   "body-energy": "身体能量解读视觉封面",
+  talent: "天赋深挖解读视觉封面",
   career: "职业天赋解读视觉封面",
   relationship: "关系模式解读视觉封面",
   deep: "深度解读视觉封面"
@@ -47,7 +50,7 @@ export default function App() {
   const [form, setForm] = useState<ChartCreateInput>(initialForm);
   const [chart, setChart] = useState<SavedChartResponse | null>(null);
   const [report, setReport] = useState<ReportResponse | null>(null);
-  const [activeReport, setActiveReport] = useState("body-energy");
+  const [activeReport, setActiveReport] = useState("talent");
   const [question, setQuestion] = useState("");
   const [chatSessionId, setChatSessionId] = useState<string | undefined>();
   const [chatLines, setChatLines] = useState<ChatLine[]>([]);
@@ -317,6 +320,7 @@ export default function App() {
             ))}
           </div>
           {chart && <QuickFacts chart={chart} />}
+          {report?.deep_synthesis && <DeepSynthesisCards profile={report.deep_synthesis} />}
           {report?.body_energy && <BodyEnergyCards profile={report.body_energy} />}
           <MarkdownView text={report?.answer_markdown ?? "生成图表后，这里会显示完整解读。"} />
         </aside>
@@ -387,6 +391,28 @@ function BodyEnergyCards({ profile }: { profile: BodyEnergyProfile }) {
             <span>{center.state_label}</span>
             <strong>{center.label}</strong>
             <p>{center.practice}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DeepSynthesisCards({ profile }: { profile: DeepSynthesisProfile }) {
+  return (
+    <div className="energy-block deep-synthesis">
+      <h3>{profile.headline}</h3>
+      <p>{profile.thesis}</p>
+      <div className="formula-card">
+        <span>结构公式</span>
+        <strong>{profile.structure_formula}</strong>
+      </div>
+      <div className="center-strip">
+        {profile.suggested_experiments.slice(0, 3).map((item, index) => (
+          <article key={index}>
+            <span>30 天实验</span>
+            <strong>{index + 1}</strong>
+            <p>{item}</p>
           </article>
         ))}
       </div>
