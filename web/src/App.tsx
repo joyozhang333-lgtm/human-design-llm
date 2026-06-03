@@ -143,7 +143,7 @@ export default function App() {
     try {
       const response = await createReadingVisual(chart.chart_id, visualPrompts[activeReport]);
       setReadingVisual(response);
-      setStatus(response.image_url ? "已生成解读视觉封面。" : "图片服务未连接，已保留标准 BodyGraph。");
+      setStatus(response.image_url ? "已生成解读视觉封面。" : "图片服务暂不可用，已保留标准 BodyGraph。");
     } catch (err) {
       setError(err instanceof Error ? err.message : "图片生成失败，请稍后再试。");
     } finally {

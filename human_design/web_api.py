@@ -343,40 +343,19 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         prompt = _build_visual_prompt(saved_chart, request.prompt)
         config = external_provider_status()["minimax"]
         if not config["configured"]:
-            visual = GeneratedVisual(
-                image_id=f"image_{uuid4().hex}",
-                chart_id=request.chart_id,
-                provider="minimax",
-                model=config.get("model"),
-                prompt=prompt,
-                image_url=None,
-                fallback_bodygraph_svg_url=saved_chart.bodygraph_svg_url,
-                provider_configured=False,
-                created_at_utc=utc_now_iso(),
-            )
+            visual = _fallback_visual(saved_chart, prompt, config, provider_configured=False)
             active_store.save_visual(visual)
             return visual.to_dict()
         try:
             result = MiniMaxImageClient().generate(prompt, aspect_ratio=request.aspect_ratio)
         except ProviderConfigurationError:
-            visual = GeneratedVisual(
-                image_id=f"image_{uuid4().hex}",
-                chart_id=request.chart_id,
-                provider="minimax",
-                model=config.get("model"),
-                prompt=prompt,
-                image_url=None,
-                fallback_bodygraph_svg_url=saved_chart.bodygraph_svg_url,
-                provider_configured=False,
-                created_at_utc=utc_now_iso(),
-            )
+            visual = _fallback_visual(saved_chart, prompt, config, provider_configured=False)
             active_store.save_visual(visual)
             return visual.to_dict()
-        except ProviderError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail={"code": "image_generation_failed", "message": "图片服务暂时不可用，请稍后再试。"},
-            ) from exc
+        except ProviderError:
+            visual = _fallback_visual(saved_chart, prompt, config, provider_configured=True)
+            active_store.save_visual(visual)
+            return visual.to_dict()
         visual = GeneratedVisual(
             image_id=f"image_{uuid4().hex}",
             chart_id=request.chart_id,
@@ -392,6 +371,26 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         return visual.to_dict()
 
     return app
+
+
+def _fallback_visual(
+    saved_chart: SavedChart,
+    prompt: str,
+    config: dict[str, Any],
+    *,
+    provider_configured: bool,
+) -> GeneratedVisual:
+    return GeneratedVisual(
+        image_id=f"image_{uuid4().hex}",
+        chart_id=saved_chart.chart_id,
+        provider="minimax",
+        model=config.get("model"),
+        prompt=prompt,
+        image_url=None,
+        fallback_bodygraph_svg_url=saved_chart.bodygraph_svg_url,
+        provider_configured=provider_configured,
+        created_at_utc=utc_now_iso(),
+    )
 
 
 def _compose_birth_datetime(birth_date: str, birth_time: str | None) -> str:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 import pytest
 
+from human_design.providers import ProviderRequestError
 from human_design.web_api import HumanDesignWebStore, create_app
 
 
@@ -182,3 +183,25 @@ def test_reading_visual_returns_fallback_when_minimax_is_not_configured() -> Non
     assert payload["image_url"] is None
     assert payload["fallback_bodygraph_svg_url"].endswith("/bodygraph.svg")
     assert "荐骨权威" in payload["prompt"]
+
+
+def test_reading_visual_falls_back_when_minimax_request_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MINIMAX_API_KEY", "configured-but-invalid")
+
+    def fail_generate(*_args, **_kwargs):
+        raise ProviderRequestError("invalid api key")
+
+    monkeypatch.setattr("human_design.web_api.MiniMaxImageClient.generate", fail_generate)
+    client = _client()
+    chart = _create_chart(client)
+    response = client.post(
+        "/api/images/reading-visual",
+        json={"chart_id": chart["chart_id"], "prompt": "职业天赋报告封面"},
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["provider"] == "minimax"
+    assert payload["provider_configured"] is True
+    assert payload["image_url"] is None
+    assert payload["fallback_bodygraph_svg_url"].endswith("/bodygraph.svg")
