@@ -1,6 +1,6 @@
 # Web/App API Contract
 
-更新时间：2026-05-30
+更新时间：2026-06-05
 
 ## `POST /api/charts`
 
@@ -87,7 +87,9 @@
 {
   "chart_id": "chart_xxx",
   "question": "我的喉咙中心和表达方式应该怎么用？",
-  "session_id": "可选"
+  "session_id": "可选",
+  "map_type": "body",
+  "map_item_key": "可选"
 }
 ```
 
@@ -102,6 +104,12 @@
   "answer_model": "deepseek-v4-pro",
   "provider_configured": true,
   "citations": [],
+  "map_context": {
+    "map_type": "body",
+    "title": "身体地图",
+    "sections": [],
+    "retrieved_knowledge": []
+  },
   "suggested_followups": [],
   "session": {
     "messages": []
@@ -113,8 +121,72 @@
 
 - 配置 `DEEPSEEK_API_KEY` 后使用 DeepSeek 生成回答。
 - 未配置或外部服务不可用时，接口回退到本地结构化解读引擎。
-- 无论使用哪个 provider，回答都必须基于当前 `chart`、`context_blocks` 和引用，不允许编造图表事实。
+- 无论使用哪个 provider，回答都必须基于当前 `chart`、`context_blocks`、`map_context` 和引用，不允许编造图表事实。
 - 当问题包含“天赋、优势、潜能、使命、主航道、深挖”等意图时，默认进入 `focus: talent`，回答必须引用真实结构并输出具体天赋模块、误用方式和可观察练习。
+
+## `POST /api/interpretation-maps`
+
+生成 V0.3 解读地图。前端默认以地图为主，旧版 Markdown 报告作为导出和兼容能力保留。
+
+请求：
+
+```json
+{
+  "chart_id": "chart_xxx",
+  "map_type": "wealth",
+  "depth": "deep"
+}
+```
+
+`map_type` 可选：
+
+- `body`
+- `wealth`
+- `talent`
+- `relationship`
+- `mission`
+- `professional`
+
+响应重点字段：
+
+```json
+{
+  "product_version": "0.3.0",
+  "map_type": "wealth",
+  "title": "财富地图",
+  "description": "...",
+  "professional_facts": ["类型：纯生产者"],
+  "sections": [
+    {
+      "key": "wealth-core",
+      "title": "财富从哪里来",
+      "items": [
+        {
+          "key": "wealth.02-14-main-track",
+          "title": "财富来源：方向感加资源配置",
+          "chart_basis": ["通道：02-14"],
+          "professional_basis": "...",
+          "user_language": "...",
+          "life_scenes": [],
+          "common_blocks": [],
+          "practices": [],
+          "followup_questions": []
+        }
+      ]
+    }
+  ],
+  "prompt_pack": {},
+  "retrieved_knowledge": [],
+  "sources": [],
+  "suggested_questions": []
+}
+```
+
+说明：
+
+- 地图条目必须能追溯到真实图表事实：类型、策略、权威、中心、通道、闸门或行星激活。
+- `retrieved_knowledge` 来自 `references/research-corpus/v0.3/knowledge_atoms.json`。
+- `sources` 来自 `references/research-corpus/v0.3/sources.json`，只暴露来源元信息，不复制版权正文。
 
 ## `POST /api/images/reading-visual`
 

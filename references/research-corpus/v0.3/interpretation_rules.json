@@ -1,0 +1,102 @@
+[
+  {
+    "rule_id": "body.sacral-response-training",
+    "map_type": "body",
+    "applies_to": ["type:pure-generator", "authority:sacral", "center:sacral:defined"],
+    "title": "荐骨怎么真正参与选择",
+    "professional_basis": "生产者策略和荐骨权威都要求先有现实刺激，再由身体回应确认投入方向。",
+    "user_language_template": "你最重要的身体资源不是意志力，而是回应力。别人给到一个具体问题、机会、邀约、选项时，你的身体会先出现靠近、亮起、想动，或者收缩、沉掉、不想动的反应。",
+    "practice_template": "把大问题拆成可以让身体回答的是/否问题，每天记录 3 次身体有回应和没回应的差别。",
+    "source_atom_ids": ["type.generator.response", "authority.sacral.body-signal", "defined.sacral.sustainable-workforce"]
+  },
+  {
+    "rule_id": "body.open-pressure-chain",
+    "map_type": "body",
+    "applies_to": ["center:head:open", "center:ajna:open", "center:throat:open", "center:root:open"],
+    "title": "能量卡点从哪里开始",
+    "professional_basis": "开放中心会放大环境压力；头顶、阿姬娜、喉咙和根部开放时，常形成问题压力、确定压力、表达压力和时间压力的连锁。",
+    "user_language_template": "你的卡点往往不是身体没能量，而是先接了别人的问题，又急着想明白，再急着表达，最后被时间压力推着行动。",
+    "practice_template": "当你觉得很急，先问四句：这是谁的问题？我一定要现在确定吗？我是在表达还是证明？这个截止时间是谁给我的？",
+    "source_atom_ids": ["open.head.borrowed-questions", "open.ajna.flexible-mind", "open.throat.expression-pressure", "open.root.rush-pressure"]
+  },
+  {
+    "rule_id": "wealth.02-14-main-track",
+    "map_type": "wealth",
+    "applies_to": ["channel:02-14", "gate:2", "gate:14"],
+    "title": "财富来源：方向感加资源配置",
+    "professional_basis": "02-14 把 G 中心方向感与荐骨资源力连接起来，财富主题不只是勤奋，而是把资源投向正确方向。",
+    "user_language_template": "你的钱不是主要来自到处接活，而是来自把资源集中到一条主航道。你越能判断什么值得长期供能，越容易把能力变成产品、方法、客户信任和资产。",
+    "practice_template": "列出当前所有项目，只保留身体愿意长期回应、能沉淀资产、能带来更大方向感的 1-2 条主线。",
+    "source_atom_ids": ["channel.02-14.direction-resources", "gate.14.resource-power", "gate.2.direction-receptivity"]
+  },
+  {
+    "rule_id": "wealth.promise-boundary",
+    "map_type": "wealth",
+    "applies_to": ["center:heart:open", "gate:29", "authority:sacral"],
+    "title": "保财风险：错误承诺会吞掉生命力",
+    "professional_basis": "开放意志中心容易通过承诺证明价值；29号闸门会把已经答应的事做到底；荐骨权威要求承诺前先确认身体回应。",
+    "user_language_template": "你最危险的财富损耗不是不会赚钱，而是答应了不该答应的人、项目和价格。你一旦接下，就会用生命力把它做完，最后钱没真正留下，身体先被消耗。",
+    "practice_template": "任何合作先加 24 小时回应期，不在被期待、被夸、被催、被投射时立刻报价或承诺。",
+    "source_atom_ids": ["open.heart.prove-worth", "gate.29.commitment-risk", "authority.sacral.body-signal"]
+  },
+  {
+    "rule_id": "talent.profile-24",
+    "map_type": "talent",
+    "applies_to": ["profile:2-4"],
+    "title": "2/4 天赋：独处养熟，关系召唤",
+    "professional_basis": "2线强调天然能力和隐退熟成，4线强调通过熟人网络与信任关系展开机会。",
+    "user_language_template": "你的天赋不是靠天天站上台证明出来的。你需要先在一个不被打扰的空间里把能力做熟，然后让真正认识你、信任你的人把你叫出来。",
+    "practice_template": "把独处产出的能力变成可被朋友看见的作品、案例、方法或小范围分享，而不是过早公开消耗。",
+    "source_atom_ids": ["profile.2-4.natural-talent-network"]
+  },
+  {
+    "rule_id": "talent.consciousness-cross",
+    "map_type": "talent",
+    "applies_to": ["cross:Right Angle Cross of Consciousness", "gate:63", "gate:64", "gate:5", "gate:35"],
+    "title": "意识交叉：把怀疑和混乱炼成判断力",
+    "professional_basis": "63/64 与怀疑和混乱有关，5/35 与节律和经验推进有关；组合后适合把不确定转成可验证的结构。",
+    "user_language_template": "你很难满足于表面答案。你会反复追问、整理混乱、观察节律、把经历变成判断。这股力量如果没有出口会内耗，有出口就会成为洞察、咨询、产品判断和方向校准能力。",
+    "practice_template": "每周选一个反复困扰你的问题，写下证据、反证、身体回应、下一步实验，不要只在脑子里想。",
+    "source_atom_ids": ["cross.consciousness.suspicion-to-clarity", "gate.63.doubt-inquiry", "gate.64.confusion-before-form", "gate.5.rhythm", "gate.35.experience-progress"]
+  },
+  {
+    "rule_id": "relationship.emotional-boundary",
+    "map_type": "relationship",
+    "applies_to": ["center:solar-plexus:open", "authority:sacral"],
+    "title": "关系里先分清谁的情绪",
+    "professional_basis": "开放情绪中心容易放大他人情绪；荐骨权威需要身体安静地回应，而不是在情绪放大时决定。",
+    "user_language_template": "你在关系里可能很快感受到对方的情绪强度，但那不等于你必须马上解释、安抚或答应。情绪场太强时，你的身体回应会被盖住。",
+    "practice_template": "冲突当下先暂停，把对方情绪、自己的身体回应、真正要决定的事分三行写出来。",
+    "source_atom_ids": ["open.solar-plexus.emotional-amplification", "authority.sacral.body-signal"]
+  },
+  {
+    "rule_id": "relationship.network-fit",
+    "map_type": "relationship",
+    "applies_to": ["profile:2-4", "center:g:defined"],
+    "title": "适合你的关系：尊重独处，也能看见方向",
+    "professional_basis": "2/4 同时需要独处和信任网络；定义 G 中心需要关系尊重其稳定方向感。",
+    "user_language_template": "适合你的人，不是一直把你拉出来、逼你解释自己的人，而是既允许你退回去养能力，又能在合适的时候把你叫出来，并尊重你的方向感。",
+    "practice_template": "观察一段关系是否让你更稳定、更有方向、更能听见身体，而不是只看对方是否热情。",
+    "source_atom_ids": ["profile.2-4.natural-talent-network", "defined.g.identity-direction"]
+  },
+  {
+    "rule_id": "mission.generator-cross",
+    "map_type": "mission",
+    "applies_to": ["type:pure-generator", "authority:sacral", "channel:02-14", "cross:Right Angle Cross of Consciousness"],
+    "title": "人生使命不是主动证明，而是回应后持续做深",
+    "professional_basis": "生产者策略、荐骨权威、02-14 和意识交叉共同指向：通过回应进入主线，再把资源、方向、怀疑和经验整合成长期贡献。",
+    "user_language_template": "你的使命不是一开始就知道宏大答案，而是在一次次身体回应中找到主线，把资源投进去，把怀疑炼成判断，把经验转成能帮助别人的方向感。",
+    "practice_template": "用 90 天为单位验证一个主线：身体是否持续有回应，资源是否越投越集中，别人是否开始因为你的判断和方向受益。",
+    "source_atom_ids": ["type.generator.response", "authority.sacral.body-signal", "channel.02-14.direction-resources", "cross.consciousness.suspicion-to-clarity"]
+  },
+  {
+    "rule_id": "professional.fact-traceability",
+    "map_type": "professional",
+    "applies_to": ["all"],
+    "title": "专业信息必须回到图表事实",
+    "professional_basis": "人类图产品必须先计算 chart facts，再解释；所有用户语言都要能追溯到类型、策略、权威、中心、通道、闸门或行星激活。",
+    "user_language_template": "这部分不是为了让你背术语，而是让你知道每一段解读是从哪里来的。你可以用它检查：系统有没有编造你的通道、中心或闸门。",
+    "practice_template": "读任何解读时，先看它是否说清楚依据：哪个中心、哪条通道、哪个闸门、哪组行星激活。",
+    "source_atom_ids": ["chart.fact-first"]
+  }
+]

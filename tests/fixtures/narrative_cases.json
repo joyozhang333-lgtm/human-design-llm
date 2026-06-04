@@ -8,10 +8,9 @@
     "question": "我在工作里最该怎么用这张图？",
     "citation_mode": "sources",
     "required_substrings": [
-      "当前聚焦：career",
-      "问题切口",
+      "这次问题怎么落到图上",
       "团队与协作场景",
-      "焦点提示",
+      "图表里最相关的结构",
       "来源："
     ],
     "required_block_keys": ["question-lens", "focus-highlights"],
@@ -38,8 +37,8 @@
     "question": "我现在要不要换工作？",
     "required_substrings": [
       "现实决策压力",
-      "输入精度提示",
-      "焦点提示"
+      "排盘提醒",
+      "图表里最相关的结构"
     ],
     "required_block_keys": ["input-precision", "question-lens", "focus-highlights"],
     "required_source_blocks": ["focus-highlights", "decision", "profile-definition", "integration"],
@@ -59,8 +58,7 @@
     "question": "我在亲密关系里最该注意什么？",
     "required_substrings": [
       "亲密关系场景",
-      "焦点提示",
-      "当前聚焦：relationship"
+      "图表里最相关的结构"
     ],
     "required_block_keys": ["question-lens", "focus-highlights"],
     "required_source_blocks": ["focus-highlights", "centers", "channels"],
@@ -79,8 +77,7 @@
     "question": "我最近最大的内耗和成长课题是什么？",
     "required_substrings": [
       "自我成长场景",
-      "焦点提示",
-      "当前聚焦：growth"
+      "图表里最相关的结构"
     ],
     "required_block_keys": ["question-lens", "focus-highlights"],
     "required_source_blocks": ["focus-highlights", "centers", "gates"],
@@ -97,7 +94,6 @@
     "focus": "overview",
     "question": "先给我一个总览。",
     "required_substrings": [
-      "当前聚焦：overview",
       "核心身份"
     ],
     "required_block_keys": [],
@@ -111,6 +107,6 @@
       "gates": ["gate"],
       "integration": ["type", "authority"]
     },
-    "forbidden_substrings": ["## 焦点提示"]
+    "forbidden_substrings": ["当前聚焦", "## 焦点提示"]
   }
 ]

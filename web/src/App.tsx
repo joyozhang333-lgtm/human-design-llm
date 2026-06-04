@@ -1,34 +1,38 @@
 import { FormEvent, useState } from "react";
 import {
   askQuestion,
-  BodyEnergyProfile,
   ChartCreateInput,
   createChart,
+  createInterpretationMap,
   createReadingVisual,
   createReport,
-  DeepSynthesisProfile,
+  InterpretationMapItem,
+  InterpretationMapResponse,
   ReadingVisualResponse,
   ReportResponse,
   SavedChartResponse
 } from "./api";
 import "./styles.css";
 
-const reportTabs = [
-  { key: "overview", label: "总览版" },
-  { key: "body-energy", label: "身体能量版" },
-  { key: "talent", label: "天赋深挖版" },
-  { key: "career", label: "职业版" },
-  { key: "relationship", label: "关系版" },
-  { key: "deep", label: "深度解读版" }
+const mapTabs = [
+  { key: "body", label: "身体地图", hint: "身体怎么回应、哪里卡住" },
+  { key: "wealth", label: "财富地图", hint: "钱从哪里来、怎么保财" },
+  { key: "talent", label: "天赋地图", hint: "爻位、通道、关键闸门" },
+  { key: "relationship", label: "关系地图", hint: "适合谁、边界怎么设" },
+  { key: "mission", label: "使命地图", hint: "主线、策略、人生方向" },
+  { key: "professional", label: "专业信息", hint: "中心、通道、闸门核验" }
 ];
 
-const visualPrompts: Record<string, string> = {
-  overview: "总览解读视觉封面",
-  "body-energy": "身体能量解读视觉封面",
-  talent: "天赋深挖解读视觉封面",
-  career: "职业天赋解读视觉封面",
-  relationship: "关系模式解读视觉封面",
-  deep: "深度解读视觉封面"
+const centerLabels: Record<string, string> = {
+  head: "头顶中心",
+  ajna: "阿姬娜中心",
+  throat: "喉咙中心",
+  g: "G中心",
+  heart: "意志力中心",
+  spleen: "脾中心",
+  "solar-plexus": "情绪中心",
+  sacral: "荐骨中心",
+  root: "根部中心"
 };
 
 const initialForm: ChartCreateInput = {
@@ -50,12 +54,14 @@ export default function App() {
   const [form, setForm] = useState<ChartCreateInput>(initialForm);
   const [chart, setChart] = useState<SavedChartResponse | null>(null);
   const [report, setReport] = useState<ReportResponse | null>(null);
-  const [activeReport, setActiveReport] = useState("talent");
+  const [activeMap, setActiveMap] = useState("talent");
+  const [mapPackage, setMapPackage] = useState<InterpretationMapResponse | null>(null);
+  const [openItemKey, setOpenItemKey] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [chatSessionId, setChatSessionId] = useState<string | undefined>();
   const [chatLines, setChatLines] = useState<ChatLine[]>([]);
   const [readingVisual, setReadingVisual] = useState<ReadingVisualResponse | null>(null);
-  const [status, setStatus] = useState("填写出生信息后，系统会生成正式 BodyGraph 与解读。");
+  const [status, setStatus] = useState("填写精确出生信息后，会生成图表、专业配置和六张解读地图。");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [visualLoading, setVisualLoading] = useState(false);
@@ -64,37 +70,43 @@ export default function App() {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    setStatus("正在排盘、生成 BodyGraph 与报告...");
+    setStatus("正在排盘，并生成 V0.3 解读地图...");
     try {
       const nextChart = await createChart(form);
+      const [nextReport, nextMap] = await Promise.all([
+        createReport(nextChart.chart_id, "talent"),
+        createInterpretationMap(nextChart.chart_id, activeMap)
+      ]);
       setChart(nextChart);
-      const nextReport = await createReport(nextChart.chart_id, activeReport);
       setReport(nextReport);
+      setMapPackage(nextMap);
+      setOpenItemKey(firstItemKey(nextMap));
       setChatLines([]);
       setChatSessionId(undefined);
       setReadingVisual(null);
-      setStatus("已生成正式人类图。你可以切换报告版本，或在底部继续追问。");
+      setStatus("已生成 V0.3 解读地图。可以点开每个条目看长解读，也可以继续追问。");
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败，请稍后再试。");
-      setStatus("需要补齐精确出生信息后再生成正式图表。");
+      setStatus("正式图表需要出生日期、时间、出生地或时区。");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleReportChange(reportType: string) {
-    setActiveReport(reportType);
+  async function handleMapChange(mapType: string) {
+    setActiveMap(mapType);
     if (!chart) {
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const nextReport = await createReport(chart.chart_id, reportType);
-      setReport(nextReport);
-      setStatus(`已切换到「${reportTabs.find((item) => item.key === reportType)?.label}」。`);
+      const nextMap = await createInterpretationMap(chart.chart_id, mapType);
+      setMapPackage(nextMap);
+      setOpenItemKey(firstItemKey(nextMap));
+      setStatus(`已切换到「${mapTabs.find((item) => item.key === mapType)?.label}」。`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "报告生成失败。");
+      setError(err instanceof Error ? err.message : "地图生成失败。");
     } finally {
       setLoading(false);
     }
@@ -110,13 +122,13 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await askQuestion(chart.chart_id, nextQuestion, chatSessionId);
+      const response = await askQuestion(chart.chart_id, nextQuestion, chatSessionId, activeMap, openItemKey ?? undefined);
       setChatSessionId(response.session_id);
       setChatLines(response.session.messages);
       setStatus(
         response.answer_provider === "deepseek"
-          ? "问答已由 DeepSeek 基于当前图表事实生成。"
-          : "问答已基于当前图表事实生成。"
+          ? "问答已由 DeepSeek 基于当前图表和解读地图生成。"
+          : "问答已基于当前图表和解读地图生成。"
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "问答失败，请稍后再试。");
@@ -126,12 +138,21 @@ export default function App() {
     }
   }
 
+  async function copyMapMarkdown() {
+    if (!mapPackage) {
+      return;
+    }
+    const text = mapToMarkdown(mapPackage);
+    await navigator.clipboard.writeText(text);
+    setStatus("已复制当前解读地图 Markdown。");
+  }
+
   async function copyReportMarkdown() {
     if (!report) {
       return;
     }
     await navigator.clipboard.writeText(report.export_markdown);
-    setStatus("已复制 Markdown 报告，可粘贴到文档、Notion 或公众号草稿。");
+    setStatus("已复制旧版完整报告 Markdown。");
   }
 
   async function handleCreateReadingVisual() {
@@ -141,7 +162,7 @@ export default function App() {
     setVisualLoading(true);
     setError(null);
     try {
-      const response = await createReadingVisual(chart.chart_id, visualPrompts[activeReport]);
+      const response = await createReadingVisual(chart.chart_id, `${mapTabs.find((item) => item.key === activeMap)?.label}解读视觉封面`);
       setReadingVisual(response);
       setStatus(response.image_url ? "已生成解读视觉封面。" : "图片服务暂不可用，已保留标准 BodyGraph。");
     } catch (err) {
@@ -153,7 +174,7 @@ export default function App() {
 
   function fillExample() {
     setForm({
-      user_name: "示例用户",
+      user_name: "张朝阳",
       birth_date: "1995-03-03",
       birth_time: "18:30",
       city: "邢台",
@@ -169,11 +190,11 @@ export default function App() {
         <div className="brand">
           <span className="brand-mark">人</span>
           <div>
-            <h1>人类图身体能量顾问</h1>
-            <p>从出生资料到 BodyGraph、身体资源解读与个性化追问。</p>
+            <h1>人类图解读地图</h1>
+            <p>V0.3 · 先给专业配置，再进入身体、天赋、财富、关系与使命的长解读。</p>
           </div>
         </div>
-        <div className="topbar-note">精确排盘优先 · 简体中文术语 · 非决定论解读</div>
+        <div className="topbar-note">简体中文术语 · 图表事实优先 · 非决定论</div>
       </header>
 
       <section className="workspace">
@@ -245,12 +266,12 @@ export default function App() {
               />
             </label>
             <button className="primary-button" disabled={loading} type="submit">
-              {loading ? "生成中..." : "生成图表与解读"}
+              {loading ? "生成中..." : "生成 V0.3 解读地图"}
             </button>
           </form>
           <div className="precision-card">
-            <strong>精度规则</strong>
-            <p>正式 BodyGraph 需要出生日期、时间和地点/时区。仅生日不会生成正式结论。</p>
+            <strong>正式排盘规则</strong>
+            <p>需要出生日期、出生时间、出生地或时区。仅生日只适合低精度引导，不给正式结论。</p>
             <p>{status}</p>
             {error && <p className="error-text">{error}</p>}
           </div>
@@ -259,11 +280,11 @@ export default function App() {
         <section className="graph-stage">
           <div className="stage-toolbar">
             <div>
-              <h2>BodyGraph</h2>
-              <p>{chart ? "固定模板生成，包含中心、通道、闸门与两侧行星列表。" : "等待出生资料生成图表。"}</p>
+              <h2>{chart?.user_name ? `${chart.user_name}的人类图` : "专业配置与图表"}</h2>
+              <p>{chart ? "下面是当前图表事实，所有解读都会从这些事实展开。" : "生成后会显示类型、策略、权威、中心、通道和闸门。"}</p>
             </div>
             <div className="stage-actions">
-              {chart && <span className="chart-id">{chart.chart_id}</span>}
+              {chart && <span className="chart-id">V0.3</span>}
               {chart && (
                 <button
                   className="ghost-button"
@@ -276,6 +297,9 @@ export default function App() {
               )}
             </div>
           </div>
+
+          {chart ? <ProfessionalSnapshot chart={chart} facts={mapPackage?.professional_facts ?? []} /> : <EmptySnapshot />}
+
           <div className="graph-canvas">
             {chart ? (
               <div className="svg-frame" dangerouslySetInnerHTML={{ __html: chart.bodygraph_svg }} />
@@ -283,6 +307,7 @@ export default function App() {
               <EmptyGraph />
             )}
           </div>
+
           {readingVisual && (
             <div className="visual-card">
               <div>
@@ -296,33 +321,42 @@ export default function App() {
 
         <aside className="panel reading-panel">
           <div className="panel-heading">
-            <h2>解读本</h2>
-            <span>{report ? reportTabs.find((item) => item.key === report.report_type)?.label : "未生成"}</span>
+            <h2>解读地图</h2>
+            <span>{mapPackage ? mapPackage.title : "未生成"}</span>
           </div>
           <div className="export-actions">
-            <button disabled={!report} onClick={copyReportMarkdown} type="button">
-              复制 Markdown
+            <button disabled={!mapPackage} onClick={copyMapMarkdown} type="button">
+              复制地图
             </button>
-            <button disabled={!report} onClick={() => window.print()} type="button">
-              打印 / PDF
+            <button disabled={!report} onClick={copyReportMarkdown} type="button">
+              复制完整报告
             </button>
           </div>
-          <div className="report-tabs">
-            {reportTabs.map((tab) => (
+          <div className="map-tabs">
+            {mapTabs.map((tab) => (
               <button
                 key={tab.key}
-                className={activeReport === tab.key ? "active" : ""}
-                onClick={() => handleReportChange(tab.key)}
+                className={activeMap === tab.key ? "active" : ""}
+                onClick={() => handleMapChange(tab.key)}
                 type="button"
               >
-                {tab.label}
+                <strong>{tab.label}</strong>
+                <span>{tab.hint}</span>
               </button>
             ))}
           </div>
-          {chart && <QuickFacts chart={chart} />}
-          {report?.deep_synthesis && <DeepSynthesisCards profile={report.deep_synthesis} />}
-          {report?.body_energy && <BodyEnergyCards profile={report.body_energy} />}
-          <MarkdownView text={report?.answer_markdown ?? "生成图表后，这里会显示完整解读。"} />
+          {mapPackage ? (
+            <InterpretationMapPanel
+              mapPackage={mapPackage}
+              openItemKey={openItemKey}
+              onToggle={(key) => setOpenItemKey(openItemKey === key ? null : key)}
+            />
+          ) : (
+            <div className="map-empty">
+              <strong>生成后这里会出现六张地图</strong>
+              <span>每个条目都可以展开，里面会写专业依据、用户语言、生活场景、卡点和练习。</span>
+            </div>
+          )}
         </aside>
       </section>
 
@@ -331,7 +365,7 @@ export default function App() {
           {chatLines.length === 0 ? (
             <div className="chat-empty">
               <strong>可以继续追问</strong>
-              <span>例如：我的喉咙中心怎么用？我适合怎么赚钱？我现在能量卡在哪里？</span>
+              <span>例如：我的财富主航道是什么？2/4 怎么用？荐骨回应怎么训练？什么样的人适合我？</span>
             </div>
           ) : (
             chatLines.map((line, index) => (
@@ -346,7 +380,7 @@ export default function App() {
           <input
             disabled={!chart || loading}
             value={question}
-            placeholder={chart ? "输入你的问题，系统会基于这张图回答..." : "先生成一张人类图"}
+            placeholder={chart ? `围绕「${mapTabs.find((item) => item.key === activeMap)?.label}」继续问...` : "先生成一张人类图"}
             onChange={(event) => setQuestion(event.target.value)}
           />
           <button disabled={!chart || loading || !question.trim()} type="submit">
@@ -358,9 +392,13 @@ export default function App() {
   );
 }
 
-function QuickFacts({ chart }: { chart: SavedChartResponse }) {
+function ProfessionalSnapshot({ chart, facts }: { chart: SavedChartResponse; facts: string[] }) {
   const summary = chart.display_summary;
-  const facts = [
+  const definedCenters = chart.chart.centers.filter((center) => center.defined).map((center) => centerLabels[center.code] ?? center.label);
+  const openCenters = chart.chart.centers.filter((center) => !center.defined).map((center) => centerLabels[center.code] ?? center.label);
+  const channels = chart.chart.channels.map((channel) => `${channel.code} ${channel.label}`);
+  const gates = chart.chart.activated_gates.map((gate) => gate.gate).slice(0, 24);
+  const coreFacts = [
     ["类型", summary.type],
     ["策略", summary.strategy],
     ["权威", summary.authority],
@@ -369,54 +407,117 @@ function QuickFacts({ chart }: { chart: SavedChartResponse }) {
     ["轮回交叉", summary.incarnation_cross]
   ];
   return (
-    <div className="quick-facts">
-      {facts.map(([label, value]) => (
-        <div key={label}>
-          <span>{label}</span>
-          <strong>{value}</strong>
-        </div>
+    <div className="snapshot">
+      <div className="snapshot-grid">
+        {coreFacts.map(([label, value]) => (
+          <article key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </article>
+        ))}
+      </div>
+      <div className="fact-rails">
+        <FactRail title="已定义中心" items={definedCenters} />
+        <FactRail title="开放中心" items={openCenters} />
+        <FactRail title="通道" items={channels} />
+        <FactRail title="闸门" items={gates.map(String)} />
+      </div>
+      {facts.length > 0 && (
+        <details className="professional-facts">
+          <summary>查看完整专业事实</summary>
+          {facts.map((fact) => (
+            <p key={fact}>{fact}</p>
+          ))}
+        </details>
+      )}
+    </div>
+  );
+}
+
+function FactRail({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="fact-rail">
+      <span>{title}</span>
+      <p>{items.length > 0 ? items.join("、") : "无"}</p>
+    </div>
+  );
+}
+
+function InterpretationMapPanel({
+  mapPackage,
+  openItemKey,
+  onToggle
+}: {
+  mapPackage: InterpretationMapResponse;
+  openItemKey: string | null;
+  onToggle: (key: string) => void;
+}) {
+  return (
+    <div className="map-panel">
+      <div className="map-intro">
+        <h3>{mapPackage.title}</h3>
+        <p>{mapPackage.description}</p>
+      </div>
+      {mapPackage.sections.map((section) => (
+        <section key={section.key} className="map-section">
+          <div className="map-section-heading">
+            <h4>{section.title}</h4>
+            <p>{section.intro}</p>
+          </div>
+          {section.items.map((item) => (
+            <MapItemCard key={item.key} item={item} open={openItemKey === item.key} onToggle={() => onToggle(item.key)} />
+          ))}
+        </section>
       ))}
-    </div>
-  );
-}
-
-function BodyEnergyCards({ profile }: { profile: BodyEnergyProfile }) {
-  return (
-    <div className="energy-block">
-      <h3>{profile.headline}</h3>
-      <p>{profile.summary}</p>
-      <div className="center-strip">
-        {profile.center_notes.slice(0, 5).map((center) => (
-          <article key={center.code}>
-            <span>{center.state_label}</span>
-            <strong>{center.label}</strong>
-            <p>{center.practice}</p>
-          </article>
+      <div className="followup-block">
+        <strong>可以继续问</strong>
+        {mapPackage.suggested_questions.map((item) => (
+          <span key={item}>{item}</span>
         ))}
       </div>
     </div>
   );
 }
 
-function DeepSynthesisCards({ profile }: { profile: DeepSynthesisProfile }) {
+function MapItemCard({ item, open, onToggle }: { item: InterpretationMapItem; open: boolean; onToggle: () => void }) {
   return (
-    <div className="energy-block deep-synthesis">
-      <h3>{profile.headline}</h3>
-      <p>{profile.thesis}</p>
-      <div className="formula-card">
-        <span>结构公式</span>
-        <strong>{profile.structure_formula}</strong>
-      </div>
-      <div className="center-strip">
-        {profile.suggested_experiments.slice(0, 3).map((item, index) => (
-          <article key={index}>
-            <span>30 天实验</span>
-            <strong>{index + 1}</strong>
-            <p>{item}</p>
-          </article>
-        ))}
-      </div>
-    </div>
+    <article className={open ? "map-item open" : "map-item"}>
+      <button type="button" onClick={onToggle}>
+        <div>
+          <strong>{item.title}</strong>
+          <span>{item.subtitle}</span>
+        </div>
+        <b>{open ? "收起" : "展开"}</b>
+      </button>
+      {open && (
+        <div className="map-item-body">
+          <InfoBlock title="图表依据" items={item.chart_basis} />
+          <section>
+            <h5>专业依据</h5>
+            <p>{item.professional_basis}</p>
+          </section>
+          <section>
+            <h5>说人话的解读</h5>
+            <p>{item.user_language}</p>
+          </section>
+          <InfoBlock title="生活里会怎么出现" items={item.life_scenes} />
+          <InfoBlock title="常见卡点" items={item.common_blocks} />
+          <InfoBlock title="可以怎么练" items={item.practices} />
+          <InfoBlock title="继续追问" items={item.followup_questions} />
+        </div>
+      )}
+    </article>
+  );
+}
+
+function InfoBlock({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section>
+      <h5>{title}</h5>
+      {items.map((item) => (
+        <p key={item}>• {item}</p>
+      ))}
+    </section>
   );
 }
 
@@ -424,7 +525,7 @@ function MarkdownView({ text, compact = false }: { text: string; compact?: boole
   const nodes = text.split("\n").filter((line) => line.trim().length > 0);
   return (
     <div className={compact ? "markdown compact" : "markdown"}>
-      {nodes.slice(0, compact ? 18 : 80).map((line, index) => {
+      {nodes.slice(0, compact ? 18 : 120).map((line, index) => {
         if (line.startsWith("# ")) {
           return <h2 key={index}>{line.replace("# ", "")}</h2>;
         }
@@ -435,10 +536,19 @@ function MarkdownView({ text, compact = false }: { text: string; compact?: boole
           return <h4 key={index}>{line.replace("### ", "")}</h4>;
         }
         if (line.startsWith("- ")) {
-          return <p key={index} className="bullet"> {line.replace("- ", "")}</p>;
+          return <p key={index} className="bullet">{line.replace("- ", "")}</p>;
         }
         return <p key={index}>{line}</p>;
       })}
+    </div>
+  );
+}
+
+function EmptySnapshot() {
+  return (
+    <div className="snapshot empty-snapshot">
+      <strong>首页会先展示专业配置</strong>
+      <p>类型、策略、权威、人生角色、定义、轮回交叉、中心、通道和闸门都会在这里出现。</p>
     </div>
   );
 }
@@ -458,4 +568,29 @@ function EmptyGraph() {
       <p>BodyGraph 会在这里生成</p>
     </div>
   );
+}
+
+function firstItemKey(mapPackage: InterpretationMapResponse): string | null {
+  return mapPackage.sections[0]?.items[0]?.key ?? null;
+}
+
+function mapToMarkdown(mapPackage: InterpretationMapResponse): string {
+  const lines = [`# ${mapPackage.title}`, "", mapPackage.description, "", "## 专业事实"];
+  for (const fact of mapPackage.professional_facts) {
+    lines.push(`- ${fact}`);
+  }
+  for (const section of mapPackage.sections) {
+    lines.push("", `## ${section.title}`, section.intro);
+    for (const item of section.items) {
+      lines.push("", `### ${item.title}`, item.user_language, "", "图表依据：");
+      for (const basis of item.chart_basis) {
+        lines.push(`- ${basis}`);
+      }
+      lines.push("", "练习：");
+      for (const practice of item.practices) {
+        lines.push(`- ${practice}`);
+      }
+    }
+  }
+  return `${lines.join("\n")}\n`;
 }

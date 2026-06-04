@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.0 - 2026-06-05
+
+- 将公开产品版本修正为 `V0.3 / 0.3.0`，避免继续把当前用户产品阶段误标为 `V2.x`
+- 新增 V0.3 可调用资料库：`SourceCard`、`KnowledgeAtom`、`InterpretationRule`、`PromptPack`
+- 新增 `references/research-corpus/v0.3/`，收纳官方/经典/中文来源索引、知识原子和解释规则，版权处理为摘要与原创转译
+- 新增 `human_design.interpretation_maps`，生成身体、财富、天赋、关系、使命、专业信息六张解读地图
+- 新增 `POST /api/interpretation-maps`，返回可展开条目、专业依据、用户语言、生活场景、卡点、练习和追问
+- `/api/chat` 现在会注入当前解读地图上下文，DeepSeek 或本地 fallback 都优先基于 chart facts 和地图知识回答
+- 前端重构为 V0.3 地图式体验：首页展示专业配置与 BodyGraph，右侧按地图展开长解读，底部围绕当前地图追问
+- 单盘报告去掉用户可见的“当前聚焦 / 问题切口 / 焦点提示 / 输入精度提示”等内部工程语言
+- 新增 V0.3 资料库、地图生成、API 和聊天 grounded 回归测试
+- 当前验证：`96` 个 pytest 通过，前端 build 通过，历史 scorecard `100/100`
+
 ## 2.5.0 - 2026-06-03
 
 - 新增 `human_design.deep_synthesis`，把研究方法、结构叠加、天赋模块、开放中心消耗链、非泛化检查和 30 天实验封装成产品层

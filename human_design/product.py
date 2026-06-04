@@ -396,23 +396,25 @@ def _render_focus_answer(
 ) -> str:
     citation_map = {citation.key: citation for citation in answer_citations}
     lines: list[str] = []
-    lines.append("# 人类图对话解读")
+    lines.append("# 人类图专业解读")
     lines.append("")
     lines.append(headline)
-    lines.append("")
-    lines.append(f"当前聚焦：{focus}（{FOCUS_LABELS.get(focus, focus)}）")
     if question:
-        lines.append(f"当前问题：{question}")
+        lines.append("")
+        lines.append("## 你的问题")
+        lines.append(question)
     precision_note = _precision_note(chart)
     if precision_note:
-        lines.append(f"输入精度提示：{precision_note}")
+        lines.append("")
+        lines.append("## 排盘提醒")
+        lines.append(precision_note)
     if question_lens:
         lines.append("")
-        lines.append("## 问题切口")
+        lines.append("## 这次问题怎么落到图上")
         lines.append(question_lens)
     if focus_highlights:
         lines.append("")
-        lines.append("## 焦点提示")
+        lines.append("## 图表里最相关的结构")
         lines.append(focus_highlights)
         citation = citation_map.get("focus-highlights")
         if citation_mode == "sources" and citation is not None:
@@ -456,7 +458,7 @@ def _build_answer_citations(
         citations.append(
             AnswerCitation(
                 key="focus-highlights",
-                title="焦点提示",
+                title="图表里最相关的结构",
                 sources=focus_highlight_sources,
             )
         )

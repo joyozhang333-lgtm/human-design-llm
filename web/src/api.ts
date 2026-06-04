@@ -107,6 +107,63 @@ export type DeepSynthesisProfile = {
   research_sources: Array<{ kind: string; code: string; title: string; path: string }>;
 };
 
+export type InterpretationMapItem = {
+  key: string;
+  title: string;
+  subtitle: string;
+  chart_basis: string[];
+  professional_basis: string;
+  user_language: string;
+  life_scenes: string[];
+  common_blocks: string[];
+  practices: string[];
+  followup_questions: string[];
+  source_atom_ids: string[];
+  sources: Array<{ kind: string; code: string; title: string; path: string }>;
+};
+
+export type InterpretationMapSection = {
+  key: string;
+  title: string;
+  intro: string;
+  items: InterpretationMapItem[];
+};
+
+export type InterpretationMapResponse = {
+  generated_at_utc: string;
+  product_version: string;
+  map_type: string;
+  title: string;
+  description: string;
+  chart_id?: string | null;
+  professional_facts: string[];
+  sections: InterpretationMapSection[];
+  prompt_pack: {
+    pack_id: string;
+    map_type: string;
+    system_prompt: string;
+    retrieval_topics: string[];
+    atom_ids: string[];
+    rule_ids: string[];
+  };
+  retrieved_knowledge: Array<{
+    atom_id: string;
+    topic: string;
+    user_translation: string;
+    chart_keys: string[];
+  }>;
+  sources: Array<{
+    source_id: string;
+    title: string;
+    author: string;
+    language: string;
+    source_type: string;
+    url?: string | null;
+    priority: string;
+  }>;
+  suggested_questions: string[];
+};
+
 export type ReportResponse = {
   report_id: string;
   chart_id: string;
@@ -128,6 +185,12 @@ export type ChatResponse = {
   answer_provider?: string;
   answer_model?: string | null;
   provider_configured?: boolean;
+  map_context?: {
+    map_type: string;
+    title: string;
+    sections: InterpretationMapSection[];
+    retrieved_knowledge: Array<{ atom_id: string; topic: string; user_translation: string }>;
+  };
   suggested_followups: string[];
   session: {
     messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -162,15 +225,31 @@ export async function createReport(
   });
 }
 
+export async function createInterpretationMap(
+  chartId: string,
+  mapType: string,
+  depth = "deep"
+): Promise<InterpretationMapResponse> {
+  return postJson("/api/interpretation-maps", {
+    chart_id: chartId,
+    map_type: mapType,
+    depth
+  });
+}
+
 export async function askQuestion(
   chartId: string,
   question: string,
-  sessionId?: string
+  sessionId?: string,
+  mapType?: string,
+  mapItemKey?: string
 ): Promise<ChatResponse> {
   return postJson("/api/chat", {
     chart_id: chartId,
     question,
-    session_id: sessionId
+    session_id: sessionId,
+    map_type: mapType,
+    map_item_key: mapItemKey
   });
 }
 

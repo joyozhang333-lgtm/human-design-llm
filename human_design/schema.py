@@ -281,6 +281,52 @@ class SourceReference(JsonMixin):
 
 
 @dataclass(frozen=True)
+class SourceCard(JsonMixin):
+    source_id: str
+    title: str
+    author: str
+    language: str
+    source_type: str
+    url: str | None
+    priority: str
+    copyright_policy: str
+    product_use: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class KnowledgeAtom(JsonMixin):
+    atom_id: str
+    source_ids: tuple[str, ...]
+    topic: str
+    map_types: tuple[str, ...]
+    chart_keys: tuple[str, ...]
+    summary: str
+    user_translation: str
+
+
+@dataclass(frozen=True)
+class InterpretationRule(JsonMixin):
+    rule_id: str
+    map_type: str
+    applies_to: tuple[str, ...]
+    title: str
+    professional_basis: str
+    user_language_template: str
+    practice_template: str
+    source_atom_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class PromptPack(JsonMixin):
+    pack_id: str
+    map_type: str
+    system_prompt: str
+    retrieval_topics: tuple[str, ...]
+    atom_ids: tuple[str, ...]
+    rule_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class ReadingSection(JsonMixin):
     key: str
     title: str
@@ -305,6 +351,47 @@ class HumanDesignReading(JsonMixin):
     headline: str
     quick_facts: tuple[str, ...]
     sections: tuple[ReadingSection, ...]
+    suggested_questions: tuple[str, ...]
+    chart: HumanDesignChart
+
+
+@dataclass(frozen=True)
+class InterpretationMapItem(JsonMixin):
+    key: str
+    title: str
+    subtitle: str
+    chart_basis: tuple[str, ...]
+    professional_basis: str
+    user_language: str
+    life_scenes: tuple[str, ...]
+    common_blocks: tuple[str, ...]
+    practices: tuple[str, ...]
+    followup_questions: tuple[str, ...]
+    source_atom_ids: tuple[str, ...]
+    sources: tuple[SourceReference, ...] = ()
+
+
+@dataclass(frozen=True)
+class InterpretationMapSection(JsonMixin):
+    key: str
+    title: str
+    intro: str
+    items: tuple[InterpretationMapItem, ...]
+
+
+@dataclass(frozen=True)
+class InterpretationMapPackage(JsonMixin):
+    generated_at_utc: str
+    product_version: str
+    map_type: str
+    title: str
+    description: str
+    chart_id: str | None
+    professional_facts: tuple[str, ...]
+    sections: tuple[InterpretationMapSection, ...]
+    prompt_pack: PromptPack
+    retrieved_knowledge: tuple[KnowledgeAtom, ...]
+    sources: tuple[SourceCard, ...]
     suggested_questions: tuple[str, ...]
     chart: HumanDesignChart
 

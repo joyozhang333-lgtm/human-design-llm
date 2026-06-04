@@ -1,10 +1,12 @@
 # Versioning Policy
 
-更新时间：2026-06-03
+更新时间：2026-06-05
 
 ## 当前版本
 
-- `2.5.0`
+- `0.3.0`
+
+说明：仓库历史中保留了早期 `2.x` 实验 / scorecard 命名；从当前用户产品口径开始，公开版本按 `V0.x` 递进，当前版本为 `V0.3`。
 
 ## 规则
 
@@ -40,5 +42,7 @@
 每次发布都要同步：
 
 - `human_design/version.py`
+- `pyproject.toml`
+- `web/package.json`
 - `CHANGELOG.md`
 - 相关安装 / runtime / release 文档

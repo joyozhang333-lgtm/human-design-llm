@@ -13,6 +13,7 @@ from .bodygraph import render_bodygraph_svg
 from .deep_synthesis import build_deep_synthesis_profile
 from .engine import calculate_chart
 from .input import InputNormalizationError, normalize_birth_input
+from .interpretation_maps import build_interpretation_map, map_context_text, map_type_from_focus
 from .labels import (
     CENTER_LABELS,
     display_authority,
@@ -32,6 +33,7 @@ from .providers import (
     ProviderError,
     external_provider_status,
 )
+from .version import VERSION
 from .web_models import (
     BirthProfile,
     ChatMessage,
@@ -100,6 +102,14 @@ class ChatRequest(BaseModel):
     session_id: str | None = None
     focus: str | None = None
     depth: str = "deep"
+    map_type: str | None = None
+    map_item_key: str | None = None
+
+
+class InterpretationMapRequest(BaseModel):
+    chart_id: str
+    map_type: str = "talent"
+    depth: str = "deep"
 
 
 class ImageGenerationRequest(BaseModel):
@@ -161,6 +171,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -173,7 +184,10 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
     @app.get("/api/product/config")
     def product_config() -> dict[str, Any]:
         return {
+            "product_version": f"V{VERSION.rsplit('.', 1)[0]}",
+            "api_version": VERSION,
             "report_types": list(REPORT_CONFIG),
+            "map_types": ["body", "wealth", "talent", "relationship", "mission", "professional"],
             "required_birth_fields": ["birth_date", "birth_time", "timezone_name 或 city/region/country"],
             "precision_policy": "birthday_only_is_guidance_not_formal_chart",
             "terminology": {
@@ -293,10 +307,27 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         active_store.save_report(report)
         return report.to_dict()
 
+    @app.post("/api/interpretation-maps")
+    def create_interpretation_map(request: InterpretationMapRequest) -> dict[str, Any]:
+        saved_chart = active_store.get_chart(request.chart_id)
+        package = build_interpretation_map(
+            saved_chart.chart,
+            map_type=request.map_type,
+            depth=request.depth,
+            chart_id=request.chart_id,
+        )
+        return package.to_dict()
+
     @app.post("/api/chat")
     def chat(request: ChatRequest) -> dict[str, Any]:
         saved_chart = active_store.get_chart(request.chart_id)
         focus = request.focus or _infer_focus(request.question)
+        map_package = build_interpretation_map(
+            saved_chart.chart,
+            map_type=request.map_type or map_type_from_focus(focus),
+            depth=request.depth,
+            chart_id=request.chart_id,
+        )
         package = build_llm_product(
             saved_chart.chart,
             focus=focus,
@@ -308,8 +339,10 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         answer_markdown, answer_provider, answer_model, provider_configured = _generate_chat_answer(
             saved_chart=saved_chart,
             package=package,
+            map_package=map_package,
             session=session,
             question=request.question,
+            map_item_key=request.map_item_key,
         )
         user_message = ChatMessage(
             role="user",
@@ -333,6 +366,12 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             "answer_model": answer_model,
             "provider_configured": provider_configured,
             "citations": [citation.to_dict() for citation in package.answer_citations],
+            "map_context": {
+                "map_type": map_package.map_type,
+                "title": map_package.title,
+                "sections": [section.to_dict() for section in map_package.sections],
+                "retrieved_knowledge": [atom.to_dict() for atom in map_package.retrieved_knowledge],
+            },
             "suggested_followups": list(package.suggested_followups),
             "session": session.to_dict(),
         }
@@ -446,27 +485,31 @@ def _generate_chat_answer(
     *,
     saved_chart: SavedChart,
     package,
+    map_package,
     session: ChatSession,
     question: str,
+    map_item_key: str | None,
 ) -> tuple[str, str, str | None, bool]:
     provider_status = external_provider_status()["deepseek"]
     if not provider_status["configured"]:
-        return package.answer_markdown, "local-fallback", None, False
-    messages = _build_deepseek_messages(saved_chart, package, session, question)
+        return _fallback_map_answer(map_package, question, map_item_key), "local-fallback", None, False
+    messages = _build_deepseek_messages(saved_chart, package, map_package, session, question, map_item_key)
     try:
         answer = DeepSeekClient().chat(messages)
     except ProviderConfigurationError:
-        return package.answer_markdown, "local-fallback", None, False
+        return _fallback_map_answer(map_package, question, map_item_key), "local-fallback", None, False
     except ProviderError:
-        return _fallback_with_provider_note(package.answer_markdown), "local-fallback", None, True
+        return _fallback_with_provider_note(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, True
     return answer.content, answer.provider, answer.model, True
 
 
 def _build_deepseek_messages(
     saved_chart: SavedChart,
     package,
+    map_package,
     session: ChatSession,
     question: str,
+    map_item_key: str | None,
 ) -> list[dict[str, str]]:
     system = "\n".join(
         (
@@ -474,6 +517,7 @@ def _build_deepseek_messages(
             "你现在面向简体中文用户，回答必须自然、具体、可执行。",
             "必须使用目标术语：荐骨中心、荐骨权威、阿姬娜中心、喉咙中心；不要使用骶骨中心、额骨中心、阿扎那。",
             "只能基于下方 chart facts、reading context 和历史会话作答；不知道就说明无法从当前图表推出。",
+            "优先引用 interpretation map 中的地图条目和 retrieved knowledge；回答要像给用户看的解读，不要输出内部字段名。",
             "深度解读必须做结构叠加：不要只按人生角色、类型或单个闸门回答；要说明真实通道、已定义/开放中心、关键闸门如何共同作用。",
             "当用户问天赋、使命、职业主航道或深挖时，必须输出具体天赋模块、误用方式、可观察练习，避免可套给所有人的建议。",
             "不要输出医疗、法律、财务或确定性命运承诺。",
@@ -486,6 +530,7 @@ def _build_deepseek_messages(
         (
             f"用户问题：{question}",
             "【当前图表事实】\n" + _chart_fact_digest(saved_chart.chart),
+            "【当前解读地图】\n" + map_context_text(map_package, selected_item_key=map_item_key),
             "【可引用解读上下文】\n" + context,
             "【本轮历史】\n" + history if history else "【本轮历史】\n暂无。",
             "请输出 Markdown。结构：先给一句高密度结论，再分成 3-5 个小节，每节都要连接到具体图表事实，最后给 2 个下一步追问。",
@@ -556,6 +601,47 @@ def _fallback_with_provider_note(answer_markdown: str) -> str:
         "仍然基于当前图表事实。"
     )
     return answer_markdown.rstrip() + note
+
+
+def _fallback_map_answer(map_package, question: str, map_item_key: str | None = None) -> str:
+    lines = [
+        f"# {map_package.title}",
+        "",
+        f"你的问题：{question}",
+        "",
+        "先按当前图表事实回答，不做命运承诺，也不编造没有出现在图里的通道、中心或闸门。",
+        "",
+    ]
+    items = _ordered_map_items(map_package, map_item_key)
+    for item in items[:3]:
+        lines.extend(
+            (
+                f"## {item.title}",
+                item.user_language,
+                "",
+                "图表依据：" + "；".join(item.chart_basis),
+                "",
+                "现实里常见的卡点：",
+                *[f"- {block}" for block in item.common_blocks[:3]],
+                "",
+                "可以先这样练：",
+                *[f"- {practice}" for practice in item.practices[:2]],
+                "",
+            )
+        )
+    lines.append("## 你可以继续追问")
+    for item in map_package.suggested_questions[:2]:
+        lines.append(f"- {item}")
+    return "\n".join(lines).strip() + "\n"
+
+
+def _ordered_map_items(map_package, map_item_key: str | None):
+    items = [item for section in map_package.sections for item in section.items]
+    if not map_item_key:
+        return items
+    selected = [item for item in items if item.key == map_item_key]
+    rest = [item for item in items if item.key != map_item_key]
+    return selected + rest
 
 
 def _build_visual_prompt(saved_chart: SavedChart, user_prompt: str | None) -> str:

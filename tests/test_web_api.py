@@ -101,6 +101,30 @@ def test_talent_report_returns_deep_synthesis_profile() -> None:
     assert any(block["key"] == "research-method" for block in payload["context_blocks"])
     assert "/Users/" not in payload["answer_markdown"]
     assert "骶骨" not in payload["export_markdown"]
+    assert "当前聚焦" not in payload["answer_markdown"]
+    assert "问题切口" not in payload["answer_markdown"]
+    assert "焦点提示" not in payload["answer_markdown"]
+
+
+def test_interpretation_map_endpoint_returns_v03_structured_map() -> None:
+    client = _client()
+    chart = _create_chart(client)
+    response = client.post(
+        "/api/interpretation-maps",
+        json={"chart_id": chart["chart_id"], "map_type": "wealth", "depth": "deep"},
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["product_version"] == "0.3.0"
+    assert payload["map_type"] == "wealth"
+    assert payload["title"] == "财富地图"
+    assert payload["professional_facts"]
+    assert payload["sections"][0]["items"]
+    item_titles = [item["title"] for section in payload["sections"] for item in section["items"]]
+    assert "财富来源：方向感加资源配置" in item_titles
+    assert payload["retrieved_knowledge"]
+    assert payload["sources"]
 
 
 def test_chat_answers_are_chart_grounded_and_sessionized() -> None:
@@ -120,7 +144,9 @@ def test_chat_answers_are_chart_grounded_and_sessionized() -> None:
     assert payload["focus"] == "growth"
     assert payload["answer_provider"] == "local-fallback"
     assert payload["provider_configured"] is False
-    assert "当前问题：我的喉咙中心和表达方式应该怎么用？" in payload["answer_markdown"]
+    assert "你的问题：我的喉咙中心和表达方式应该怎么用？" in payload["answer_markdown"]
+    assert payload["map_context"]["map_type"] == "body"
+    assert payload["map_context"]["sections"]
     assert payload["citations"]
     assert len(payload["session"]["messages"]) == 2
 
@@ -139,7 +165,7 @@ def test_chat_infers_talent_focus_for_deep_talent_questions() -> None:
     assert response.status_code == 200, response.text
     payload = response.json()
     assert payload["focus"] == "talent"
-    assert "天赋深挖场景" in payload["answer_markdown"]
+    assert payload["map_context"]["map_type"] == "talent"
     assert "02-14" in payload["answer_markdown"]
 
 

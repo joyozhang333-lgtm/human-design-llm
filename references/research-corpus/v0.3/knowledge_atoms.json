@@ -1,0 +1,236 @@
+[
+  {
+    "atom_id": "type.generator.response",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "生产者策略",
+    "map_types": ["body", "wealth", "talent", "mission"],
+    "chart_keys": ["type:pure-generator", "type:manifesting-generator", "strategy:respond"],
+    "summary": "生产者的核心不是主动从头脑发起，而是通过身体回应把生命力投向正确对象。",
+    "user_translation": "你不是越主动越对，而是越能听见身体的“有反应/没反应”，越容易把力气用在真正能做深的事情上。"
+  },
+  {
+    "atom_id": "authority.sacral.body-signal",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "荐骨权威",
+    "map_types": ["body", "wealth", "relationship", "mission"],
+    "chart_keys": ["authority:sacral", "center:sacral:defined"],
+    "summary": "荐骨权威依赖即时身体回应，适合用具体问题和现实刺激来确认方向。",
+    "user_translation": "重大选择不要只靠想明白，先把问题变成身体能回答的具体选项：要不要、想不想、靠近还是退开。"
+  },
+  {
+    "atom_id": "profile.2-4.natural-talent-network",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book", "chetan-parkyn-human-design"],
+    "topic": "2/4 人生角色",
+    "map_types": ["talent", "wealth", "relationship", "mission"],
+    "chart_keys": ["profile:2-4"],
+    "summary": "2线有天然才华和独处熟成，4线通过熟人网络、信任关系和被召唤展开机会。",
+    "user_translation": "你很多能力不是靠用力表演出来的，而是在独处里养熟，再通过真正认识你的人把你叫出来。"
+  },
+  {
+    "atom_id": "definition.single.internal-continuity",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "单一定义",
+    "map_types": ["body", "talent", "relationship", "mission"],
+    "chart_keys": ["definition:single"],
+    "summary": "单一定义代表内部能量链路较连贯，很多整合可以在自己内部完成。",
+    "user_translation": "你不一定需要很多人来帮你“接通自己”，更需要一个安静、连续、少打断的环境，让内部线索自己串起来。"
+  },
+  {
+    "atom_id": "channel.02-14.direction-resources",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "02-14 通道",
+    "map_types": ["body", "wealth", "talent", "mission"],
+    "chart_keys": ["channel:02-14", "gate:2", "gate:14", "center:g:defined", "center:sacral:defined"],
+    "summary": "02-14 连接 G 中心与荐骨中心，强调方向感与资源/生命力投放的结合。",
+    "user_translation": "你的力气不是平均分配型，真正值钱的是把资源、时间、体力集中投向一条有方向感的主航道。"
+  },
+  {
+    "atom_id": "gate.14.resource-power",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "14号闸门",
+    "map_types": ["wealth", "talent", "mission"],
+    "chart_keys": ["gate:14"],
+    "summary": "14号闸门与资源、技能、工作能量和物质支持有关。",
+    "user_translation": "你不是只靠聪明赚钱，而是要把能持续生产的资源能力变成资产：方法、产品、团队、内容、系统、客户信任。"
+  },
+  {
+    "atom_id": "gate.2.direction-receptivity",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "2号闸门",
+    "map_types": ["talent", "wealth", "mission"],
+    "chart_keys": ["gate:2"],
+    "summary": "2号闸门与方向、接收和被引导有关。",
+    "user_translation": "你的方向感不是靠强行规划出来的，常常是身体回应之后，内在会知道“这条路对”。"
+  },
+  {
+    "atom_id": "cross.consciousness.suspicion-to-clarity",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "右角度交叉之意识",
+    "map_types": ["talent", "mission"],
+    "chart_keys": ["cross:Right Angle Cross of Consciousness", "gate:63", "gate:64", "gate:5", "gate:35"],
+    "summary": "意识交叉常围绕怀疑、混乱、节律和经验推进，关键在于把问题变成可验证的清晰。",
+    "user_translation": "你会反复追问“这到底是不是对的”，这不是毛病；成熟以后，它会变成帮自己和别人穿过混乱、找到清晰的能力。"
+  },
+  {
+    "atom_id": "gate.63.doubt-inquiry",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "63号闸门",
+    "map_types": ["talent", "mission"],
+    "chart_keys": ["gate:63"],
+    "summary": "63号闸门带来怀疑、提问和对模式可靠性的检验。",
+    "user_translation": "你不是天生负面，而是天生会问关键问题；如果问题有出口，它会成为判断力，如果没出口，就会变成内耗。"
+  },
+  {
+    "atom_id": "gate.64.confusion-before-form",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "64号闸门",
+    "map_types": ["talent", "mission"],
+    "chart_keys": ["gate:64"],
+    "summary": "64号闸门把过去碎片和混乱影像推向理解需求。",
+    "user_translation": "你脑子里会有很多碎片、画面和未完成的线索，别急着立刻解释；先收集，再等它们自然成形。"
+  },
+  {
+    "atom_id": "gate.5.rhythm",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "5号闸门",
+    "map_types": ["body", "wealth", "mission"],
+    "chart_keys": ["gate:5"],
+    "summary": "5号闸门强调固定节律和生活秩序。",
+    "user_translation": "你不是适合天天随机爆发的人，稳定节律会保护你的生命力，也会保护你的长期财富能力。"
+  },
+  {
+    "atom_id": "gate.35.experience-progress",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "35号闸门",
+    "map_types": ["talent", "mission"],
+    "chart_keys": ["gate:35"],
+    "summary": "35号闸门与经验、变化和从经历中推进有关。",
+    "user_translation": "你会需要经历新阶段，但不是为了乱试；重点是把经历转成故事、判断、方法和对别人的提醒。"
+  },
+  {
+    "atom_id": "open.throat.expression-pressure",
+    "source_ids": ["jovian-dictionary", "karen-curry-understanding"],
+    "topic": "开放喉咙中心",
+    "map_types": ["body", "wealth", "relationship"],
+    "chart_keys": ["center:throat:open"],
+    "summary": "开放喉咙中心容易放大被看见、被听见、急着表达的压力。",
+    "user_translation": "你越急着证明自己有声音，表达越容易散；更好的方式是让作品、案例和真实回应把你带到该说话的位置。"
+  },
+  {
+    "atom_id": "open.heart.prove-worth",
+    "source_ids": ["jovian-dictionary", "karen-curry-understanding"],
+    "topic": "开放意志中心",
+    "map_types": ["wealth", "relationship", "body"],
+    "chart_keys": ["center:heart:open"],
+    "summary": "开放意志中心容易把承诺、价值感和证明自己绑在一起。",
+    "user_translation": "你最容易在钱和关系里用“我可以、我能扛、我值得”证明自己，结果接下超过身体容量的承诺。"
+  },
+  {
+    "atom_id": "open.solar-plexus.emotional-amplification",
+    "source_ids": ["jovian-dictionary", "karen-curry-understanding"],
+    "topic": "开放情绪中心",
+    "map_types": ["body", "relationship"],
+    "chart_keys": ["center:solar-plexus:open"],
+    "summary": "开放情绪中心容易放大他人的情绪并避免冲突。",
+    "user_translation": "关系里你可能很快感到对方的情绪，但那不一定是你的答案；先退一步，等身体恢复安静。"
+  },
+  {
+    "atom_id": "open.root.rush-pressure",
+    "source_ids": ["jovian-dictionary", "karen-curry-understanding"],
+    "topic": "开放根部中心",
+    "map_types": ["body", "wealth"],
+    "chart_keys": ["center:root:open"],
+    "summary": "开放根部中心容易放大时间压力和赶快完成的冲动。",
+    "user_translation": "你的能量卡点常不是事情真的紧急，而是身体替别人的压力买单；越急越要先分清压力来源。"
+  },
+  {
+    "atom_id": "open.ajna.flexible-mind",
+    "source_ids": ["jovian-dictionary", "joyce-human-design-intro"],
+    "topic": "开放阿姬娜中心",
+    "map_types": ["body", "talent", "relationship"],
+    "chart_keys": ["center:ajna:open"],
+    "summary": "开放阿姬娜中心带来认知弹性，也容易执着于必须确定。",
+    "user_translation": "你可以容纳很多角度，但不要为了显得专业而过早定论；你的优势是灵活，不是永远正确。"
+  },
+  {
+    "atom_id": "open.head.borrowed-questions",
+    "source_ids": ["jovian-dictionary", "joyce-human-design-intro"],
+    "topic": "开放头顶中心",
+    "map_types": ["body", "talent"],
+    "chart_keys": ["center:head:open"],
+    "summary": "开放头顶中心容易接收外界问题和灵感压力。",
+    "user_translation": "不是所有问题都值得你回答。你需要辨别：这是我的真实好奇，还是我捡到了别人的焦虑。"
+  },
+  {
+    "atom_id": "open.spleen.old-attachments",
+    "source_ids": ["jovian-dictionary", "karen-curry-understanding"],
+    "topic": "开放脾中心",
+    "map_types": ["body", "relationship"],
+    "chart_keys": ["center:spleen:open"],
+    "summary": "开放脾中心容易依恋熟悉的人事物，即使它们已经不健康。",
+    "user_translation": "你要留意自己是不是因为熟悉而留下，而不是因为真的滋养。安全感不能只靠旧东西提供。"
+  },
+  {
+    "atom_id": "defined.g.identity-direction",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "定义 G 中心",
+    "map_types": ["body", "talent", "mission", "relationship"],
+    "chart_keys": ["center:g:defined"],
+    "summary": "定义 G 中心带来较稳定的身份感、方向感和爱之流动。",
+    "user_translation": "你不是完全靠外界给方向的人；真正对的关系和事业会尊重你内在已有的方向，而不是把你改造成别人想要的样子。"
+  },
+  {
+    "atom_id": "defined.sacral.sustainable-workforce",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "定义荐骨中心",
+    "map_types": ["body", "wealth", "talent"],
+    "chart_keys": ["center:sacral:defined"],
+    "summary": "定义荐骨中心代表稳定生命力和可持续工作能量。",
+    "user_translation": "你有持续力，但持续力不是无限义务；身体有回应时会越做越有劲，没回应时再努力也会变成挫败。"
+  },
+  {
+    "atom_id": "gate.29.commitment-risk",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "29号闸门",
+    "map_types": ["wealth", "relationship", "body"],
+    "chart_keys": ["gate:29"],
+    "summary": "29号闸门与承诺、投入和坚持经验有关。",
+    "user_translation": "你一旦答应就容易走到底，所以真正要练的不是更努力，而是答应之前让荐骨先确认。"
+  },
+  {
+    "atom_id": "gate.13.listener-memory",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "13号闸门",
+    "map_types": ["talent", "relationship"],
+    "chart_keys": ["gate:13"],
+    "summary": "13号闸门与倾听、故事、记忆和秘密承载有关。",
+    "user_translation": "你可能容易听见别人真正想说的话，也适合把人的经历整理成有方向的理解。"
+  },
+  {
+    "atom_id": "gate.17.opinion-structure",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "17号闸门",
+    "map_types": ["talent", "wealth"],
+    "chart_keys": ["gate:17"],
+    "summary": "17号闸门与观点、逻辑结构和模式判断有关。",
+    "user_translation": "你的观点能力值钱，但前提是它被组织成清晰结构，而不是在脑子里来回转。"
+  },
+  {
+    "atom_id": "gate.34.raw-power",
+    "source_ids": ["jovian-dictionary", "ihds-definitive-book"],
+    "topic": "34号闸门",
+    "map_types": ["body", "talent", "wealth"],
+    "chart_keys": ["gate:34"],
+    "summary": "34号闸门带来强烈生命力和独立行动动力。",
+    "user_translation": "你有一股很强的原始动力，但它必须被正确回应牵引，否则会变成硬冲、硬扛、硬消耗。"
+  },
+  {
+    "atom_id": "chart.fact-first",
+    "source_ids": ["jovian-chart-kb", "jovian-dictionary"],
+    "topic": "图表事实优先",
+    "map_types": ["professional", "body", "wealth", "talent", "relationship", "mission"],
+    "chart_keys": ["chart"],
+    "summary": "用户产品必须先基于出生资料生成图表事实，再从类型、策略、权威、中心、通道、闸门和行星激活展开解释。",
+    "user_translation": "一段解读必须能说清楚依据来自哪里；如果说不出是哪条通道、哪个中心或哪个闸门，就不能当成你的专属结论。"
+  }
+]

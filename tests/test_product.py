@@ -17,7 +17,7 @@ def test_build_llm_product_generates_session_package() -> None:
     )
 
     assert package.product_name == "human-design-llm"
-    assert package.product_version == __version__ == "2.5.0"
+    assert package.product_version == __version__ == "0.3.0"
     assert package.focus == "career"
     assert package.question == "我在工作里最该怎么用这张图？"
     assert package.answer_citation_mode == "none"
@@ -30,10 +30,13 @@ def test_build_llm_product_generates_session_package() -> None:
     highlight_block = next(block for block in package.context_blocks if block.key == "focus-highlights")
     assert any(source.kind == "channel" for source in channels_block.sources)
     assert len(highlight_block.sources) >= 1
-    assert "当前聚焦：career" in package.answer_markdown
-    assert "当前问题：我在工作里最该怎么用这张图？" in package.answer_markdown
-    assert "## 问题切口" in package.answer_markdown
-    assert "## 焦点提示" in package.answer_markdown
+    assert "## 你的问题" in package.answer_markdown
+    assert "我在工作里最该怎么用这张图？" in package.answer_markdown
+    assert "## 这次问题怎么落到图上" in package.answer_markdown
+    assert "## 图表里最相关的结构" in package.answer_markdown
+    assert "当前聚焦" not in package.answer_markdown
+    assert "问题切口" not in package.answer_markdown
+    assert "焦点提示" not in package.answer_markdown
     assert "## 职业命题" in package.answer_markdown
     assert "## 赚钱结构" in package.answer_markdown
     assert "## 职业误判环路" in package.answer_markdown
@@ -61,7 +64,7 @@ def test_build_llm_product_surfaces_precision_context_when_needed() -> None:
     package = build_llm_product(chart, focus="decision")
 
     assert any(block.key == "input-precision" for block in package.context_blocks)
-    assert "输入精度提示" in package.answer_markdown
+    assert "## 排盘提醒" in package.answer_markdown
 
 
 def test_build_llm_product_focuses_diverge_for_same_chart() -> None:

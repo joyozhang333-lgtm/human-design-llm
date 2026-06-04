@@ -252,7 +252,7 @@ def run_narrative_eval_suite(cases_path: str | Path) -> EvalSuiteResult:
         checks.append(
             EvalCheck(
                 name="has-focus",
-                passed=f"当前聚焦：{case['focus']}" in text,
+                passed=package.focus == case["focus"],
                 detail=case["focus"],
             )
         )

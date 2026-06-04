@@ -279,7 +279,7 @@ def get_channel_card(code: str) -> ReferenceCard | None:
 @lru_cache(maxsize=1)
 def load_reference_index() -> dict:
     if not REFERENCE_INDEX_PATH.exists():
-        return {"version": "0.6-draft", "collections": {}}
+        return {"version": "0.3.0", "collections": {}}
     return json.loads(REFERENCE_INDEX_PATH.read_text(encoding="utf-8"))
 
 
