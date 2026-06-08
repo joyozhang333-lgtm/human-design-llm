@@ -9,9 +9,9 @@ It is not a static Human Design website. It is a Python product layer that turns
 它不是一个静态网页，也不是单纯 prompt 模板，而是把出生资料转成结构化人类图事实，再把这些事实封装成大模型可直接使用的产品包。
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-0.3.0-black)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-black)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-90%20passing-brightgreen)](./tests)
+[![Tests](https://img.shields.io/badge/tests-97%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
 ## What It Does
@@ -64,7 +64,7 @@ This repository is designed for developers and AI builders who want to create:
 - **Chinese-first reading quality**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
 - **Template-driven BodyGraph**: SVG rendering uses a stable bodygraph template, not ad-hoc drawing from scratch.
 - **User-facing Web/App layer**: FastAPI wraps the Python product core, while `web/` provides a real chart/report/chat interface.
-- **V0.3 interpretation maps**: `POST /api/interpretation-maps` turns chart facts into six user-readable maps: body, wealth, talent, relationship, mission, and professional facts.
+- **V0.4 diagnosis maps**: `POST /api/interpretation-maps` turns chart facts into six user-readable maps and adds layered trait diagnosis: embodied expression, blind spots, stuck patterns, and stuck causes.
 - **Callable research corpus**: V0.3 adds `SourceCard`, `KnowledgeAtom`, `InterpretationRule`, and `PromptPack` so Human Design books, official references, and Chinese terminology become reusable product knowledge instead of one-off prose.
 - **Body resource and energy interpretation**: `build_body_energy_profile()` explains defined/open centers, channels, gates, consumption patterns, and practices.
 - **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, public-figure accuracy checks, empirical-readiness checks, and the legacy scorecard script protect the product from shallow or generic output.
@@ -112,12 +112,12 @@ English search intent:
 
 ## Current Release
 
-`0.3.0` / `V0.3` is the current public product release.
+`0.4.0` / `V0.4` is the current public product release.
 
 Release scope:
 
 - Single-chart Human Design reading.
-- V0.3 interpretation maps for body, wealth, talent, relationship, mission, and professional facts.
+- V0.4 diagnosis maps for body, wealth, talent, relationship, mission, and professional facts.
 - Local callable research corpus with source cards, knowledge atoms, interpretation rules, and prompt packs.
 - Career deep reading for work, money, positioning, and direction.
 - Talent deep synthesis with research method context, structure stacking, non-genericity checks, and 30-day experiments.
@@ -131,6 +131,7 @@ Release scope:
 - Empirical validation protocol, blinded forced-choice statistics script, and no-proof-without-data guardrails.
 - 4834-record public-figure benchmark manifest, 1000 blinded holdout trials, frozen protocol hash, and prospective prediction registry.
 - Chinese Web/App map interface with expandable long-form user-language interpretations and grounded chat context.
+- V0.4 trait diagnosis layer for deep items, with `deep / standard / trace` depth, clickable follow-up questions, gender-aware birth profile storage, and privacy-safe anonymous demos.
 
 ## Installation
 
@@ -285,12 +286,12 @@ The Web/App layer turns the existing LLM-native toolkit into a user-facing produ
 
 - `POST /api/charts` creates a formal chart from precise birth data.
 - `POST /api/reports` generates overview, body-energy, career, relationship, or deep reports.
-- `POST /api/interpretation-maps` returns expandable V0.3 maps with professional basis, user-language interpretation, life scenes, common blocks, practices, and follow-up questions.
+- `POST /api/interpretation-maps` returns expandable V0.4 maps with professional basis, user-language interpretation, life scenes, diagnosis fields, common blocks, practices, and follow-up questions.
 - `POST /api/chat` answers personalized follow-up questions grounded in chart facts and citations, using DeepSeek when configured.
 - `POST /api/images/reading-visual` generates a MiniMax-powered report cover/energy visual when configured.
-- `web/` renders the birth form, professional chart facts, fixed-template BodyGraph, V0.3 map reader, and chat dock.
+- `web/` renders the birth form, professional chart facts, fixed-template BodyGraph, V0.4 diagnosis map reader, and chat dock.
 
-Product requirements are documented in [docs/v0.3-product-requirements.md](./docs/v0.3-product-requirements.md), with the earlier Web/App requirements kept in [docs/product-requirements-web-app.md](./docs/product-requirements-web-app.md).
+Product requirements are documented in [docs/v0.4-product-requirements.md](./docs/v0.4-product-requirements.md), with the V0.3 map requirements kept in [docs/v0.3-product-requirements.md](./docs/v0.3-product-requirements.md) and the earlier Web/App requirements kept in [docs/product-requirements-web-app.md](./docs/product-requirements-web-app.md).
 
 ## Reference Coverage
 
@@ -311,7 +312,7 @@ These files are intentionally local and source-traceable so that LLM output can 
 
 Current local release validation:
 
-- `96` pytest cases passing.
+- `97` pytest cases passing.
 - Legacy scorecard product score: `100/100`.
 - `evaluate_public_figures.py` public-figure accuracy score: `100/90`.
 - `evaluate_empirical_readiness.py` scientific validation readiness score: `100/90`.

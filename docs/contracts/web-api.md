@@ -1,6 +1,6 @@
 # Web/App API Contract
 
-更新时间：2026-06-05
+更新时间：2026-06-06
 
 ## `POST /api/charts`
 
@@ -11,19 +11,19 @@
 ```json
 {
   "user_name": "可选昵称",
-  "birth_date": "1995-03-03",
-  "birth_time": "18:30",
-  "city": "邢台",
-  "region": "河北",
-  "country": "中国",
-  "timezone_name": "Asia/Shanghai"
+  "gender": "female",
+  "birth_date": "1970-02-04",
+  "birth_time": "12:00",
+  "city": "杭州",
+  "region": "浙江"
 }
 ```
 
 规则：
 
 - `birth_date` 和 `birth_time` 必填。
-- `timezone_name` 或 `city/region/country` 至少提供一组。
+- 中文用户表单只展示 `city/region`，不展示国家和时区；后端仍兼容 `country` 和 `timezone_name`。
+- `timezone_name` 或 `city/region/country` 至少提供一组；中文前端默认内部传入 `Asia/Shanghai`。
 - 仅生日会返回 `422 birth_time_required`，不生成正式图表。
 
 响应重点字段：
@@ -89,7 +89,9 @@
   "question": "我的喉咙中心和表达方式应该怎么用？",
   "session_id": "可选",
   "map_type": "body",
-  "map_item_key": "可选"
+  "map_item_key": "可选",
+  "entry_source": "followup_button",
+  "synthesis_mode": "full_chart"
 }
 ```
 
@@ -103,6 +105,8 @@
   "answer_provider": "deepseek",
   "answer_model": "deepseek-v4-pro",
   "provider_configured": true,
+  "entry_source": "followup_button",
+  "synthesis_mode": "full_chart",
   "citations": [],
   "map_context": {
     "map_type": "body",
@@ -126,7 +130,7 @@
 
 ## `POST /api/interpretation-maps`
 
-生成 V0.3 解读地图。前端默认以地图为主，旧版 Markdown 报告作为导出和兼容能力保留。
+生成 V0.4 解读地图。前端默认以地图为主，旧版 Markdown 报告作为导出和兼容能力保留。
 
 请求：
 
@@ -151,7 +155,7 @@
 
 ```json
 {
-  "product_version": "0.3.0",
+  "product_version": "0.4.0",
   "map_type": "wealth",
   "title": "财富地图",
   "description": "...",
@@ -164,10 +168,15 @@
         {
           "key": "wealth.02-14-main-track",
           "title": "财富来源：方向感加资源配置",
+          "diagnosis_depth": "deep",
           "chart_basis": ["通道：02-14"],
           "professional_basis": "...",
           "user_language": "...",
           "life_scenes": [],
+          "embodied_expression": [],
+          "blind_spots": [],
+          "stuck_patterns": [],
+          "stuck_causes": [],
           "common_blocks": [],
           "practices": [],
           "followup_questions": []
@@ -185,6 +194,8 @@
 说明：
 
 - 地图条目必须能追溯到真实图表事实：类型、策略、权威、中心、通道、闸门或行星激活。
+- V0.4 条目增加 `diagnosis_depth`：`deep` 输出完整特质诊断层；`standard` 输出简版盲区和卡住状态；`trace` 只做事实核验和防误读。
+- `deep` 条目必须返回 `embodied_expression`、`blind_spots`、`stuck_patterns`、`stuck_causes`，并且 `stuck_causes` 同时说明盘面机制和现实场景。
 - `retrieved_knowledge` 来自 `references/research-corpus/v0.3/knowledge_atoms.json`。
 - `sources` 来自 `references/research-corpus/v0.3/sources.json`，只暴露来源元信息，不复制版权正文。
 

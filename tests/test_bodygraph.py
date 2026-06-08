@@ -8,7 +8,7 @@ from human_design.input import normalize_birth_input
 
 
 def _build_chart():
-    return calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    return calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
 
 
 def test_render_bodygraph_svg_contains_expected_labels() -> None:
@@ -22,8 +22,8 @@ def test_render_bodygraph_svg_contains_expected_labels() -> None:
     assert "阿姬娜中心" in svg
     assert "设计面" in svg
     assert "人格面" in svg
-    assert "63.2" in svg
-    assert "5.4" in svg
+    assert "13.2" in svg
+    assert "1.4" in svg
     assert "人类图解读本" in svg
     assert "核心身份" in svg
     assert "决策与行动方式" in svg

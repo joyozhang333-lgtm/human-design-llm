@@ -6,7 +6,7 @@ from human_design.input import normalize_birth_input
 
 
 def test_deep_synthesis_builds_non_generic_talent_profile() -> None:
-    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    chart = calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
     profile = build_deep_synthesis_profile(chart, question="请深挖我的天赋")
     payload = str(profile.to_dict())
 
@@ -24,7 +24,7 @@ def test_deep_synthesis_builds_non_generic_talent_profile() -> None:
 
 
 def test_deep_synthesis_markdown_contains_experiments_and_sources() -> None:
-    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    chart = calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
     profile = build_deep_synthesis_profile(chart)
     markdown = render_deep_synthesis_markdown(profile)
 

@@ -6,7 +6,7 @@ from human_design.input import normalize_birth_input
 
 
 def test_body_energy_profile_uses_simplified_chinese_terms() -> None:
-    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    chart = calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
     profile = build_body_energy_profile(chart)
     payload = str(profile.to_dict())
 
@@ -24,7 +24,7 @@ def test_body_energy_profile_uses_simplified_chinese_terms() -> None:
 
 
 def test_body_energy_profile_surfaces_channels_and_observation_practices() -> None:
-    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    chart = calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
     profile = build_body_energy_profile(chart)
 
     assert any(note.practice for note in profile.center_notes)

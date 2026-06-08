@@ -17,7 +17,7 @@ def test_build_llm_product_generates_session_package() -> None:
     )
 
     assert package.product_name == "human-design-llm"
-    assert package.product_version == __version__ == "0.3.0"
+    assert package.product_version == __version__ == "0.4.0"
     assert package.focus == "career"
     assert package.question == "我在工作里最该怎么用这张图？"
     assert package.answer_citation_mode == "none"
@@ -92,7 +92,7 @@ def test_build_llm_product_question_changes_highlight_priority() -> None:
 
 
 def test_career_money_direction_question_gets_deep_lens() -> None:
-    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    chart = calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
     package = build_llm_product(
         chart,
         focus="career",
@@ -104,7 +104,7 @@ def test_career_money_direction_question_gets_deep_lens() -> None:
     assert "职业方向与赚钱结构场景" in package.answer_markdown
     assert "职业主轴 02-14" in focus_block.content
     assert "赚钱误判点" in focus_block.content
-    assert "承诺风险" in focus_block.content
+    assert "过度承诺" in focus_block.content
 
 
 def test_career_focus_uses_type_specific_decision_language() -> None:
@@ -124,7 +124,7 @@ def test_career_focus_uses_type_specific_decision_language() -> None:
 
 
 def test_talent_focus_injects_research_and_deep_synthesis_context() -> None:
-    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    chart = calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
     package = build_llm_product(
         chart,
         focus="talent",

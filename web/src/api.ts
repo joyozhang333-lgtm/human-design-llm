@@ -2,6 +2,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export type ChartCreateInput = {
   user_name?: string;
+  gender?: "male" | "female" | "";
   birth_date: string;
   birth_time: string;
   city?: string;
@@ -111,10 +112,15 @@ export type InterpretationMapItem = {
   key: string;
   title: string;
   subtitle: string;
+  diagnosis_depth: "deep" | "standard" | "trace";
   chart_basis: string[];
   professional_basis: string;
   user_language: string;
   life_scenes: string[];
+  embodied_expression: string[];
+  blind_spots: string[];
+  stuck_patterns: string[];
+  stuck_causes: string[];
   common_blocks: string[];
   practices: string[];
   followup_questions: string[];
@@ -185,6 +191,8 @@ export type ChatResponse = {
   answer_provider?: string;
   answer_model?: string | null;
   provider_configured?: boolean;
+  entry_source?: string | null;
+  synthesis_mode?: string | null;
   map_context?: {
     map_type: string;
     title: string;
@@ -242,14 +250,17 @@ export async function askQuestion(
   question: string,
   sessionId?: string,
   mapType?: string,
-  mapItemKey?: string
+  mapItemKey?: string,
+  entrySource?: string
 ): Promise<ChatResponse> {
   return postJson("/api/chat", {
     chart_id: chartId,
     question,
     session_id: sessionId,
     map_type: mapType,
-    map_item_key: mapItemKey
+    map_item_key: mapItemKey,
+    entry_source: entrySource,
+    synthesis_mode: entrySource === "followup_button" ? "full_chart" : undefined
   });
 }
 

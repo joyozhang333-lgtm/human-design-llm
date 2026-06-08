@@ -360,10 +360,15 @@ class InterpretationMapItem(JsonMixin):
     key: str
     title: str
     subtitle: str
+    diagnosis_depth: str
     chart_basis: tuple[str, ...]
     professional_basis: str
     user_language: str
     life_scenes: tuple[str, ...]
+    embodied_expression: tuple[str, ...]
+    blind_spots: tuple[str, ...]
+    stuck_patterns: tuple[str, ...]
+    stuck_causes: tuple[str, ...]
     common_blocks: tuple[str, ...]
     practices: tuple[str, ...]
     followup_questions: tuple[str, ...]

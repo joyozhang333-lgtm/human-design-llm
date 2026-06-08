@@ -48,8 +48,8 @@ def test_generate_reading_surfaces_precision_warnings() -> None:
 
 
 def test_variable_orientation_counts_only_l_r_tokens() -> None:
-    chart = calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    chart = calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
     reading = generate_reading(chart)
     cross_section = next(section for section in reading.sections if section.key == "cross-variables")
 
-    assert any("3 左 / 1 右" in bullet for bullet in cross_section.bullets)
+    assert any("0 左 / 4 右" in bullet for bullet in cross_section.bullets)

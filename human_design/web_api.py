@@ -17,7 +17,10 @@ from .interpretation_maps import build_interpretation_map, map_context_text, map
 from .labels import (
     CENTER_LABELS,
     display_authority,
+    display_channel_label,
     display_definition,
+    display_gate_theme,
+    display_incarnation_cross,
     display_not_self,
     display_profile,
     display_signature,
@@ -81,6 +84,7 @@ REPORT_CONFIG = {
 
 class ChartCreateRequest(BaseModel):
     user_name: str | None = Field(default=None, max_length=80)
+    gender: str | None = Field(default=None, max_length=20)
     birth_date: str = Field(description="YYYY-MM-DD")
     birth_time: str | None = Field(default=None, description="HH:MM or HH:MM:SS")
     city: str | None = None
@@ -104,6 +108,9 @@ class ChatRequest(BaseModel):
     depth: str = "deep"
     map_type: str | None = None
     map_item_key: str | None = None
+    question_id: str | None = None
+    entry_source: str | None = None
+    synthesis_mode: str | None = None
 
 
 class InterpretationMapRequest(BaseModel):
@@ -165,7 +172,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
     active_store = store or HumanDesignWebStore()
     app = FastAPI(
         title="Human Design Web/App API",
-        version="1.0.0",
+        version=VERSION,
         description="简体中文人类图 Web/App 产品 API：排盘、出图、报告、问答。",
     )
     app.add_middleware(
@@ -188,7 +195,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             "api_version": VERSION,
             "report_types": list(REPORT_CONFIG),
             "map_types": ["body", "wealth", "talent", "relationship", "mission", "professional"],
-            "required_birth_fields": ["birth_date", "birth_time", "timezone_name 或 city/region/country"],
+            "required_birth_fields": ["birth_date", "birth_time", "city/region"],
             "precision_policy": "birthday_only_is_guidance_not_formal_chart",
             "terminology": {
                 "sacral": "荐骨中心",
@@ -209,8 +216,8 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
                 status_code=422,
                 detail={
                     "code": "timezone_or_location_required",
-                    "message": "正式人类图需要出生时间和出生地/时区。仅生日只能做低精度引导，不能生成正式 BodyGraph。",
-                    "required_fields": ["birth_time", "timezone_name 或 city/region/country"],
+                    "message": "正式人类图需要出生时间和出生地。仅生日只能做低精度引导，不能生成正式 BodyGraph。",
+                    "required_fields": ["birth_time", "city/region"],
                 },
             )
         try:
@@ -238,6 +245,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             birth_profile=BirthProfile(
                 birth_date=request.birth_date,
                 birth_time=request.birth_time,
+                gender=request.gender,
                 city=request.city,
                 region=request.region,
                 country=request.country,
@@ -365,6 +373,8 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             "answer_provider": answer_provider,
             "answer_model": answer_model,
             "provider_configured": provider_configured,
+            "entry_source": request.entry_source,
+            "synthesis_mode": request.synthesis_mode,
             "citations": [citation.to_dict() for citation in package.answer_citations],
             "map_context": {
                 "map_type": map_package.map_type,
@@ -492,15 +502,17 @@ def _generate_chat_answer(
 ) -> tuple[str, str, str | None, bool]:
     provider_status = external_provider_status()["deepseek"]
     if not provider_status["configured"]:
-        return _fallback_map_answer(map_package, question, map_item_key), "local-fallback", None, False
+        return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
     messages = _build_deepseek_messages(saved_chart, package, map_package, session, question, map_item_key)
     try:
         answer = DeepSeekClient().chat(messages)
     except ProviderConfigurationError:
-        return _fallback_map_answer(map_package, question, map_item_key), "local-fallback", None, False
+        return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
     except ProviderError:
-        return _fallback_with_provider_note(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, True
-    return answer.content, answer.provider, answer.model, True
+        return _normalize_chat_answer(
+            _fallback_with_provider_note(_fallback_map_answer(map_package, question, map_item_key))
+        ), "local-fallback", None, True
+    return _normalize_chat_answer(answer.content), answer.provider, answer.model, True
 
 
 def _build_deepseek_messages(
@@ -517,11 +529,20 @@ def _build_deepseek_messages(
             "你现在面向简体中文用户，回答必须自然、具体、可执行。",
             "必须使用目标术语：荐骨中心、荐骨权威、阿姬娜中心、喉咙中心；不要使用骶骨中心、额骨中心、阿扎那。",
             "只能基于下方 chart facts、reading context 和历史会话作答；不知道就说明无法从当前图表推出。",
-            "优先引用 interpretation map 中的地图条目和 retrieved knowledge；回答要像给用户看的解读，不要输出内部字段名。",
+            "优先引用当前地图条目和资料依据；回答要像给用户看的解读，不要输出内部字段名。",
             "深度解读必须做结构叠加：不要只按人生角色、类型或单个闸门回答；要说明真实通道、已定义/开放中心、关键闸门如何共同作用。",
+            "如果当前地图条目提供特质诊断层，必须基于活出来、盲区、卡住状态和卡住原因继续展开；不要复制卡片原文，要围绕用户问题生成新的深度回答。",
+            "点击追问时，不能只补充当前卡片；至少联动两个其他结构，例如身体回应、开放中心、通道、人生角色、财富边界、关系模式或使命主题。",
+            "回答要像一位成熟的人类图咨询师在继续聊天，不像报告、课程讲义或百科词条。",
+            "不要把前面卡片重新整理一遍；每次只推进一层：更具体的现实场景、更尖锐的盲区、更可验证的练习，或一个能继续深聊的问题。",
+            "如果用户的问题很大，先收窄到当下最关键的一层，并用一句话说明为什么先看这一层。",
+            "先看身体真实反应，再看心理模式、关系环境和现实行动四层如何互相影响。",
+            "内容底层可以吸收整合心理学、儒释道和佛法见地，但不要堆术语；要帮助用户少一点自我证明和执着，多一点鲜活、清醒、落地的生命力。",
             "当用户问天赋、使命、职业主航道或深挖时，必须输出具体天赋模块、误用方式、可观察练习，避免可套给所有人的建议。",
             "不要输出医疗、法律、财务或确定性命运承诺。",
             *package.assistant_instructions,
+            "本轮聊天的最高优先级：不要输出 Markdown 标题、编号大纲、加粗符号、代码块或长列表。",
+            "段落要短，每段 2-4 句；不要一次性给标准答案，最后只问 1 个能继续深入的具体问题。",
         )
     )
     context = _context_block_text(package)
@@ -533,7 +554,7 @@ def _build_deepseek_messages(
             "【当前解读地图】\n" + map_context_text(map_package, selected_item_key=map_item_key),
             "【可引用解读上下文】\n" + context,
             "【本轮历史】\n" + history if history else "【本轮历史】\n暂无。",
-            "请输出 Markdown。结构：先给一句高密度结论，再分成 3-5 个小节，每节都要连接到具体图表事实，最后给 2 个下一步追问。",
+            "请输出自然聊天文本，不要输出 Markdown。控制在 300-550 字。结构：先接住问题；再指出一个盘面机制；然后给一个现实验证练习；最后只问一个继续深聊的问题。",
         )
     )
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
@@ -572,9 +593,9 @@ def _chart_fact_digest(chart) -> str:
         for center in chart.centers
         if not center.defined
     ]
-    channels = [f"{channel.code}「{channel.label}」" for channel in chart.channels]
+    channels = [f"{channel.code}「{display_channel_label(channel.code, channel.label)}」" for channel in chart.channels]
     gates = [
-        f"{gate.gate}「{gate.theme}」({normalize_center_title(CENTER_LABELS.get(gate.center, gate.center))})"
+        f"{gate.gate}「{display_gate_theme(gate.gate, gate.theme)}」({normalize_center_title(CENTER_LABELS.get(gate.center, gate.center))})"
         for gate in chart.activated_gates
     ]
     return "\n".join(
@@ -585,7 +606,7 @@ def _chart_fact_digest(chart) -> str:
             f"人生角色：{summary['profile']}",
             f"定义：{summary['definition']}",
             f"签名/非自己主题：{summary['signature']} / {summary['not_self_theme']}",
-            f"轮回交叉：{summary['incarnation_cross']}",
+            f"使命名称：{summary['incarnation_cross']}",
             "已定义中心：" + ("、".join(defined_centers) if defined_centers else "无"),
             "开放中心：" + ("、".join(open_centers) if open_centers else "无"),
             "通道：" + ("、".join(channels) if channels else "无"),
@@ -597,42 +618,164 @@ def _chart_fact_digest(chart) -> str:
 
 def _fallback_with_provider_note(answer_markdown: str) -> str:
     note = (
-        "\n\n> 当前外部问答服务暂时不可用，以下回答由本地结构化解读引擎生成，"
+        "\n\n当前外部问答服务暂时不可用，以下回答由本地结构化解读引擎生成，"
         "仍然基于当前图表事实。"
     )
     return answer_markdown.rstrip() + note
 
 
 def _fallback_map_answer(map_package, question: str, map_item_key: str | None = None) -> str:
-    lines = [
-        f"# {map_package.title}",
-        "",
-        f"你的问题：{question}",
-        "",
-        "先按当前图表事实回答，不做命运承诺，也不编造没有出现在图里的通道、中心或闸门。",
-        "",
-    ]
     items = _ordered_map_items(map_package, map_item_key)
-    for item in items[:3]:
-        lines.extend(
-            (
-                f"## {item.title}",
-                item.user_language,
-                "",
-                "图表依据：" + "；".join(item.chart_basis),
-                "",
-                "现实里常见的卡点：",
-                *[f"- {block}" for block in item.common_blocks[:3]],
-                "",
-                "可以先这样练：",
-                *[f"- {practice}" for practice in item.practices[:2]],
-                "",
-            )
+    selected = items[0] if items else None
+    supporting = items[1:3]
+    lines = [f"你的问题：{question}", ""]
+    if selected is not None:
+        lines.append(
+            f"我先不急着给标准答案。这个问题我会先看「{selected.title}」有没有在生活里被用对，"
+            "因为人类图里很多困惑不是不知道，而是身体、关系和行动节奏没有对上。"
         )
-    lines.append("## 你可以继续追问")
-    for item in map_package.suggested_questions[:2]:
-        lines.append(f"- {item}")
+        lines.append("")
+        lines.append(_dialogue_pattern(selected, supporting))
+        lines.append("")
+        blind_spot = _first_item(selected.blind_spots)
+        stuck = _first_item(selected.stuck_patterns)
+        if blind_spot or stuck:
+            lines.append(
+                "盲区不是“你不懂”，而是你可能太快跳到解释，忽略身体已经给出的松紧感。"
+                + (f" 盲区：{blind_spot}" if blind_spot else "")
+                + (f" 卡住状态：{stuck}" if stuck else "")
+            )
+            lines.append("")
+        cause = _first_item(selected.stuck_causes)
+        if cause:
+            lines.append(f"为什么会卡住，我会先看这里：{cause}")
+            lines.append("")
+        practice = _first_item(selected.practices)
+        if practice:
+            lines.append(f"先做一个小验证，不要急着想通：{practice}")
+            lines.append("")
+    if supporting:
+        support_text = "；".join(f"{item.title}：{_first_sentence(item.user_language)}" for item in supporting)
+        lines.append(f"我还会放在旁边一起看：{support_text} 这样就不是单点解释，而是看这个模式怎样牵动你的身体节奏、关系入口和现实选择。")
+        lines.append("")
+    facts = "；".join(_dialogue_fact_subset(map_package.professional_facts))
+    if facts:
+        lines.append(f"我看盘时抓的依据是：{facts}。")
+        lines.append("")
+    lines.append(f"我想继续问你：{_progressive_question(selected, question)}")
     return "\n".join(lines).strip() + "\n"
+
+
+def _dialogue_pattern(item, supporting) -> str:
+    if item.key == "talent.profile-24":
+        base = (
+            "你要找的不是一个全新的天赋，而是那个已经能做到80分、你却觉得太普通的能力。"
+            "2爻容易低估自己天然会的东西，4爻又需要通过信任关系被看见；所以关键不是马上公开证明，"
+            "而是先把这个80分能力练到100分，再让作品、案例和熟人网络把你召唤出来。"
+        )
+    else:
+        alive = _first_item(item.embodied_expression)
+        base = _trim_text(alive, 220) if alive else _first_sentence(item.user_language)
+    if not supporting:
+        return base
+    support_titles = "、".join(next_item.title for next_item in supporting[:2])
+    return f"{base} 这件事还会牵动 {support_titles}，所以不能只看单一特质，要看它怎样影响你的身体节奏、关系入口和现实选择。"
+
+
+def _dialogue_fact_subset(facts: tuple[str, ...] | list[str]) -> list[str]:
+    priority_prefixes = ("类型：", "权威：", "人生角色：", "定义：", "使命名称：", "已定义通道：")
+    selected: list[str] = []
+    for prefix in priority_prefixes:
+        selected.extend(fact for fact in facts if fact.startswith(prefix))
+    return selected[:6] or list(facts[:4])
+
+
+def _next_followup(item, question: str) -> str:
+    normalized_question = question.strip()
+    for followup in item.followup_questions:
+        if followup != normalized_question:
+            return followup
+    return ""
+
+
+def _progressive_question(item, question: str) -> str:
+    if item is None:
+        return "这件事最近最具体发生在哪个场景，是工作、关系、钱，还是身体状态？"
+    if item.key == "talent.profile-24":
+        return "最近别人反复夸你、但你觉得“这有什么难的”的能力是哪一个？它现在有没有被你做成作品、案例或稳定服务？"
+    if "02-14" in item.key or "02-14" in item.title:
+        return "最近哪一个方向一想到就有身体力量，哪一个方向只是看起来有资源、但你身体并不想持续投入？"
+    if item.key.startswith("wealth."):
+        return "你现在赚钱最容易卡住的是定价、承诺、合作边界，还是不知道该把资源投向哪里？"
+    if item.key.startswith("relationship."):
+        return "你在关系里最常见的卡点，是太快答应、太晚表达边界，还是等对方看懂你？"
+    if item.key.startswith("body."):
+        return "最近一件让你身体变沉的事是什么？如果只看身体，不看道理，它在拒绝什么？"
+    if item.key.startswith("mission."):
+        return "你现在最想证明给别人看的东西是什么？如果先不证明，你真正想服务或创造的是什么？"
+    next_followup = _next_followup(item, question)
+    if next_followup:
+        return next_followup
+    return "如果只选一个现实场景继续拆，你想先看工作、关系、财富，还是身体能量？"
+
+
+def _first_item(items) -> str:
+    return items[0] if items else ""
+
+
+def _consultant_summary(item) -> str:
+    source = item.user_language.strip()
+    if item.stuck_causes:
+        source += " " + item.stuck_causes[0]
+    return _trim_text(source, 460)
+
+
+def _first_sentence(text: str) -> str:
+    for marker in ("。", "；", "\n"):
+        if marker in text:
+            return text.split(marker, 1)[0].strip() + "。"
+    return _trim_text(text, 120)
+
+
+def _trim_text(text: str, limit: int) -> str:
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    return text[:limit].rstrip("，。；、 ") + "。"
+
+
+def _normalize_chat_answer(text: str) -> str:
+    cleaned_lines: list[str] = []
+    for raw_line in text.replace("\r\n", "\n").split("\n"):
+        line = raw_line.strip()
+        if not line:
+            if cleaned_lines and cleaned_lines[-1] != "":
+                cleaned_lines.append("")
+            continue
+        if line.startswith("```"):
+            continue
+        line = line.lstrip("#").strip() if line.startswith("#") else line
+        if line.startswith(">"):
+            line = line.lstrip(">").strip()
+        line = line.replace("**", "").replace("__", "").replace("`", "")
+        for marker in ("- ", "* ", "• "):
+            if line.startswith(marker):
+                line = line[len(marker) :].strip()
+                break
+        cleaned_lines.append(line)
+    normalized = "\n".join(cleaned_lines).strip()
+    while "\n\n\n" in normalized:
+        normalized = normalized.replace("\n\n\n", "\n\n")
+    return normalized + ("\n" if normalized else "")
+
+
+def _append_optional_markdown_list(lines: list[str], title: str, items) -> None:
+    if not items:
+        return
+    lines.append(title)
+    for item in items:
+        lines.append(f"- {item}")
+    lines.append("")
 
 
 def _ordered_map_items(map_package, map_item_key: str | None):
@@ -657,7 +800,7 @@ def _build_visual_prompt(saved_chart: SavedChart, user_prompt: str | None) -> st
         for center in chart.centers
         if not center.defined
     ]
-    channels = [f"{channel.code} {channel.label}" for channel in chart.channels[:8]]
+    channels = [f"{channel.code} {display_channel_label(channel.code, channel.label)}" for channel in chart.channels[:8]]
     custom = user_prompt.strip() if user_prompt and user_prompt.strip() else "身体能量解读封面"
     return (
         "生成一张适合中文人类图解读产品的高质感视觉封面图，风格成熟、干净、东方纸本质感、温暖大地色。"
@@ -720,7 +863,7 @@ def _display_summary(chart) -> dict[str, str]:
         "definition": display_definition(chart.summary.definition.code, chart.summary.definition.label),
         "signature": display_signature(chart.summary.signature.code, chart.summary.signature.label),
         "not_self_theme": display_not_self(chart.summary.not_self_theme.code, chart.summary.not_self_theme.label),
-        "incarnation_cross": chart.summary.incarnation_cross.label,
+        "incarnation_cross": display_incarnation_cross(chart.summary.incarnation_cross.code, chart.summary.incarnation_cross.label),
     }
 
 

@@ -22,12 +22,12 @@ def _create_chart(client: TestClient) -> dict:
         "/api/charts",
         json={
             "user_name": "测试用户",
-            "birth_date": "1995-03-03",
-            "birth_time": "18:30",
+            "gender": "male",
+            "birth_date": "1970-02-04",
+            "birth_time": "12:00",
             "timezone_name": "Asia/Shanghai",
-            "city": "邢台",
-            "region": "河北",
-            "country": "中国",
+            "city": "杭州",
+            "region": "浙江",
         },
     )
     assert response.status_code == 200, response.text
@@ -38,7 +38,7 @@ def test_create_chart_requires_birth_time_for_formal_bodygraph() -> None:
     client = _client()
     response = client.post(
         "/api/charts",
-        json={"birth_date": "1995-03-03", "timezone_name": "Asia/Shanghai"},
+        json={"birth_date": "1992-08-17", "timezone_name": "Asia/Shanghai"},
     )
 
     assert response.status_code == 422
@@ -52,7 +52,8 @@ def test_create_chart_returns_chart_and_bodygraph_svg() -> None:
 
     assert payload["chart_id"].startswith("chart_")
     assert payload["chart"]["summary"]["authority"]["code"] == "sacral"
-    assert payload["display_summary"]["type"] == "纯生产者"
+    assert payload["birth_profile"]["gender"] == "male"
+    assert payload["display_summary"]["type"]
     assert payload["display_summary"]["authority"] == "荐骨权威"
     assert payload["bodygraph_svg_url"].endswith("/bodygraph.svg")
     assert "<svg" in payload["bodygraph_svg"]
@@ -106,7 +107,7 @@ def test_talent_report_returns_deep_synthesis_profile() -> None:
     assert "焦点提示" not in payload["answer_markdown"]
 
 
-def test_interpretation_map_endpoint_returns_v03_structured_map() -> None:
+def test_interpretation_map_endpoint_returns_v04_structured_map() -> None:
     client = _client()
     chart = _create_chart(client)
     response = client.post(
@@ -116,13 +117,20 @@ def test_interpretation_map_endpoint_returns_v03_structured_map() -> None:
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.3.0"
+    assert payload["product_version"] == "0.4.0"
     assert payload["map_type"] == "wealth"
     assert payload["title"] == "财富地图"
     assert payload["professional_facts"]
     assert payload["sections"][0]["items"]
     item_titles = [item["title"] for section in payload["sections"] for item in section["items"]]
     assert "财富来源：方向感加资源配置" in item_titles
+    item = next(item for section in payload["sections"] for item in section["items"] if item["key"] == "wealth.02-14-main-track")
+    assert item["diagnosis_depth"] == "deep"
+    assert item["embodied_expression"]
+    assert item["blind_spots"]
+    assert item["stuck_patterns"]
+    assert item["stuck_causes"]
+    assert any("盘面机制" in cause and "现实场景" in cause for cause in item["stuck_causes"])
     assert payload["retrieved_knowledge"]
     assert payload["sources"]
 
@@ -135,6 +143,9 @@ def test_chat_answers_are_chart_grounded_and_sessionized() -> None:
         json={
             "chart_id": chart["chart_id"],
             "question": "我的喉咙中心和表达方式应该怎么用？",
+            "entry_source": "followup_button",
+            "synthesis_mode": "full_chart",
+            "map_item_key": "body.sacral-response-training",
         },
     )
 
@@ -144,7 +155,15 @@ def test_chat_answers_are_chart_grounded_and_sessionized() -> None:
     assert payload["focus"] == "growth"
     assert payload["answer_provider"] == "local-fallback"
     assert payload["provider_configured"] is False
+    assert payload["entry_source"] == "followup_button"
+    assert payload["synthesis_mode"] == "full_chart"
     assert "你的问题：我的喉咙中心和表达方式应该怎么用？" in payload["answer_markdown"]
+    assert "盲区" in payload["answer_markdown"]
+    assert "卡住状态" in payload["answer_markdown"]
+    assert "##" not in payload["answer_markdown"]
+    assert "**" not in payload["answer_markdown"]
+    assert "```" not in payload["answer_markdown"]
+    assert "\n- " not in payload["answer_markdown"]
     assert payload["map_context"]["map_type"] == "body"
     assert payload["map_context"]["sections"]
     assert payload["citations"]

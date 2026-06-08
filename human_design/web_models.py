@@ -25,6 +25,7 @@ class UserProfile:
 class BirthProfile:
     birth_date: str
     birth_time: str | None
+    gender: str | None
     city: str | None
     region: str | None
     country: str | None

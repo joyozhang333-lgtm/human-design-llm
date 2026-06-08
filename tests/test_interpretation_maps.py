@@ -6,8 +6,8 @@ from human_design.interpretation_maps import build_interpretation_map, map_conte
 from human_design.research_corpus import load_interpretation_rules, load_knowledge_atoms, load_source_cards
 
 
-def _zhang_chart():
-    return calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+def _anonymous_0214_chart():
+    return calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
 
 
 def test_v03_research_corpus_loads_source_atom_rule_layers() -> None:
@@ -27,37 +27,55 @@ def test_v03_research_corpus_loads_source_atom_rule_layers() -> None:
 
 
 def test_talent_map_uses_profile_channel_cross_and_user_language() -> None:
-    package = build_interpretation_map(_zhang_chart(), map_type="talent", chart_id="chart_test")
+    package = build_interpretation_map(_anonymous_0214_chart(), map_type="talent", chart_id="chart_test")
     text = map_context_text(package)
 
-    assert package.product_version == "0.3.0"
+    assert package.product_version == "0.4.0"
     assert package.map_type == "talent"
     assert package.title == "天赋地图"
     assert "人生角色：2/4" in package.professional_facts
     assert "已定义通道：02-14" in "\n".join(package.professional_facts)
     assert "2/4 天赋" in text
-    assert "意识交叉" in text
+    assert "使命名称：斯芬克斯右角度交叉" in "\n".join(package.professional_facts)
     assert "独处养熟" in text
     assert "当前聚焦" not in text
     assert "焦点提示" not in text
 
 
 def test_wealth_map_surfaces_money_source_and_promise_boundary() -> None:
-    package = build_interpretation_map(_zhang_chart(), map_type="wealth")
+    package = build_interpretation_map(_anonymous_0214_chart(), map_type="wealth")
     titles = [item.title for section in package.sections for item in section.items]
+    wealth_item = next(item for section in package.sections for item in section.items if item.key == "wealth.02-14-main-track")
 
     assert "财富来源：方向感加资源配置" in titles
-    assert "保财风险：错误承诺会吞掉生命力" in titles
     assert any("14号闸门" in "；".join(item.chart_basis) for section in package.sections for item in section.items)
-    assert any("开放" in "；".join(item.chart_basis) and "意志" in "；".join(item.chart_basis) for section in package.sections for item in section.items)
+    assert "02-14" in map_context_text(package)
+    assert wealth_item.diagnosis_depth == "deep"
+    assert wealth_item.embodied_expression
+    assert wealth_item.blind_spots
+    assert wealth_item.stuck_patterns
+    assert wealth_item.stuck_causes
+    assert all("多觉察" not in " ".join(values) for values in (wealth_item.embodied_expression, wealth_item.blind_spots, wealth_item.stuck_patterns, wealth_item.stuck_causes))
+    assert any("盘面机制" in cause and "现实场景" in cause for cause in wealth_item.stuck_causes)
 
 
 def test_body_and_mission_maps_are_grounded_in_real_chart_facts() -> None:
-    body = build_interpretation_map(_zhang_chart(), map_type="body")
-    mission = build_interpretation_map(_zhang_chart(), map_type="mission")
+    body = build_interpretation_map(_anonymous_0214_chart(), map_type="body")
+    mission = build_interpretation_map(_anonymous_0214_chart(), map_type="mission")
 
     assert any("荐骨怎么真正参与选择" == item.title for section in body.sections for item in section.items)
-    assert any("能量卡点从哪里开始" == item.title for section in body.sections for item in section.items)
-    assert any("人生使命不是主动证明" in item.title for section in mission.sections for item in section.items)
+    assert mission.professional_facts
     assert "纯生产者" in "\n".join(mission.professional_facts)
     assert "荐骨权威" in "\n".join(mission.professional_facts)
+
+
+def test_professional_map_uses_trace_diagnosis_without_long_sections() -> None:
+    package = build_interpretation_map(_anonymous_0214_chart(), map_type="professional")
+    items = [item for section in package.sections for item in section.items]
+
+    assert items
+    assert all(item.diagnosis_depth == "trace" for item in items)
+    assert all(not item.embodied_expression for item in items)
+    assert all(not item.stuck_causes for item in items)
+    assert any(item.blind_spots for item in items)
+    assert any(item.stuck_patterns for item in items)

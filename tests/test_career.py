@@ -6,7 +6,7 @@ from human_design.input import normalize_birth_input
 
 
 def _build_chart():
-    return calculate_chart(normalize_birth_input("1995-03-03T18:30:00+08:00"))
+    return calculate_chart(normalize_birth_input("1970-02-04T12:00:00+08:00"))
 
 
 def _build_non_0214_chart():
@@ -28,7 +28,7 @@ def test_render_career_report_markdown_is_actionable() -> None:
     markdown = render_career_report_markdown(generate_career_report(_build_chart()))
 
     assert "# 人类图职业深读" in markdown
-    assert "错误承诺" in markdown
+    assert "过度承诺" in markdown
     assert "资产门槛" in markdown
     assert "14 天实验" in markdown
 

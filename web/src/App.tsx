@@ -1,17 +1,14 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import {
   askQuestion,
   ChartCreateInput,
   createChart,
   createInterpretationMap,
-  createReadingVisual,
-  createReport,
   InterpretationMapItem,
   InterpretationMapResponse,
-  ReadingVisualResponse,
-  ReportResponse,
   SavedChartResponse
 } from "./api";
+import { cityOptionsForProvince, provinceGroups } from "./chinaLocations";
 import "./styles.css";
 
 const mapTabs = [
@@ -35,13 +32,119 @@ const centerLabels: Record<string, string> = {
   root: "根部中心"
 };
 
+const channelLabels: Record<string, string> = {
+  "01-08": "创造贡献通道",
+  "02-14": "方向与资源通道",
+  "03-60": "突变通道",
+  "04-63": "逻辑通道",
+  "05-15": "节律通道",
+  "06-59": "亲密通道",
+  "07-31": "引导通道",
+  "09-52": "专注通道",
+  "10-20": "觉醒通道",
+  "10-34": "探索通道",
+  "10-57": "身体直觉通道",
+  "11-56": "好奇与故事通道",
+  "12-22": "开放表达通道",
+  "13-33": "记忆与退隐通道",
+  "16-48": "才华通道",
+  "17-62": "组织表达通道",
+  "18-58": "修正通道",
+  "19-49": "敏感与原则通道",
+  "20-34": "魅力通道",
+  "20-57": "直觉表达通道",
+  "21-45": "资源管理通道",
+  "23-43": "洞见表达通道",
+  "24-61": "内在真理通道",
+  "25-51": "唤醒通道",
+  "26-44": "说服与传递通道",
+  "27-50": "照顾与价值通道",
+  "28-38": "意义抗争通道",
+  "29-46": "发现通道",
+  "30-41": "情感经验通道",
+  "32-54": "转化通道",
+  "34-57": "力量与直觉通道",
+  "35-36": "经验变化通道",
+  "37-40": "社群契约通道",
+  "39-55": "情绪丰盛通道",
+  "42-53": "成熟周期通道",
+  "47-64": "抽象整合通道"
+};
+
+const gateLabels: Record<number, string> = {
+  1: "自我表达",
+  2: "方向与接收",
+  3: "新秩序",
+  4: "答案与公式",
+  5: "固定节律",
+  6: "亲密边界",
+  7: "引导角色",
+  8: "贡献风格",
+  9: "专注细节",
+  10: "自爱与行为",
+  11: "想法",
+  12: "谨慎表达",
+  13: "倾听与记忆",
+  14: "资源能力",
+  15: "极端节律",
+  16: "技能热情",
+  17: "观点结构",
+  18: "修正判断",
+  19: "需求敏感",
+  20: "当下表达",
+  21: "掌控资源",
+  22: "开放与优雅",
+  23: "简化表达",
+  24: "回归思考",
+  25: "本真之爱",
+  26: "说服与记忆",
+  27: "照顾滋养",
+  28: "生命意义的抗争",
+  29: "承诺投入",
+  30: "渴望与情感",
+  31: "影响力",
+  32: "延续与保存",
+  33: "退隐与故事",
+  34: "大力量",
+  35: "经验推进",
+  36: "危机与经验",
+  37: "亲密社群",
+  38: "为意义而战",
+  39: "挑动情绪",
+  40: "独处与意志",
+  41: "想象起点",
+  42: "成熟完成",
+  43: "洞见突破",
+  44: "模式警觉",
+  45: "资源分配",
+  46: "身体之爱",
+  47: "领悟整合",
+  48: "深度",
+  49: "原则与革命",
+  50: "价值责任",
+  51: "震动唤醒",
+  52: "静止专注",
+  53: "开始",
+  54: "野心上升",
+  55: "精神丰盛",
+  56: "故事刺激",
+  57: "直觉清明",
+  58: "喜悦修正",
+  59: "亲密破冰",
+  60: "限制与突变",
+  61: "内在真理",
+  62: "细节命名",
+  63: "怀疑检验",
+  64: "混乱整合"
+};
+
 const initialForm: ChartCreateInput = {
   user_name: "",
+  gender: "",
   birth_date: "",
   birth_time: "",
   city: "",
   region: "",
-  country: "中国",
   timezone_name: "Asia/Shanghai"
 };
 
@@ -52,42 +155,42 @@ type ChatLine = {
 
 export default function App() {
   const [form, setForm] = useState<ChartCreateInput>(initialForm);
+  const [birthRegion, setBirthRegion] = useState("");
+  const [birthCity, setBirthCity] = useState("");
   const [chart, setChart] = useState<SavedChartResponse | null>(null);
-  const [report, setReport] = useState<ReportResponse | null>(null);
   const [activeMap, setActiveMap] = useState("talent");
   const [mapPackage, setMapPackage] = useState<InterpretationMapResponse | null>(null);
   const [openItemKey, setOpenItemKey] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [chatSessionId, setChatSessionId] = useState<string | undefined>();
   const [chatLines, setChatLines] = useState<ChatLine[]>([]);
-  const [readingVisual, setReadingVisual] = useState<ReadingVisualResponse | null>(null);
-  const [status, setStatus] = useState("填写精确出生信息后，会生成图表、专业配置和六张解读地图。");
+  const [status, setStatus] = useState("填写出生信息后，会生成图表和解读。");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [visualLoading, setVisualLoading] = useState(false);
+  const chatDockRef = useRef<HTMLElement | null>(null);
 
   async function handleCreateChart(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    setStatus("正在排盘，并生成 V0.3 解读地图...");
+    setStatus("正在生成你的人类图...");
     try {
-      const nextChart = await createChart(form);
-      const [nextReport, nextMap] = await Promise.all([
-        createReport(nextChart.chart_id, "talent"),
-        createInterpretationMap(nextChart.chart_id, activeMap)
-      ]);
+      const nextChart = await createChart({
+        ...form,
+        city: birthCity || form.city,
+        region: birthRegion || form.region,
+        timezone_name: form.timezone_name || "Asia/Shanghai"
+      });
+      const nextMap = await createInterpretationMap(nextChart.chart_id, activeMap);
       setChart(nextChart);
-      setReport(nextReport);
       setMapPackage(nextMap);
       setOpenItemKey(firstItemKey(nextMap));
       setChatLines([]);
       setChatSessionId(undefined);
-      setReadingVisual(null);
-      setStatus("已生成 V0.3 解读地图。可以点开每个条目看长解读，也可以继续追问。");
+      setStatus("已生成。可以展开每个板块，也可以直接追问。");
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败，请稍后再试。");
-      setStatus("正式图表需要出生日期、时间、出生地或时区。");
+      setStatus("正式图表需要出生日期、出生时间和出生地。");
     } finally {
       setLoading(false);
     }
@@ -104,7 +207,7 @@ export default function App() {
       const nextMap = await createInterpretationMap(chart.chart_id, mapType);
       setMapPackage(nextMap);
       setOpenItemKey(firstItemKey(nextMap));
-      setStatus(`已切换到「${mapTabs.find((item) => item.key === mapType)?.label}」。`);
+      setStatus(`正在看「${mapTabs.find((item) => item.key === mapType)?.label}」。`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "地图生成失败。");
     } finally {
@@ -119,17 +222,21 @@ export default function App() {
     }
     const nextQuestion = question.trim();
     setQuestion("");
+    await sendQuestion(nextQuestion, openItemKey ?? undefined);
+  }
+
+  async function sendQuestion(nextQuestion: string, mapItemKey?: string, entrySource?: string) {
+    if (!chart || !nextQuestion.trim()) {
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const response = await askQuestion(chart.chart_id, nextQuestion, chatSessionId, activeMap, openItemKey ?? undefined);
+      const response = await askQuestion(chart.chart_id, nextQuestion.trim(), chatSessionId, activeMap, mapItemKey, entrySource);
       setChatSessionId(response.session_id);
       setChatLines(response.session.messages);
-      setStatus(
-        response.answer_provider === "deepseek"
-          ? "问答已由 DeepSeek 基于当前图表和解读地图生成。"
-          : "问答已基于当前图表和解读地图生成。"
-      );
+      setStatus("已回复，可以继续聊。");
+      window.setTimeout(() => chatDockRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     } catch (err) {
       setError(err instanceof Error ? err.message : "问答失败，请稍后再试。");
       setQuestion(nextQuestion);
@@ -138,50 +245,33 @@ export default function App() {
     }
   }
 
-  async function copyMapMarkdown() {
-    if (!mapPackage) {
-      return;
-    }
-    const text = mapToMarkdown(mapPackage);
-    await navigator.clipboard.writeText(text);
-    setStatus("已复制当前解读地图 Markdown。");
-  }
-
-  async function copyReportMarkdown() {
-    if (!report) {
-      return;
-    }
-    await navigator.clipboard.writeText(report.export_markdown);
-    setStatus("已复制旧版完整报告 Markdown。");
-  }
-
-  async function handleCreateReadingVisual() {
-    if (!chart) {
-      return;
-    }
-    setVisualLoading(true);
-    setError(null);
-    try {
-      const response = await createReadingVisual(chart.chart_id, `${mapTabs.find((item) => item.key === activeMap)?.label}解读视觉封面`);
-      setReadingVisual(response);
-      setStatus(response.image_url ? "已生成解读视觉封面。" : "图片服务暂不可用，已保留标准 BodyGraph。");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "图片生成失败，请稍后再试。");
-    } finally {
-      setVisualLoading(false);
-    }
-  }
-
-  function fillExample() {
+  function handleBirthRegionChange(nextRegion: string) {
+    setBirthRegion(nextRegion);
+    setBirthCity("");
     setForm({
-      user_name: "张朝阳",
-      birth_date: "1995-03-03",
-      birth_time: "18:30",
-      city: "邢台",
-      region: "河北",
-      country: "中国",
-      timezone_name: "Asia/Shanghai"
+      ...form,
+      region: nextRegion,
+      city: ""
     });
+  }
+
+  function handleBirthCityChange(nextCity: string) {
+    setBirthCity(nextCity);
+    setForm({
+      ...form,
+      region: birthRegion,
+      city: nextCity
+    });
+  }
+
+  function toggleMapItem(key: string) {
+    const nextKey = openItemKey === key ? null : key;
+    setOpenItemKey(nextKey);
+    if (nextKey) {
+      window.setTimeout(() => {
+        document.querySelector(`[data-item-key="${nextKey}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    }
   }
 
   return (
@@ -191,7 +281,7 @@ export default function App() {
           <span className="brand-mark">人</span>
           <div>
             <h1>人类图解读地图</h1>
-            <p>V0.3 · 先给专业配置，再进入身体、天赋、财富、关系与使命的长解读。</p>
+              <p>V0.4 · 看见身体、天赋、财富、关系与使命如何连在一起。</p>
           </div>
         </div>
         <div className="topbar-note">简体中文术语 · 图表事实优先 · 非决定论</div>
@@ -201,77 +291,98 @@ export default function App() {
         <aside className="panel input-panel">
           <div className="panel-heading">
             <h2>出生资料</h2>
-            <button className="ghost-button" type="button" onClick={fillExample}>
-              使用示例
-            </button>
           </div>
           <form onSubmit={handleCreateChart} className="birth-form">
-            <label>
+            <label htmlFor="user-name">
               昵称
               <input
+                id="user-name"
                 value={form.user_name}
-                placeholder="可选"
                 onChange={(event) => setForm({ ...form, user_name: event.target.value })}
               />
             </label>
-            <label>
+            <label htmlFor="gender">
+              性别
+              <select
+                id="gender"
+                required
+                value={form.gender ?? ""}
+                onChange={(event) => setForm({ ...form, gender: event.target.value as ChartCreateInput["gender"] })}
+              >
+                <option value="">请选择</option>
+                <option value="female">女</option>
+                <option value="male">男</option>
+              </select>
+            </label>
+            <label htmlFor="birth-date">
               出生日期
               <input
+                id="birth-date"
                 required
                 type="date"
                 value={form.birth_date}
                 onChange={(event) => setForm({ ...form, birth_date: event.target.value })}
               />
             </label>
-            <label>
+            <label htmlFor="birth-time">
               出生时间
               <input
+                id="birth-time"
                 required
                 type="time"
                 value={form.birth_time}
                 onChange={(event) => setForm({ ...form, birth_time: event.target.value })}
               />
             </label>
-            <div className="form-grid">
-              <label>
-                城市
-                <input
-                  value={form.city}
-                  placeholder="如：邢台"
-                  onChange={(event) => setForm({ ...form, city: event.target.value })}
-                />
-              </label>
-              <label>
-                省份/地区
-                <input
-                  value={form.region}
-                  placeholder="如：河北"
-                  onChange={(event) => setForm({ ...form, region: event.target.value })}
-                />
-              </label>
+            <div className="birth-place-group">
+              <span className="birth-place-title">出生地</span>
+              <div className="form-grid">
+                <label htmlFor="birth-region">
+                  省份
+                  <select
+                    id="birth-region"
+                    required
+                    value={birthRegion}
+                    onChange={(event) => handleBirthRegionChange(event.target.value)}
+                  >
+                    <option value="">请选择省份</option>
+                    {provinceGroups.map((group) => (
+                      <optgroup key={group.group} label={group.group}>
+                        {group.provinces.map((item) => (
+                          <option key={`${group.group}-${item.region}`} value={item.region}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </label>
+                <label htmlFor="birth-city">
+                  城市
+                  <select
+                    id="birth-city"
+                    required
+                    disabled={!birthRegion}
+                    value={birthCity}
+                    onChange={(event) => handleBirthCityChange(event.target.value)}
+                  >
+                    <option value="">{birthRegion ? "请选择城市" : "先选省份"}</option>
+                    {cityOptionsForProvince(birthRegion).map((city) => (
+                      <option key={`${birthRegion}-${city}`} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </div>
-            <label>
-              国家
-              <input
-                value={form.country}
-                onChange={(event) => setForm({ ...form, country: event.target.value })}
-              />
-            </label>
-            <label>
-              时区
-              <input
-                value={form.timezone_name}
-                placeholder="Asia/Shanghai"
-                onChange={(event) => setForm({ ...form, timezone_name: event.target.value })}
-              />
-            </label>
             <button className="primary-button" disabled={loading} type="submit">
-              {loading ? "生成中..." : "生成 V0.3 解读地图"}
+              {loading ? "生成中..." : "生成我的人类图"}
             </button>
           </form>
           <div className="precision-card">
             <strong>正式排盘规则</strong>
-            <p>需要出生日期、出生时间、出生地或时区。仅生日只适合低精度引导，不给正式结论。</p>
+            <p>需要出生日期、出生时间和出生地。仅生日只适合低精度引导，不给正式结论。</p>
             <p>{status}</p>
             {error && <p className="error-text">{error}</p>}
           </div>
@@ -280,21 +391,11 @@ export default function App() {
         <section className="graph-stage">
           <div className="stage-toolbar">
             <div>
-              <h2>{chart?.user_name ? `${chart.user_name}的人类图` : "专业配置与图表"}</h2>
-              <p>{chart ? "下面是当前图表事实，所有解读都会从这些事实展开。" : "生成后会显示类型、策略、权威、中心、通道和闸门。"}</p>
+              <h2>{chart?.user_name ? `${chart.user_name}的人类图` : "你的人类图"}</h2>
+              <p>{chart ? "这些是你的基本配置，后面的解读都会围绕它展开。" : "生成后会看到类型、策略、权威、人生角色、使命、中心、通道和闸门。"}</p>
             </div>
             <div className="stage-actions">
-              {chart && <span className="chart-id">V0.3</span>}
-              {chart && (
-                <button
-                  className="ghost-button"
-                  disabled={visualLoading}
-                  type="button"
-                  onClick={handleCreateReadingVisual}
-                >
-                  {visualLoading ? "生成中..." : "生成解读封面"}
-                </button>
-              )}
+              {chart && <span className="chart-id">V0.4</span>}
             </div>
           </div>
 
@@ -307,30 +408,12 @@ export default function App() {
               <EmptyGraph />
             )}
           </div>
-
-          {readingVisual && (
-            <div className="visual-card">
-              <div>
-                <strong>解读视觉封面</strong>
-                <p>{readingVisual.image_url ? "可作为报告封面或分享图使用。" : "标准 BodyGraph 已生成，视觉封面稍后可用。"}</p>
-              </div>
-              {readingVisual.image_url ? <img src={readingVisual.image_url} alt="人类图解读视觉封面" /> : null}
-            </div>
-          )}
         </section>
 
         <aside className="panel reading-panel">
           <div className="panel-heading">
             <h2>解读地图</h2>
             <span>{mapPackage ? mapPackage.title : "未生成"}</span>
-          </div>
-          <div className="export-actions">
-            <button disabled={!mapPackage} onClick={copyMapMarkdown} type="button">
-              复制地图
-            </button>
-            <button disabled={!report} onClick={copyReportMarkdown} type="button">
-              复制完整报告
-            </button>
           </div>
           <div className="map-tabs">
             {mapTabs.map((tab) => (
@@ -349,29 +432,39 @@ export default function App() {
             <InterpretationMapPanel
               mapPackage={mapPackage}
               openItemKey={openItemKey}
-              onToggle={(key) => setOpenItemKey(openItemKey === key ? null : key)}
+              onToggle={toggleMapItem}
+              onFollowup={(nextQuestion, itemKey) => {
+                setOpenItemKey(itemKey ?? null);
+                void sendQuestion(nextQuestion, itemKey, "followup_button");
+              }}
             />
           ) : (
             <div className="map-empty">
               <strong>生成后这里会出现六张地图</strong>
-              <span>每个条目都可以展开，里面会写专业依据、用户语言、生活场景、卡点和练习。</span>
+              <span>你可以分别看身体、天赋、财富、关系和使命，也可以直接追问。</span>
             </div>
           )}
         </aside>
       </section>
 
-      <section className="chat-dock">
+      <section className="chat-dock" ref={chatDockRef}>
+        <div className="chat-heading">
+          <div>
+            <h2>人类图咨询师</h2>
+            <p>把真实困惑写下来。这里不是查词典，而是围绕你的盘面、身体反应、关系和现实选择继续聊。</p>
+          </div>
+        </div>
         <div className="chat-history">
           {chatLines.length === 0 ? (
             <div className="chat-empty">
-              <strong>可以继续追问</strong>
-              <span>例如：我的财富主航道是什么？2/4 怎么用？荐骨回应怎么训练？什么样的人适合我？</span>
+              <strong>可以从一个真实问题开始</strong>
+              <span>比如：我最近为什么总是没劲？我该不该接这个项目？我的天赋到底该怎么被看见？</span>
             </div>
           ) : (
             chatLines.map((line, index) => (
               <article key={`${line.role}-${index}`} className={`chat-line ${line.role}`}>
-                <span>{line.role === "user" ? "你" : "解读"}</span>
-                <MarkdownView text={line.content} compact />
+                <span>{line.role === "user" ? "你" : "咨询师"}</span>
+                <MarkdownView text={line.content} compact={false} />
               </article>
             ))
           )}
@@ -380,7 +473,7 @@ export default function App() {
           <input
             disabled={!chart || loading}
             value={question}
-            placeholder={chart ? `围绕「${mapTabs.find((item) => item.key === activeMap)?.label}」继续问...` : "先生成一张人类图"}
+            placeholder={chart ? "直接说你的问题：最近卡在哪里、想选择什么、关系里发生了什么..." : "先生成一张人类图"}
             onChange={(event) => setQuestion(event.target.value)}
           />
           <button disabled={!chart || loading || !question.trim()} type="submit">
@@ -396,15 +489,15 @@ function ProfessionalSnapshot({ chart, facts }: { chart: SavedChartResponse; fac
   const summary = chart.display_summary;
   const definedCenters = chart.chart.centers.filter((center) => center.defined).map((center) => centerLabels[center.code] ?? center.label);
   const openCenters = chart.chart.centers.filter((center) => !center.defined).map((center) => centerLabels[center.code] ?? center.label);
-  const channels = chart.chart.channels.map((channel) => `${channel.code} ${channel.label}`);
-  const gates = chart.chart.activated_gates.map((gate) => gate.gate).slice(0, 24);
+  const channels = chart.chart.channels.map((channel) => `${channel.code} ${channelLabels[channel.code] ?? channel.label}`);
+  const gates = chart.chart.activated_gates.map((gate) => `${gate.gate}号 ${gateLabels[gate.gate] ?? gate.theme}`).slice(0, 24);
   const coreFacts = [
     ["类型", summary.type],
     ["策略", summary.strategy],
     ["权威", summary.authority],
     ["人生角色", summary.profile],
     ["定义", summary.definition],
-    ["轮回交叉", summary.incarnation_cross]
+    ["使命名称", summary.incarnation_cross]
   ];
   return (
     <div className="snapshot">
@@ -420,11 +513,11 @@ function ProfessionalSnapshot({ chart, facts }: { chart: SavedChartResponse; fac
         <FactRail title="已定义中心" items={definedCenters} />
         <FactRail title="开放中心" items={openCenters} />
         <FactRail title="通道" items={channels} />
-        <FactRail title="闸门" items={gates.map(String)} />
+        <FactRail title="闸门" items={gates} />
       </div>
       {facts.length > 0 && (
         <details className="professional-facts">
-          <summary>查看完整专业事实</summary>
+          <summary>个人人类图简要</summary>
           {facts.map((fact) => (
             <p key={fact}>{fact}</p>
           ))}
@@ -446,11 +539,13 @@ function FactRail({ title, items }: { title: string; items: string[] }) {
 function InterpretationMapPanel({
   mapPackage,
   openItemKey,
-  onToggle
+  onToggle,
+  onFollowup
 }: {
   mapPackage: InterpretationMapResponse;
   openItemKey: string | null;
   onToggle: (key: string) => void;
+  onFollowup: (question: string, itemKey?: string) => void;
 }) {
   return (
     <div className="map-panel">
@@ -465,23 +560,41 @@ function InterpretationMapPanel({
             <p>{section.intro}</p>
           </div>
           {section.items.map((item) => (
-            <MapItemCard key={item.key} item={item} open={openItemKey === item.key} onToggle={() => onToggle(item.key)} />
+            <MapItemCard
+              key={item.key}
+              item={item}
+              open={openItemKey === item.key}
+              onToggle={() => onToggle(item.key)}
+              onFollowup={(nextQuestion) => onFollowup(nextQuestion, item.key)}
+            />
           ))}
         </section>
       ))}
       <div className="followup-block">
         <strong>可以继续问</strong>
         {mapPackage.suggested_questions.map((item) => (
-          <span key={item}>{item}</span>
+          <button key={item} type="button" onClick={() => onFollowup(item, openItemKey ?? undefined)}>
+            {item}
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-function MapItemCard({ item, open, onToggle }: { item: InterpretationMapItem; open: boolean; onToggle: () => void }) {
+function MapItemCard({
+  item,
+  open,
+  onToggle,
+  onFollowup
+}: {
+  item: InterpretationMapItem;
+  open: boolean;
+  onToggle: () => void;
+  onFollowup: (question: string) => void;
+}) {
   return (
-    <article className={open ? "map-item open" : "map-item"}>
+    <article className={open ? "map-item open" : "map-item"} data-item-key={item.key}>
       <button type="button" onClick={onToggle}>
         <div>
           <strong>{item.title}</strong>
@@ -491,19 +604,30 @@ function MapItemCard({ item, open, onToggle }: { item: InterpretationMapItem; op
       </button>
       {open && (
         <div className="map-item-body">
-          <InfoBlock title="图表依据" items={item.chart_basis} />
+          <InfoBlock title="图中对应" items={item.chart_basis} />
           <section>
-            <h5>专业依据</h5>
+            <h5>为什么这么看</h5>
             <p>{item.professional_basis}</p>
           </section>
           <section>
-            <h5>说人话的解读</h5>
+            <h5>这说明什么</h5>
             <p>{item.user_language}</p>
           </section>
-          <InfoBlock title="生活里会怎么出现" items={item.life_scenes} />
-          <InfoBlock title="常见卡点" items={item.common_blocks} />
+          <InfoBlock title="活出来是什么样" items={item.embodied_expression} />
+          <InfoBlock title="盲区" items={item.blind_spots} />
+          <InfoBlock title="卡住时是什么状态" items={item.stuck_patterns} />
+          <InfoBlock title="为什么会卡住" items={item.stuck_causes.slice(0, item.diagnosis_depth === "deep" ? 2 : 1)} />
           <InfoBlock title="可以怎么练" items={item.practices} />
-          <InfoBlock title="继续追问" items={item.followup_questions} />
+          {item.followup_questions.length > 0 && (
+            <section className="item-followups">
+              <h5>继续追问</h5>
+              {item.followup_questions.map((nextQuestion) => (
+                <button key={nextQuestion} type="button" onClick={() => onFollowup(nextQuestion)}>
+                  {nextQuestion}
+                </button>
+              ))}
+            </section>
+          )}
         </div>
       )}
     </article>
@@ -511,6 +635,9 @@ function MapItemCard({ item, open, onToggle }: { item: InterpretationMapItem; op
 }
 
 function InfoBlock({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) {
+    return null;
+  }
   return (
     <section>
       <h5>{title}</h5>
@@ -522,33 +649,57 @@ function InfoBlock({ title, items }: { title: string; items: string[] }) {
 }
 
 function MarkdownView({ text, compact = false }: { text: string; compact?: boolean }) {
-  const nodes = text.split("\n").filter((line) => line.trim().length > 0);
+  const nodes = text
+    .split("\n")
+    .map(normalizeChatLine)
+    .filter((line) => line.text.length > 0);
   return (
     <div className={compact ? "markdown compact" : "markdown"}>
-      {nodes.slice(0, compact ? 18 : 120).map((line, index) => {
-        if (line.startsWith("# ")) {
-          return <h2 key={index}>{line.replace("# ", "")}</h2>;
-        }
-        if (line.startsWith("## ")) {
-          return <h3 key={index}>{line.replace("## ", "")}</h3>;
-        }
-        if (line.startsWith("### ")) {
-          return <h4 key={index}>{line.replace("### ", "")}</h4>;
-        }
-        if (line.startsWith("- ")) {
-          return <p key={index} className="bullet">{line.replace("- ", "")}</p>;
-        }
-        return <p key={index}>{line}</p>;
+      {nodes.slice(0, compact ? 18 : 80).map((line, index) => {
+        const isLastQuestion = index === nodes.length - 1 && /[？?]$/.test(line.text);
+        return (
+          <p key={index} className={[line.kind === "bullet" ? "bullet" : "", isLastQuestion ? "dialogue-question" : ""].filter(Boolean).join(" ") || undefined}>
+            {renderInlineMarkdown(line.text)}
+          </p>
+        );
       })}
     </div>
   );
+}
+
+function normalizeChatLine(line: string): { text: string; kind?: "bullet" } {
+  let clean = line.trim();
+  let kind: "bullet" | undefined;
+  if (!clean || /^```/.test(clean)) {
+    return { text: "" };
+  }
+  clean = clean.replace(/^#{1,6}\s+/, "");
+  clean = clean.replace(/^>\s+/, "");
+  if (/^([-*•·]|[0-9]+[.)、])\s+/.test(clean)) {
+    kind = "bullet";
+    clean = clean.replace(/^([-*•·]|[0-9]+[.)、])\s+/, "");
+  }
+  clean = clean.replace(/`([^`]+)`/g, "$1").replace(/```/g, "").trim();
+  return { text: clean, kind };
+}
+
+function renderInlineMarkdown(text: string) {
+  return text
+    .split(/(\*\*[^*]+\*\*)/g)
+    .filter(Boolean)
+    .map((part, index) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      }
+      return <span key={index}>{part.replace(/\*\*/g, "")}</span>;
+    });
 }
 
 function EmptySnapshot() {
   return (
     <div className="snapshot empty-snapshot">
       <strong>首页会先展示专业配置</strong>
-      <p>类型、策略、权威、人生角色、定义、轮回交叉、中心、通道和闸门都会在这里出现。</p>
+      <p>类型、策略、权威、人生角色、使命名称、中心、通道和闸门都会在这里出现。</p>
     </div>
   );
 }
@@ -572,25 +723,4 @@ function EmptyGraph() {
 
 function firstItemKey(mapPackage: InterpretationMapResponse): string | null {
   return mapPackage.sections[0]?.items[0]?.key ?? null;
-}
-
-function mapToMarkdown(mapPackage: InterpretationMapResponse): string {
-  const lines = [`# ${mapPackage.title}`, "", mapPackage.description, "", "## 专业事实"];
-  for (const fact of mapPackage.professional_facts) {
-    lines.push(`- ${fact}`);
-  }
-  for (const section of mapPackage.sections) {
-    lines.push("", `## ${section.title}`, section.intro);
-    for (const item of section.items) {
-      lines.push("", `### ${item.title}`, item.user_language, "", "图表依据：");
-      for (const basis of item.chart_basis) {
-        lines.push(`- ${basis}`);
-      }
-      lines.push("", "练习：");
-      for (const practice of item.practices) {
-        lines.push(`- ${practice}`);
-      }
-    }
-  }
-  return `${lines.join("\n")}\n`;
 }
