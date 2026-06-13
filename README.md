@@ -11,7 +11,7 @@ It is not a static Human Design website. It is a Python product layer that turns
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/version-0.4.0-black)](./CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-97%20passing-brightgreen)](./tests)
+[![Tests](https://img.shields.io/badge/tests-98%20passing-brightgreen)](./tests)
 [![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
 
 ## What It Does
@@ -312,7 +312,7 @@ These files are intentionally local and source-traceable so that LLM output can 
 
 Current local release validation:
 
-- `97` pytest cases passing.
+- `98` pytest cases passing.
 - Legacy scorecard product score: `100/100`.
 - `evaluate_public_figures.py` public-figure accuracy score: `100/90`.
 - `evaluate_empirical_readiness.py` scientific validation readiness score: `100/90`.
