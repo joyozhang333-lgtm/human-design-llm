@@ -152,7 +152,12 @@ class GateRenderState:
     active: bool
 
 
-def render_bodygraph_svg(chart: HumanDesignChart, *, title: str | None = None) -> str:
+def render_bodygraph_svg(
+    chart: HumanDesignChart,
+    *,
+    title: str | None = None,
+    include_booklet: bool = True,
+) -> str:
     root = ET.fromstring(TEMPLATE_PATH.read_text(encoding="utf-8"))
     id_index = _build_id_index(root)
     reading = generate_reading(chart)
@@ -162,15 +167,24 @@ def render_bodygraph_svg(chart: HumanDesignChart, *, title: str | None = None) -
     gate_states = _build_gate_render_states(chart)
     _style_gate_layer(id_index, gate_states)
     _style_centers(id_index, chart)
-    _style_meta(root, chart, reading=reading, title=title)
+    _style_meta(root, chart, reading=reading, title=title, include_booklet=include_booklet)
 
     return ET.tostring(root, encoding="unicode")
 
 
-def write_bodygraph_svg(chart: HumanDesignChart, path: str | Path, *, title: str | None = None) -> Path:
+def write_bodygraph_svg(
+    chart: HumanDesignChart,
+    path: str | Path,
+    *,
+    title: str | None = None,
+    include_booklet: bool = True,
+) -> Path:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(render_bodygraph_svg(chart, title=title), encoding="utf-8")
+    output_path.write_text(
+        render_bodygraph_svg(chart, title=title, include_booklet=include_booklet),
+        encoding="utf-8",
+    )
     return output_path
 
 
@@ -353,13 +367,25 @@ def _first_shape(group: ET.Element) -> ET.Element | None:
     return None
 
 
-def _style_meta(root: ET.Element, chart: HumanDesignChart, reading, *, title: str | None) -> None:
+def _style_meta(
+    root: ET.Element,
+    chart: HumanDesignChart,
+    reading,
+    *,
+    title: str | None,
+    include_booklet: bool = True,
+) -> None:
     view_box = root.attrib.get("viewBox", "0 0 851.41 1309.4").split()
     min_x, min_y, width, height = (float(value) for value in view_box)
     expanded_min_x = min_x - 240
     expanded_width = width + 480
     expanded_min_y = -125
-    expanded_height = height + 1820
+    if include_booklet:
+        expanded_height = height + 1820
+    else:
+        # Web chart: keep the graphic, activation panels and 盘面摘要 (bottom ≈ 1460),
+        # but drop the long in-SVG booklet — it ships as a separate reading-book area.
+        expanded_height = (1460 + 48) - expanded_min_y
     root.set("viewBox", f"{expanded_min_x} {expanded_min_y} {expanded_width} {expanded_height}")
 
     _append_background(root, expanded_min_x, expanded_min_y, expanded_width, expanded_height)
@@ -438,13 +464,14 @@ def _style_meta(root: ET.Element, chart: HumanDesignChart, reading, *, title: st
         channels=channels,
         undefined_centers=undefined_centers,
     )
-    _append_reading_booklet(
-        root,
-        reading=reading,
-        x=expanded_min_x + 32,
-        y=1498,
-        width=expanded_width - 64,
-    )
+    if include_booklet:
+        _append_reading_booklet(
+            root,
+            reading=reading,
+            x=expanded_min_x + 32,
+            y=1498,
+            width=expanded_width - 64,
+        )
 
 
 def _append_background(

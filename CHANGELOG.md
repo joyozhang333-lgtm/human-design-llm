@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0 - 2026-08-18
+
+- 结果页调整为 BodyGraph 置顶，其后展示类型、策略、权威、人生角色、定义与人生主轴
+- 主报告改为“核心身份、决策与行动、天赋与角色路径、人生主轴”四段式用户语言叙事
+- 身体、财富、天赋、关系、使命地图新增独立全盘综合解读，修复空内容、模板复用与提示词泄漏
+- DeepSeek 接入主阅读、地图和咨询对话；咨询区使用整盘事实、地图上下文与会话历史继续追问
+- 新增 `ChartFacts -> Prompt -> LLM -> Validator -> Cache -> Fallback` 生成链路与隐私安全缓存
+- 增加闸门、通道、策略、权威和内部语言护栏，修复把轮回交叉闸门误写成通道的问题
+- 中文化行星、变量、回路、通道类型及常见术语，统一用户可见语言
+- 重写中英文 README，补充 Codex、Claude Code、Hermes、OpenClaw 和通用 Agent 安装文档
+- 生产站点 [humandesign.guichu.chat](https://humandesign.guichu.chat) 完成 V0.5 部署与真实 DeepSeek 端到端验收
+- 当前验证：`177` 个 pytest 通过，React/TypeScript 生产构建通过，桌面与 390px 移动端验收通过
+
 ## 0.4.0 - 2026-06-06
 
 - 新增 V0.4 特质诊断层：地图条目返回 `diagnosis_depth`、`embodied_expression`、`blind_spots`、`stuck_patterns`、`stuck_causes`

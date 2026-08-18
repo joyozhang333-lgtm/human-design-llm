@@ -14,6 +14,8 @@ from .knowledge import (
 from .labels import (
     CENTER_LABELS,
     display_authority,
+    display_channel_label,
+    display_incarnation_cross,
     display_profile,
     display_strategy,
     display_type,
@@ -231,7 +233,7 @@ def research_source_references() -> tuple[SourceReference, ...]:
 
 def build_structure_formula(chart: HumanDesignChart) -> str:
     defined_centers = "、".join(_center_labels(chart, defined=True)) or "无已定义中心"
-    channels = "、".join(f"{channel.code}「{channel.label}」" for channel in chart.channels) or "无固定通道"
+    channels = "、".join(f"{channel.code}「{display_channel_label(channel.code) or channel.code}」" for channel in chart.channels) or "无固定通道"
     p_sun = _activation_gate(chart, "personality", "sun")
     p_earth = _activation_gate(chart, "personality", "earth")
     d_sun = _activation_gate(chart, "design", "sun")
@@ -317,11 +319,11 @@ def _talent_axis_section(chart: HumanDesignChart) -> ReadingSection:
         first = chart.channels[0]
         card = get_channel_card(first.code)
         summary = (
-            f"你的第一条稳定通道是 {first.code}「{first.label}」。"
+            f"你的第一条稳定通道是 {first.code}「{display_channel_label(first.code) or first.code}」。"
             "深读时先看这条通道如何把两个中心接成固定回路，再看它如何服务现实场景。"
         )
         bullets = tuple(
-            f"通道 {channel.code}「{channel.label}」：{_channel_focus_text(channel.code)}"
+            f"通道 {channel.code}「{display_channel_label(channel.code) or channel.code}」：{_channel_focus_text(channel.code)}"
             for channel in chart.channels[:4]
         )
         sources = _sources(*_channel_source_items(chart))
@@ -352,7 +354,7 @@ def _cross_pressure_section(chart: HumanDesignChart) -> ReadingSection:
     p_earth = _activation_gate(chart, "personality", "earth")
     d_sun = _activation_gate(chart, "design", "sun")
     d_earth = _activation_gate(chart, "design", "earth")
-    cross_label = chart.summary.incarnation_cross.label
+    cross_label = display_incarnation_cross(chart.summary.incarnation_cross.code, chart.summary.incarnation_cross.label)
     bullets: list[str] = []
     if p_sun and p_earth:
         bullets.append(f"人格太阳/地球 {p_sun}/{p_earth}：这是你更显性、更容易被自己意识到的驱动力和平衡点。")
@@ -586,7 +588,7 @@ def _center_labels(chart: HumanDesignChart, *, defined: bool) -> tuple[str, ...]
 
 
 def _channel_summary(chart: HumanDesignChart) -> str:
-    return "、".join(f"{channel.code}「{channel.label}」" for channel in chart.channels)
+    return "、".join(f"{channel.code}「{display_channel_label(channel.code) or channel.code}」" for channel in chart.channels)
 
 
 def _has_channel(chart: HumanDesignChart, code: str) -> bool:

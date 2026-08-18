@@ -1,6 +1,14 @@
 # Web/App API Contract
 
-更新时间：2026-06-06
+更新时间：2026-08-18
+
+## `POST /api/readings/main`
+
+生成 V0.5 主报告，响应包括一句核心定位、四段式全盘叙事、活对/活拧体感、可展开专业目录和主题地图入口。配置模型后走 LLM；无 Key、调用失败或护栏不通过时使用结构化回退。
+
+## `POST /api/readings/detail`
+
+按需生成中心、通道、闸门、变量或人生主轴细读。所有结构必须来自当前盘面白名单。
 
 ## `POST /api/charts`
 
@@ -103,7 +111,7 @@
   "focus": "growth",
   "answer_markdown": "...",
   "answer_provider": "deepseek",
-  "answer_model": "deepseek-v4-pro",
+  "answer_model": "deepseek-chat",
   "provider_configured": true,
   "entry_source": "followup_button",
   "synthesis_mode": "full_chart",
@@ -130,7 +138,7 @@
 
 ## `POST /api/interpretation-maps`
 
-生成 V0.4 解读地图。前端默认以地图为主，旧版 Markdown 报告作为导出和兼容能力保留。
+生成 V0.5 全盘综合解读地图。前端展示独立的长解读，并保留结构化诊断条目和追问入口。
 
 请求：
 
@@ -155,10 +163,12 @@
 
 ```json
 {
-  "product_version": "0.4.0",
+  "product_version": "0.5.0",
   "map_type": "wealth",
   "title": "财富地图",
   "description": "...",
+  "overview": "基于整张盘生成的独立长解读",
+  "generation_mode": "llm",
   "professional_facts": ["类型：纯生产者"],
   "sections": [
     {
@@ -194,7 +204,8 @@
 说明：
 
 - 地图条目必须能追溯到真实图表事实：类型、策略、权威、中心、通道、闸门或行星激活。
-- V0.4 条目增加 `diagnosis_depth`：`deep` 输出完整特质诊断层；`standard` 输出简版盲区和卡住状态；`trace` 只做事实核验和防误读。
+- `overview` 必须是给用户看的全盘综合解读，不得包含提示词、模型要求、思考过程或开发者语言。
+- V0.5 延续 `diagnosis_depth`：`deep` 输出完整特质诊断层；`standard` 输出简版盲区和卡住状态；`trace` 只做事实核验和防误读。
 - `deep` 条目必须返回 `embodied_expression`、`blind_spots`、`stuck_patterns`、`stuck_causes`，并且 `stuck_causes` 同时说明盘面机制和现实场景。
 - `retrieved_knowledge` 来自 `references/research-corpus/v0.3/knowledge_atoms.json`。
 - `sources` 来自 `references/research-corpus/v0.3/sources.json`，只暴露来源元信息，不复制版权正文。
@@ -242,8 +253,13 @@
 {
   "deepseek": {
     "configured": true,
-    "model": "deepseek-v4-pro",
+    "model": "deepseek-chat",
     "base_url": "https://api.deepseek.com"
+  },
+  "claude": {
+    "configured": false,
+    "model": "claude-opus-4-8",
+    "base_url": "https://api.anthropic.com"
   },
   "minimax": {
     "configured": true,

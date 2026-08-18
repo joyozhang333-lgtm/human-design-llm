@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "human-design-llm"
-version = "0.4.0"
-description = "LLM-native Human Design BodyGraph chart engine, reading generator, career analysis, relationship comparison, timing context, and AI skill toolkit."
+version = "0.5.0"
+description = "Open-source Human Design AI product, BodyGraph engine, grounded reading generator, Web API, and installable agent skill."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -87,6 +87,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/joyozhang333-lgtm/human-design-llm"
+Demo = "https://humandesign.guichu.chat"
 Repository = "https://github.com/joyozhang333-lgtm/human-design-llm"
 Issues = "https://github.com/joyozhang333-lgtm/human-design-llm/issues"
 Changelog = "https://github.com/joyozhang333-lgtm/human-design-llm/blob/main/CHANGELOG.md"

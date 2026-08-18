@@ -13,9 +13,10 @@ def test_generate_reading_produces_complete_sections() -> None:
     core_section = reading.sections[0]
     channels_section = reading.sections[5]
     gates_section = reading.sections[6]
+    gates_full_section = reading.sections[7]
 
     assert "投射者" in reading.headline
-    assert len(reading.sections) == 8
+    assert len(reading.sections) == 9
     assert core_section.title == "核心身份"
     assert any(source.kind == "type" for source in core_section.sources)
     assert any("25-51" in bullet for bullet in channels_section.bullets)
@@ -25,6 +26,10 @@ def test_generate_reading_produces_complete_sections() -> None:
     assert any(source.code == "25-51" for source in channels_section.sources)
     assert any(source.code == "57" for source in gates_section.sources)
     assert any(fact.startswith("输入精度：") for fact in reading.quick_facts)
+    # V0.5：关键闸门只取 top-6，其余收进完整清单折叠。
+    assert len(gates_section.bullets) <= 6
+    assert gates_full_section.key == "gates-full"
+    assert len(gates_full_section.bullets) == len(chart.activated_gates)
 
 
 def test_render_reading_markdown_contains_key_blocks() -> None:
@@ -36,15 +41,34 @@ def test_render_reading_markdown_contains_key_blocks() -> None:
     assert "## 决策与行动方式" in markdown
     assert "## 九大中心" in markdown
     assert "## 通道主题" in markdown
-    assert "## 闸门与行星激活" in markdown
+    assert "## 关键闸门" in markdown
+    assert "## 完整闸门清单" in markdown
 
 
 def test_generate_reading_surfaces_precision_warnings() -> None:
     chart = calculate_chart(normalize_birth_input("1999-03-14T08:05:00"))
     reading = generate_reading(chart)
 
-    assert any("默认按 UTC" in fact for fact in reading.quick_facts)
+    assert any("按世界时处理" in fact for fact in reading.quick_facts)
     assert any("影响人类图结果精度" in fact for fact in reading.quick_facts)
+
+
+def test_reading_markdown_has_no_english_symbols_or_developer_voice() -> None:
+    """V0.5 硬红线：用户可见文本零英文、零行星符号、零开发者口吻、零模板套话。"""
+    import re
+
+    chart = calculate_chart(normalize_birth_input("1988-10-09T20:30:00+08:00"))
+    reading = generate_reading(chart)
+    markdown = render_reading_markdown(reading)
+
+    assert not re.search(r"[A-Za-z]{3,}", markdown), re.search(r"[A-Za-z]{3,}", markdown).group()
+    assert not re.search(r"[♃♄⛢♅⊕☊☋☉☽☿♀♂♆♇]", markdown)
+    for banned in ("方便后续", "门线解读", "产品价值", "chart facts", "回到图表事实", "系统有没有编造"):
+        assert banned not in markdown
+    for template in ("当这股能量运作成熟时", "形成稳定贡献", "活成过度反应或反复内耗"):
+        assert template not in markdown
+    for fatalism in ("你注定", "你必然", "命中注定"):
+        assert fatalism not in markdown
 
 
 def test_variable_orientation_counts_only_l_r_tokens() -> None:

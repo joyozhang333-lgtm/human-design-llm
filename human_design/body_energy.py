@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 
+from .glossary import display_planet
 from .labels import (
     CENTER_LABELS,
     display_authority,
+    display_channel_label,
+    display_gate_theme,
     display_strategy,
     display_type,
     normalize_center_title,
@@ -202,18 +205,19 @@ def _build_center_note(code: str, defined: bool) -> CenterEnergyNote:
 
 def _build_channel_note(channel) -> ChannelEnergyNote:
     center_labels = tuple(_center_label(code) for code in channel.centers)
+    channel_name = display_channel_label(channel.code) or f"{channel.code} 通道"
     body_flow = (
         f"{center_labels[0]} 与 {center_labels[1]} 之间形成稳定连接。"
         "这不是偶然状态，而是你身体里会反复出现的能量路径。"
     )
     expression = (
-        f"通道 {channel.code}「{channel.label}」会把两个中心的资源合成一种固定表达。"
+        f"通道 {channel.code}「{channel_name}」会把两个中心的资源合成一种固定表达。"
         "真正顺的时候，它通常不是靠头脑硬推，而是像一条已经接通的内在线路。"
     )
     practice = "观察这条通道在工作、关系、表达中何时自然启动；自然启动时顺势用，卡住时不要强行证明。"
     return ChannelEnergyNote(
         code=channel.code,
-        label=channel.label,
+        label=channel_name,
         centers=center_labels,  # type: ignore[arg-type]
         body_flow=body_flow,
         expression=expression,
@@ -223,17 +227,18 @@ def _build_channel_note(channel) -> ChannelEnergyNote:
 
 def _build_gate_note(gate) -> GateEnergyNote:
     activations = tuple(
-        f"{activation.planet_label}.{activation.line}"
+        f"{display_planet(activation.planet_code, activation.planet_label)}·{activation.line}线"
         for activation in gate.activations
     )
+    theme_cn = display_gate_theme(gate.gate) or "主题见专业信息"
     prompt = (
-        f"闸门 {gate.gate} 位于{_center_label(gate.center)}，主题是「{gate.theme}」。"
+        f"闸门 {gate.gate} 位于{_center_label(gate.center)}，主题是「{theme_cn}」。"
         "把它当作一个观察入口：它什么时候让你更有生命力，什么时候变成执念或消耗？"
     )
     return GateEnergyNote(
         gate=gate.gate,
         center=_center_label(gate.center),
-        theme=gate.theme,
+        theme=theme_cn,
         activations=activations,
         prompt=prompt,
     )

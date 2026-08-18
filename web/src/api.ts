@@ -141,6 +141,8 @@ export type InterpretationMapResponse = {
   map_type: string;
   title: string;
   description: string;
+  overview: string;
+  generation_mode: "llm" | "fallback";
   chart_id?: string | null;
   professional_facts: string[];
   sections: InterpretationMapSection[];
@@ -217,8 +219,67 @@ export type ReadingVisualResponse = {
   created_at_utc: string;
 };
 
+export type ReadingBookSection = {
+  title: string;
+  summary: string;
+  paragraphs: string[];
+  highlights: string[];
+};
+
+export type ReadingBookResponse = {
+  chart_id: string;
+  title: string;
+  sections: ReadingBookSection[];
+  layout: {
+    format: string;
+    min_font_size: number;
+    line_height: number;
+    max_content_width: number;
+  };
+};
+
+export type MainReadingDetailSection = {
+  key: string;
+  title: string;
+  summary: string;
+};
+
+export type MainReadingExploreEntry = {
+  key: string;
+  title: string;
+  hint: string;
+};
+
+export type MainReadingResponse = {
+  l1: string;
+  l2: string;
+  signature: string;
+  not_self: string;
+  detail_sections: MainReadingDetailSection[];
+  explore: MainReadingExploreEntry[];
+  generation_mode: "llm" | "fallback";
+};
+
+export type ReadingDetailResponse = {
+  title: string;
+  body: string;
+  generation_mode: string;
+};
+
 export async function createChart(input: ChartCreateInput): Promise<SavedChartResponse> {
   return postJson("/api/charts", input);
+}
+
+export async function fetchMainReading(chartId: string): Promise<MainReadingResponse> {
+  return postJson("/api/readings/main", { chart_id: chartId });
+}
+
+export async function fetchReadingDetail(chartId: string, key: string): Promise<ReadingDetailResponse> {
+  return postJson("/api/readings/detail", { chart_id: chartId, key });
+}
+
+export async function getReadingBook(chartId: string): Promise<ReadingBookResponse> {
+  return getJson(`/api/charts/${chartId}/reading-book`);
 }
 
 export async function createReport(
@@ -272,6 +333,22 @@ export async function createReadingVisual(
     chart_id: chartId,
     prompt
   });
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`);
+  const payload = await response.json();
+  if (!response.ok) {
+    const detail = payload?.detail;
+    const message =
+      typeof detail?.message === "string"
+        ? detail.message
+        : typeof detail === "string"
+          ? detail
+          : "请求失败，请检查输入后重试。";
+    throw new Error(message);
+  }
+  return payload as T;
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {

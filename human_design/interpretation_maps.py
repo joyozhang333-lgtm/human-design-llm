@@ -82,7 +82,7 @@ MAP_FOLLOWUPS = {
     "professional": (
         "这些专业配置各自代表什么？",
         "哪几个结构最值得优先解读？",
-        "这张图里有哪些事实不能被编造？",
+        "这些配置在生活里可以怎么观察？",
     ),
 }
 
@@ -111,14 +111,12 @@ def build_interpretation_map(
     selected_rules = tuple(
         rule
         for rule in load_interpretation_rules()
-        if rule.map_type == map_key and _rule_matches(rule, chart_keys)
+        if rule.map_type == map_key
+        and rule.rule_id != "professional.fact-traceability"
+        and _rule_matches(rule, chart_keys)
     )
-    if not selected_rules:
-        selected_rules = tuple(
-            rule
-            for rule in load_interpretation_rules()
-            if rule.map_type == "professional" and _rule_matches(rule, chart_keys)
-        )
+    # 无匹配规则时诚实地返回空内容，绝不回落 professional（开发者方法论）——
+    # 那会把元信息污染当成用户内容渲染（V0.5 P0 硬 bug，勿恢复）。
 
     atom_lookup = atoms_by_id()
     source_lookup = sources_by_id()
@@ -242,6 +240,16 @@ def _build_sections(
     ]
     if map_key == "professional":
         items.append(_professional_detail_item(chart))
+    if not items:
+        # 诚实占位：用户语言，不是方法论；宁可少说，不硬凑。
+        return (
+            InterpretationMapSection(
+                key=f"{map_key}-core",
+                title=section_title,
+                intro="这个主题在你的图里暂时没有足够可靠的内容可讲。我们宁可先空着，也不用套话硬凑。",
+                items=(),
+            ),
+        )
     return (
         InterpretationMapSection(
             key=f"{map_key}-core",
@@ -268,7 +276,7 @@ def _rule_to_item(
         subtitle=_subtitle_for_rule(rule, chart),
         diagnosis_depth=_diagnosis_depth(rule),
         chart_basis=chart_basis,
-        professional_basis=rule.professional_basis,
+        professional_basis=_clean_professional_basis(rule.professional_basis),
         user_language=_expanded_user_language(rule, chart, atoms, depth),
         life_scenes=_life_scenes(rule, chart),
         embodied_expression=_embodied_expression(rule, chart),
@@ -295,27 +303,27 @@ def _professional_detail_item(chart: HumanDesignChart) -> InterpretationMapItem:
             f"设计太阳：{design_sun.gate}.{design_sun.line}",
         )
     user_language = (
-        "这张图的简要信息，是你阅读所有解读时的底盘。"
+        "这张图的简要信息，是理解你如何行动、做决定和使用天赋的起点。"
         f"你的类型是{summary['type']}，策略是{summary['strategy']}，权威是{summary['authority']}，"
-        f"人生角色是{summary['profile']}。关于工作、财富、关系或使命的判断，都要能回到这些事实，"
-        "再落到已定义中心、开放中心、通道、闸门和行星激活。"
+        f"人生角色是{summary['profile']}。先把这几项放在一起理解，再去看中心、通道和闸门，"
+        "会比单独记住一个标签更接近你真实的运作方式。"
     )
     return InterpretationMapItem(
         key="professional.chart-facts",
         title="这张图的事实清单",
-        subtitle="用来防止泛泛解读和编造图表事实",
+        subtitle="你的核心配置、中心、通道与闸门",
         diagnosis_depth="trace",
         chart_basis=chart_basis,
-        professional_basis="人类图解读必须先有图表事实，再从事实进入解释。",
+        professional_basis="",
         user_language=user_language,
-        life_scenes=("当你读到一段解读时，可以回到这里检查依据。", "当聊天回答变得泛时，可以要求系统指出对应中心、通道或闸门。"),
+        life_scenes=("当你想理解一种反复出现的生活模式时，可以回来看看它和哪些配置有关。",),
         embodied_expression=(),
-        blind_spots=("只看结论、不查图表依据时，很容易把一段听起来舒服的话误当成自己的真实结构。",),
-        stuck_patterns=("读完很多术语但不知道怎么用，或者把不存在的中心、通道、闸门也当成自己的特质。",),
+        blind_spots=("只记住一个最喜欢的标签，可能会忽略其他配置对它的修正。",),
+        stuck_patterns=("知道很多术语，却没有把它们放回真实选择、身体状态和关系场景里。",),
         stuck_causes=(),
-        common_blocks=("只听结论，不检查依据。", "把术语当命运标签，而不是观察工具。"),
-        practices=("每次读完一个地图条目，至少确认一个图表依据。",),
-        followup_questions=("我这张图最核心的三个事实是什么？", "这段解读分别对应哪些中心、通道和闸门？"),
+        common_blocks=("把术语当命运标签，而不是观察角度。",),
+        practices=("先观察一个配置在本周的真实场景里怎样出现，不急着给自己定性。",),
+        followup_questions=("我这张图最核心的三个配置怎样共同作用？", "哪些中心、通道最影响我的日常选择？"),
         source_atom_ids=("chart.fact-first",),
         sources=(
             SourceReference(
@@ -326,6 +334,30 @@ def _professional_detail_item(chart: HumanDesignChart) -> InterpretationMapItem:
             ),
         ),
     )
+
+
+# 开发者方法论口吻的标记词：professional_basis 命中任何一个即不渲染该块（返回空串）。
+_METHODOLOGY_MARKERS = (
+    "chart facts",
+    "专业信息必须",
+    "专业依据必须",
+    "方便后续",
+    "回到图表事实",
+    "知识原子",
+    "rule_id",
+    "产品价值",
+    "门线解读",
+    "系统有没有编造",
+    "必须先计算",
+    "必须先有图表事实",
+)
+
+
+def _clean_professional_basis(text: str) -> str:
+    lowered = (text or "").lower()
+    if any(marker in lowered for marker in _METHODOLOGY_MARKERS):
+        return ""
+    return text or ""
 
 
 def _diagnosis_depth(rule: InterpretationRule) -> str:
@@ -474,7 +506,7 @@ def _subtitle_for_rule(rule: InterpretationRule, chart: HumanDesignChart) -> str
         return "关系是否对位，要看身体、边界和方向是否同时稳定。"
     if rule.map_type == "mission":
         return "使命不是一句标签，而是长期回应出来的主线。"
-    return "专业依据必须能回到图表事实。"
+    return "这里是你这张图的原始配置，想较真时可以来核对。"
 
 
 def _expanded_user_language(
@@ -792,7 +824,7 @@ def _stuck_causes(rule: InterpretationRule, chart: HumanDesignChart) -> tuple[st
             f"盘面机制：{summary['type']}的主线来自回应后持续做深，不来自头脑先定义使命；现实场景：你越急着证明人生方向，越容易选到没有身体回应的路。",
             f"盘面机制：你的已定义通道是{channels}，使命要落在可持续能量流里；现实场景：只靠计划和口号推进，会很快撞上挫败感。",
         ),
-    }.get(rule.rule_id, ("盘面机制：这个条目必须回到真实图表事实；现实场景：如果只背术语，就无法知道它在生活中如何发生。",))
+    }.get(rule.rule_id, ())  # 缺内容就不渲染该块，绝不用开发者口吻兜底。
 
 
 def _common_blocks(rule: InterpretationRule, chart: HumanDesignChart) -> tuple[str, ...]:

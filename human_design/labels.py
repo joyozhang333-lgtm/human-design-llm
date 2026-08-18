@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .glossary import display_incarnation_cross_theme
+
 TYPE_LABELS = {
     "reflector": "反映者",
     "manifestor": "显示者",
@@ -221,7 +223,8 @@ def display_incarnation_cross(code: str, fallback: str) -> str:
         return "斯芬克斯右角度交叉：使命主题是方向、倾听与带路"
     if "Right Angle Cross of Consciousness" in fallback:
         return "意识右角度交叉：使命主题是把怀疑、混乱和经验整理成清晰"
-    return fallback.replace("Right Angle Cross", "右角度交叉").replace("Left Angle Cross", "左角度交叉")
+    # 降级模板：角度 + 主轴闸门中文主题词；绝不回落英文全名。
+    return display_incarnation_cross_theme(code, fallback, GATE_THEME_LABELS)
 
 
 def display_signature(code: str, fallback: str) -> str:

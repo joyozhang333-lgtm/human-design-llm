@@ -20,12 +20,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--name",
         default="human-design",
-        help="Skill directory name under ~/.codex/skills/.",
+        help="Skill directory name under ~/.agents/skills/ (or $CODEX_HOME/skills/).",
     )
     parser.add_argument(
         "--codex-home",
         default=None,
-        help="Optional Codex home directory. Defaults to ~/.codex.",
+        help="Optional Codex home directory. Defaults to $CODEX_HOME or ~/.agents.",
     )
     parser.add_argument(
         "--mode",

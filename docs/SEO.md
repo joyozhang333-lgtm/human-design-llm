@@ -16,7 +16,7 @@ Reason:
 
 Primary English:
 
-> Human Design AI toolkit for BodyGraph chart calculation, structured readings, talent deep synthesis, career analysis, relationship comparison, timing context, empirical validation, source citations, and LLM skills.
+> Open-source Human Design AI: BodyGraph charts, whole-chart talent and mission readings, DeepSeek consultation, FastAPI/React app, and Agent Skills.
 
 Technical English:
 
@@ -24,7 +24,9 @@ Technical English:
 
 中文：
 
-> 开源人类图 AI 工具库：BodyGraph 排盘、结构化解读、天赋深挖、职业深读、关系合盘、时机分析、实验评估、来源引用与 LLM skill。
+> HumanDesign.guichu.chat 开源版：人类图排盘、BodyGraph、全盘天赋使命解读、DeepSeek 咨询、Web/API 与 Agent Skill。
+
+Homepage: <https://humandesign.guichu.chat>
 
 ## GitHub Topics
 
@@ -35,27 +37,20 @@ Recommended topics:
 - `human-design-ai`
 - `human-design-reading`
 - `human-design-talent`
-- `deep-reading`
 - `bodygraph`
 - `bodygraph-chart`
 - `bodygraph-python`
 - `llm`
-- `llm-toolkit`
 - `ai-agent`
 - `ai-astrology`
 - `codex-skill`
 - `python`
 - `career-reading`
 - `relationship-analysis`
-- `transit-analysis`
-- `empirical-validation`
-- `blind-test`
-- `holdout-benchmark`
-- `prospective-prediction`
 - `chart-calculator`
 - `human-design-api`
 - `chinese`
-- `openai`
+- `deepseek`
 
 ## English Keywords
 
