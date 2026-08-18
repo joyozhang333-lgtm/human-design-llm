@@ -21,6 +21,7 @@ from .interpretation_maps import build_interpretation_map, map_context_text, map
 from .labels import (
     CENTER_LABELS,
     display_authority,
+    display_authority_professional,
     display_channel_label,
     display_definition,
     display_gate_theme,
@@ -275,6 +276,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         payload = saved.to_dict(include_svg=True)
         payload["precision_warnings"] = list(chart.input.warnings)
         payload["display_summary"] = _display_summary(chart)
+        payload["guidance"] = _chart_guidance(chart)
         return payload
 
     @app.get("/api/charts/{chart_id}")
@@ -283,6 +285,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         payload = chart.to_dict(include_svg=False)
         payload["precision_warnings"] = list(chart.chart.input.warnings)
         payload["display_summary"] = _display_summary(chart.chart)
+        payload["guidance"] = _chart_guidance(chart.chart)
         return payload
 
     @app.get("/api/charts/{chart_id}/bodygraph.svg")
@@ -941,11 +944,36 @@ def _display_summary(chart) -> dict[str, str]:
         "type": display_type(chart.summary.type.code, chart.summary.type.label),
         "strategy": display_strategy(chart.summary.strategy.code, chart.summary.strategy.label),
         "authority": display_authority(chart.summary.authority.code, chart.summary.authority.label),
+        "authority_professional": display_authority_professional(
+            chart.summary.authority.code,
+            chart.summary.authority.label,
+        ),
         "profile": display_profile(chart.summary.profile.code, chart.summary.profile.label),
         "definition": display_definition(chart.summary.definition.code, chart.summary.definition.label),
         "signature": display_signature(chart.summary.signature.code, chart.summary.signature.label),
         "not_self_theme": display_not_self(chart.summary.not_self_theme.code, chart.summary.not_self_theme.label),
         "incarnation_cross": display_incarnation_cross(chart.summary.incarnation_cross.code, chart.summary.incarnation_cross.label),
+    }
+
+
+def _chart_guidance(chart) -> dict[str, Any]:
+    """Return compact, chart-grounded guidance used by the result page.
+
+    This payload deliberately excludes the gate catalogue. Gate activations remain
+    available in the chart for verification, while the reading UI focuses on the
+    user's stable centers, open learning fields, channels, and combined talents.
+    """
+    body_profile = build_body_energy_profile(chart)
+    talent_profile = build_deep_synthesis_profile(chart, focus="talent")
+    talent_keys = {"deep-talent-axis", "deep-talent-modules"}
+    return {
+        "center_notes": [note.to_dict() for note in body_profile.center_notes],
+        "channel_notes": [note.to_dict() for note in body_profile.channel_notes],
+        "talent_sections": [
+            section.to_dict()
+            for section in talent_profile.sections
+            if section.key in talent_keys
+        ],
     }
 
 

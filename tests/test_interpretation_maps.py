@@ -30,13 +30,13 @@ def test_talent_map_uses_profile_channel_cross_and_user_language() -> None:
     package = build_interpretation_map(_anonymous_0214_chart(), map_type="talent", chart_id="chart_test")
     text = map_context_text(package)
 
-    assert package.product_version == "0.5.0"
+    assert package.product_version == "0.5.1"
     assert package.map_type == "talent"
     assert package.title == "天赋地图"
     assert "人生角色：2/4" in package.professional_facts
     assert "已定义通道：02-14" in "\n".join(package.professional_facts)
     assert "2/4 天赋" in text
-    assert "使命名称：斯芬克斯右角度交叉" in "\n".join(package.professional_facts)
+    assert "轮回交叉与人生使命：斯芬克斯右角度交叉" in "\n".join(package.professional_facts)
     assert "独处养熟" in text
     assert "当前聚焦" not in text
     assert "焦点提示" not in text
@@ -66,7 +66,23 @@ def test_body_and_mission_maps_are_grounded_in_real_chart_facts() -> None:
     assert any("荐骨怎么真正参与选择" == item.title for section in body.sections for item in section.items)
     assert mission.professional_facts
     assert "纯生产者" in "\n".join(mission.professional_facts)
-    assert "荐骨权威" in "\n".join(mission.professional_facts)
+    assert "Authority：Sacral Authority" in "\n".join(mission.professional_facts)
+    assert any(item.key == "mission.whole-chart" for section in mission.sections for item in section.items)
+
+
+def test_every_user_map_has_a_complete_whole_chart_reading() -> None:
+    chart = _anonymous_0214_chart()
+    for map_type in ("body", "wealth", "talent", "relationship", "mission"):
+        package = build_interpretation_map(chart, map_type=map_type)
+        items = [item for section in package.sections for item in section.items]
+        whole_chart = next(item for item in items if item.key == f"{map_type}.whole-chart")
+        assert whole_chart.user_language
+        assert whole_chart.life_scenes
+        assert whole_chart.embodied_expression
+        assert whole_chart.blind_spots
+        assert whole_chart.stuck_patterns
+        assert whole_chart.stuck_causes
+        assert whole_chart.practices
 
 
 def test_professional_map_uses_trace_diagnosis_without_long_sections() -> None:

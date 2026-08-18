@@ -40,6 +40,20 @@ AUTHORITY_LABELS = {
     "lunar": "月亮权威",
 }
 
+AUTHORITY_PROFESSIONAL_LABELS = {
+    "sacral": "Sacral Authority",
+    "solar-plexus": "Emotional Authority",
+    "emotional": "Emotional Authority",
+    "splenic": "Splenic Authority",
+    "ego": "Ego Authority",
+    "ego-manifested": "Ego Manifested Authority",
+    "ego-projected": "Ego Projected Authority",
+    "self-projected": "Self-Projected Authority",
+    "mental": "Environmental Authority",
+    "outer-authority": "Environmental Authority",
+    "lunar": "Lunar Authority",
+}
+
 DEFINITION_LABELS = {
     "single": "一分人",
     "simple-split": "二分人",
@@ -198,6 +212,10 @@ def display_strategy(code: str, fallback: str) -> str:
 
 def display_authority(code: str, fallback: str) -> str:
     return AUTHORITY_LABELS.get(code, fallback)
+
+
+def display_authority_professional(code: str, fallback: str) -> str:
+    return AUTHORITY_PROFESSIONAL_LABELS.get(code, fallback)
 
 
 def display_definition(code: str, fallback: str) -> str:

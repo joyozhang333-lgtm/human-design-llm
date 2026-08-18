@@ -136,8 +136,8 @@ def test_generate_main_reading_llm_mode_returns_contract(tmp_path, chart) -> Non
     assert reading.l2 == GOOD_TEXT
     assert reading.signature and reading.not_self
     keys = [section["key"] for section in reading.detail_sections]
-    assert keys == ["centers", "channels", "gates", "variables", "cross"]
-    assert [entry["key"] for entry in reading.explore] == ["talent", "mission", "body", "wealth", "relationship"]
+    assert keys == ["centers", "channels", "variables", "cross"]
+    assert [entry["key"] for entry in reading.explore] == ["talent", "mission", "body", "wealth", "relationship", "professional"]
 
 
 def test_generate_main_reading_fallback_mode(chart) -> None:

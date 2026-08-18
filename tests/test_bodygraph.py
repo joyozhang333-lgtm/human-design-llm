@@ -17,7 +17,7 @@ def test_render_bodygraph_svg_contains_expected_labels() -> None:
     assert "<svg" in svg
     assert "测试人类图" in svg
     assert "纯生产者" in svg
-    assert "荐骨权威" in svg
+    assert "Sacral Authority" in svg
     assert "荐骨中心" in svg
     assert "阿姬娜中心" in svg
     assert "设计面" in svg
@@ -38,7 +38,7 @@ def test_render_bodygraph_svg_without_booklet_is_graphic_only() -> None:
     assert "<svg" in svg
     assert "测试人类图" in svg
     # Chart graphic, activation panels and 盘面摘要 stay.
-    assert "荐骨权威" in svg
+    assert "Sacral Authority" in svg
     assert "阿姬娜中心" in svg
     assert "盘面摘要" in svg
     assert "设计面" in svg

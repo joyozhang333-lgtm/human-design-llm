@@ -331,9 +331,8 @@ class DetailSection:
 DETAIL_SECTIONS: tuple[DetailSection, ...] = (
     DetailSection("centers", "九大中心", "哪些中心稳定发力、哪些容易被外界放大，逐个看。"),
     DetailSection("channels", "通道", "你身体里已经接通的固定线路，逐条看它怎么用。"),
-    DetailSection("gates", "完整闸门清单", "全部被激活的闸门，每个一句话，不硬凑。"),
     DetailSection("variables", "运作方式微调", "吃饭、环境、动力、视角的小倾向——看看就好，不必当规定。"),
-    DetailSection("cross", "人生主轴", "你反复会遇到、也会反复贡献出去的人生母题。"),
+    DetailSection("cross", "轮回交叉与人生使命", "你反复会遇到、也会反复贡献出去的人生主题。"),
 )
 
 EXPLORE_ENTRIES: tuple[tuple[str, str, str], ...] = (
@@ -342,6 +341,7 @@ EXPLORE_ENTRIES: tuple[tuple[str, str, str], ...] = (
     ("body", "身体与能量", "从九大中心看你的能量怎么被消耗、怎么回到自己。"),
     ("wealth", "财富与工作", "看你的资源怎么配置、什么承诺会损耗你。"),
     ("relationship", "关系", "看你适合怎样连接、边界放在哪里。"),
+    ("professional", "专业信息", "核对类型、Strategy、Authority、中心和通道。"),
 )
 
 
@@ -389,4 +389,8 @@ def detail_title(key: str) -> str:
     for section in DETAIL_SECTIONS:
         if section.key == key:
             return section.title
+    # Keep the endpoint backwards compatible without listing the gate catalogue
+    # in the user-facing result page.
+    if key == "gates":
+        return "完整闸门清单"
     raise KeyError(f"未知的细读键：{key}")

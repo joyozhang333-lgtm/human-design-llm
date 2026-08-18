@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from .labels import (
     CENTER_LABELS,
     display_authority,
+    display_authority_professional,
     display_channel_label,
     display_definition,
     display_gate_theme,
@@ -40,8 +41,8 @@ MAP_TITLES = {
     "wealth": ("财富地图", "看钱从哪里来、资源怎么配置、什么承诺会损耗你，以及该怎么形成长期资产。"),
     "talent": ("天赋地图", "看你的爻位、主通道、关键闸门和意识主题如何组合成可被使用的能力。"),
     "relationship": ("关系地图", "看你适合什么样的关系、边界如何设定，以及情绪和表达如何不失真。"),
-    "mission": ("使命地图", "看策略、权威、主通道和轮回交叉如何落成长期人生主线。"),
-    "professional": ("专业信息地图", "把专业配置、中心、通道、闸门和行星激活列清楚，作为所有解读的依据。"),
+    "mission": ("使命地图", "看轮回交叉、人生角色和稳定通道如何落成长期人生主线。"),
+    "professional": ("专业信息地图", "把类型、Strategy、Authority、人生角色、定义、中心和通道列清楚，作为所有解读的依据。"),
 }
 
 SECTION_TITLES = {
@@ -240,16 +241,8 @@ def _build_sections(
     ]
     if map_key == "professional":
         items.append(_professional_detail_item(chart))
-    if not items:
-        # 诚实占位：用户语言，不是方法论；宁可少说，不硬凑。
-        return (
-            InterpretationMapSection(
-                key=f"{map_key}-core",
-                title=section_title,
-                intro="这个主题在你的图里暂时没有足够可靠的内容可讲。我们宁可先空着，也不用套话硬凑。",
-                items=(),
-            ),
-        )
+    else:
+        items.insert(0, _whole_chart_item(map_key, chart))
     return (
         InterpretationMapSection(
             key=f"{map_key}-core",
@@ -304,14 +297,15 @@ def _professional_detail_item(chart: HumanDesignChart) -> InterpretationMapItem:
         )
     user_language = (
         "这张图的简要信息，是理解你如何行动、做决定和使用天赋的起点。"
-        f"你的类型是{summary['type']}，策略是{summary['strategy']}，权威是{summary['authority']}，"
-        f"人生角色是{summary['profile']}。先把这几项放在一起理解，再去看中心、通道和闸门，"
+        f"你的类型是{summary['type']}，Strategy 是{summary['strategy']}，"
+        f"Authority 是{display_authority_professional(chart.summary.authority.code, summary['authority'])}，"
+        f"人生角色是{summary['profile']}。先把这几项放在一起理解，再去看中心和通道，"
         "会比单独记住一个标签更接近你真实的运作方式。"
     )
     return InterpretationMapItem(
         key="professional.chart-facts",
         title="这张图的事实清单",
-        subtitle="你的核心配置、中心、通道与闸门",
+        subtitle="你的核心配置、中心与通道",
         diagnosis_depth="trace",
         chart_basis=chart_basis,
         professional_basis="",
@@ -336,6 +330,117 @@ def _professional_detail_item(chart: HumanDesignChart) -> InterpretationMapItem:
     )
 
 
+def _whole_chart_item(map_key: str, chart: HumanDesignChart) -> InterpretationMapItem:
+    """Build one always-present, chart-specific synthesis item for each user map."""
+    summary = _summary(chart)
+    defined = "、".join(_center_labels(chart, defined=True)) or "没有固定定义的中心"
+    open_centers = "、".join(_center_labels(chart, defined=False)) or "开放中心较少"
+    channel_list = "、".join(
+        f"{channel.code}「{display_channel_label(channel.code, channel.label)}」"
+        for channel in chart.channels
+    )
+    channels = channel_list or "没有固定通道"
+    wealth_channel_text = (
+        f"你的财富路径要从真实能力线路出发：{channels}。"
+        "它们代表你更容易反复调用、形成作品和口碑的能力"
+        if channel_list
+        else "你的图里没有固定通道，财富能力会更明显地被合作对象和环境点亮；选对场域比强迫自己稳定输出更重要"
+    )
+    talent_channel_text = (
+        f"{channels}说明身体里哪些能力线路更稳定"
+        if channel_list
+        else "没有固定通道意味着能力更容易在对的人和场域中被接通"
+    )
+    mission_channel_text = (
+        f"{channels}是使命落地时可持续使用的能力"
+        if channel_list
+        else "使命落地更依赖正确环境、合作关系和当下被点亮的能力"
+    )
+    basis = (
+        f"类型：{summary['type']}",
+        f"Strategy：{summary['strategy']}",
+        f"Authority：{display_authority_professional(chart.summary.authority.code, summary['authority'])}",
+        f"人生角色：{summary['profile']}",
+        f"已定义中心：{defined}",
+        f"开放中心：{open_centers}",
+        f"已定义通道：{channels}",
+    )
+    content = {
+        "body": {
+            "title": "你的身体使用说明",
+            "subtitle": f"{summary['type']} · {summary['strategy']} · {display_authority_professional(chart.summary.authority.code, summary['authority'])}",
+            "user": f"你的身体不是靠意志一直推着走，而是先按「{summary['strategy']}」进入事情，再用自己的决定方式确认要不要继续。{defined}是你较稳定的身体资源；{open_centers}更容易接住环境和他人的压力。",
+            "life": ("接工作、答应邀约、进入关系或身体突然没劲时，先分辨这是自己的信号，还是现场压力。",),
+            "embodied": (f"活出来时，你会把{defined}用在真正有回应的事情上；做完虽然累，身体仍接近{summary['signature']}。",),
+            "blind": (f"最容易忽略的是开放中心带来的放大效应：{open_centers}会让别人的焦虑、节奏或期待显得像你自己的任务。",),
+            "stuck": (f"卡住时，常见体感是{summary['not_self_theme']}、赶、硬撑，或明明没劲还在完成头脑认为应该做的事。",),
+            "cause": (f"盘面机制：开放中心会放大场域信号；现实场景：别人一催、事情一多，你可能跳过「{summary['strategy']}」直接承诺。",),
+            "practice": ("连续七天记录三件小事：身体第一反应、实际选择、做完后的能量变化。",),
+        },
+        "wealth": {
+            "title": "你的资源与赚钱方式",
+            "subtitle": "先看稳定能力，再看承诺边界",
+            "user": f"{wealth_channel_text}；「{summary['strategy']}」决定机会怎么进入，Authority 决定钱、时间和注意力是否值得投入。",
+            "life": ("面对项目、客户、报价和合作时，不只问能赚多少，也问这件事会不会积累方法、案例和长期信任。",),
+            "embodied": ("活出来时，你把资源集中在少数能形成复利的方向，报价与交付边界清楚，不靠过度承诺换认可。",),
+            "blind": (f"{open_centers}被触发时，你可能为了证明价值、赶进度或避免冲突，接下本来不该接的责任。",),
+            "stuck": ("卡住时会同时出现项目很多、主线模糊、回款与精力不成比例，越忙越不确定自己在积累什么。",),
+            "cause": ("盘面机制：稳定通道需要在正确方向上反复使用；现实场景：只因价格高或别人期待就接单，会让资源流向没有身体确认的方向。",),
+            "practice": ("给现有项目各写三项：身体是否有回应、能否沉淀资产、承诺是否可持续；三项缺两项就重新谈边界。",),
+        },
+        "talent": {
+            "title": "你的天赋组合",
+            "subtitle": f"{summary['profile']} 的成长路径 · {channels}",
+            "user": f"你的天赋不能只用一个标签概括。{summary['profile']}说明天赋怎样被养熟和被看见，{talent_channel_text}，已定义中心则决定你能长期调用哪些资源。真正值得发展的，是别人反复认可、你却觉得做起来很自然的能力。",
+            "life": ("当身边人多次说你在某类事情上特别顺时，不要马上略过；先把它做成作品、案例或一套可重复的方法。",),
+            "embodied": ("活出来时，你不再四处学习别人已经擅长的东西，而是把自己已有八十分基础的能力，用练习和真实交付推到一百分。",),
+            "blind": ("天然会的事情通常最容易被低估；你可能把大量时间花在补别人擅长的能力，却没有持续打磨自己的强项。",),
+            "stuck": ("卡住时会觉得自己会很多却没有代表作，知识越来越多，别人仍说不清你最不可替代的能力是什么。",),
+            "cause": (f"盘面机制：{summary['profile']}需要按自己的角色路径让天赋成熟；现实场景：过早曝光半熟能力，或长期不接受正确召唤，都会让天赋停在潜力阶段。",),
+            "practice": ("列出三件别人经常来找你做、你却觉得不难的事，选一件连续四周产出作品并收集反馈。",),
+        },
+        "relationship": {
+            "title": "你的关系使用说明",
+            "subtitle": f"{summary['profile']} · {summary['definition']}",
+            "user": f"你适合的关系，不只是感觉强烈，而是对方能尊重你「{summary['strategy']}」的节奏，也不会用情绪或期待替你做决定。{summary['definition']}说明你在关系中如何感到连通，开放中心则提示你最容易在哪些地方被带走。",
+            "life": ("在冲突、承诺和是否继续一段关系时，先离开强情绪场，再看身体是否仍然愿意靠近。",),
+            "embodied": ("活出来时，你既能连接，也保留自己的节奏；关系让你更像自己，而不是更擅长扮演对方需要的人。",),
+            "blind": (f"{open_centers}会让你更容易放大对方的状态，把安抚、证明或配合误认为爱。",),
+            "stuck": ("卡住时常见的是当场答应、事后后悔，或者为了维持关系长期压住真实需要，最后突然抽离。",),
+            "cause": ("盘面机制：开放中心会增强关系场的影响；现实场景：当对方失望、生气或催促时，你可能先处理对方感受，忘了确认自己的答案。",),
+            "practice": ("下一次重要关系决定先说“我需要一点时间确认”，等离开现场后再回答。",),
+        },
+        "mission": {
+            "title": "你的使命怎样活出来",
+            "subtitle": summary["incarnation_cross"],
+            "user": f"你的人生使命名称来自轮回交叉「{summary['incarnation_cross']}」。它不是一个必须马上完成的宏大任务，而是你在一次次正确选择中反复遇到、逐渐形成贡献的主题。{mission_channel_text}。",
+            "life": ("回看过去三年最有生命力的项目和关系，找出它们共同服务了什么人、解决了什么问题。",),
+            "embodied": (f"活出来时，你不会追着“使命感”证明自己，而是沿着「{summary['strategy']}」进入正确事情，让长期行动自然长成方向。",),
+            "blind": ("把使命理解成一个头衔、行业或唯一答案，会让你忽略身体当下真正愿意投入的下一步。",),
+            "stuck": (f"卡住时会不断换方向、追求宏大意义，却在日常行动里反复感到{summary['not_self_theme']}。",),
+            "cause": ("盘面机制：轮回交叉必须通过类型、人生角色和通道被活出来；现实场景：没有真实机会与身体确认时，头脑会先编出一个看起来正确的人生计划。",),
+            "practice": ("选一条有身体回应的主线做九十天，不问它是不是终身使命，只观察它是否持续带来生命力、能力积累和真实贡献。",),
+        },
+    }[map_key]
+    return InterpretationMapItem(
+        key=f"{map_key}.whole-chart",
+        title=content["title"],
+        subtitle=content["subtitle"],
+        diagnosis_depth="deep",
+        chart_basis=basis,
+        professional_basis="",
+        user_language=content["user"],
+        life_scenes=content["life"],
+        embodied_expression=content["embodied"],
+        blind_spots=content["blind"],
+        stuck_patterns=content["stuck"],
+        stuck_causes=content["cause"],
+        common_blocks=(),
+        practices=content["practice"],
+        followup_questions=MAP_FOLLOWUPS[map_key][:2],
+        source_atom_ids=(),
+        sources=(),
+    )
 # 开发者方法论口吻的标记词：professional_basis 命中任何一个即不渲染该块（返回空串）。
 _METHODOLOGY_MARKERS = (
     "chart facts",
@@ -401,19 +506,17 @@ def _professional_facts(chart: HumanDesignChart) -> tuple[str, ...]:
     defined_centers = _center_labels(chart, defined=True)
     open_centers = _center_labels(chart, defined=False)
     channels = [f"{channel.code}「{display_channel_label(channel.code, channel.label)}」" for channel in chart.channels]
-    gates = [f"{gate.gate}号「{display_gate_theme(gate.gate, gate.theme)}」" for gate in chart.activated_gates]
     return (
         f"类型：{summary['type']}",
-        f"策略：{summary['strategy']}",
-        f"权威：{summary['authority']}",
+        f"Strategy：{summary['strategy']}",
+        f"Authority：{display_authority_professional(chart.summary.authority.code, summary['authority'])}",
         f"人生角色：{summary['profile']}",
         f"定义：{summary['definition']}",
         f"签名/非自己主题：{summary['signature']} / {summary['not_self_theme']}",
-        f"使命名称：{summary['incarnation_cross']}",
+        f"轮回交叉与人生使命：{summary['incarnation_cross']}",
         "已定义中心：" + ("、".join(defined_centers) if defined_centers else "无"),
         "开放中心：" + ("、".join(open_centers) if open_centers else "无"),
         "已定义通道：" + ("、".join(channels) if channels else "无"),
-        "已激活闸门：" + "、".join(gates),
     )
 
 

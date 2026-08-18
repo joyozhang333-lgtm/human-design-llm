@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 from .labels import (
     CENTER_LABELS,
-    display_authority,
+    display_authority_professional,
     display_definition,
     display_profile,
     display_type,
@@ -394,7 +394,7 @@ def _style_meta(
     summary_line = " | ".join(
         [
             display_type(chart.summary.type.code, chart.summary.type.label),
-            display_authority(chart.summary.authority.code, chart.summary.authority.label),
+            display_authority_professional(chart.summary.authority.code, chart.summary.authority.label),
             f"{display_profile(chart.summary.profile.code, chart.summary.profile.label)} 人生角色",
             display_definition(chart.summary.definition.code, chart.summary.definition.label),
         ]

@@ -9,6 +9,7 @@ import {
 } from "./api";
 import { cityOptionsForProvince, provinceGroups } from "./chinaLocations";
 import { buildLocalMainReading, LocalDetailBodies, ReadingFlow } from "./reading";
+import { PUBLIC_VERSION } from "./version";
 import "./styles.css";
 
 const initialForm: ChartCreateInput = {
@@ -128,7 +129,10 @@ export default function App() {
   return (
     <div className="intake-stage">
       <section className="intake-card">
-        <h1 className="intake-title">人类图</h1>
+        <div className="product-title-row">
+          <h1 className="intake-title">人类图</h1>
+          <span className="version-badge">{PUBLIC_VERSION}</span>
+        </div>
         <p className="intake-sub">一面看见自己模式的镜子。不算命，只帮你把「我好像一直这样」变成「我可以观察一下」。</p>
         <form onSubmit={handleCreateChart} className="birth-form">
           <label htmlFor="user-name">

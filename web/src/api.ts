@@ -60,11 +60,39 @@ export type SavedChartResponse = {
     type: string;
     strategy: string;
     authority: string;
+    authority_professional: string;
     profile: string;
     definition: string;
     signature: string;
     not_self_theme: string;
     incarnation_cross: string;
+  };
+  guidance: {
+    center_notes: Array<{
+      code: string;
+      label: string;
+      defined: boolean;
+      state_label: string;
+      body_resource: string;
+      spiritual_resource: string;
+      consumption_pattern: string;
+      practice: string;
+      observation_prompt: string;
+    }>;
+    channel_notes: Array<{
+      code: string;
+      label: string;
+      centers: [string, string];
+      body_flow: string;
+      expression: string;
+      practice: string;
+    }>;
+    talent_sections: Array<{
+      key: string;
+      title: string;
+      summary: string;
+      bullets: string[];
+    }>;
   };
   bodygraph_svg_url: string;
   bodygraph_svg: string;

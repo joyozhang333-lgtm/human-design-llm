@@ -9,6 +9,7 @@ import {
   ReadingBookResponse,
   SavedChartResponse
 } from "./api";
+import { PUBLIC_VERSION } from "./version";
 
 /* ---------- 中文标注表（沿用既有词表，仅用于抽屉佐证区） ---------- */
 
@@ -63,73 +64,6 @@ const channelLabels: Record<string, string> = {
   "47-64": "抽象整合通道"
 };
 
-const gateLabels: Record<number, string> = {
-  1: "自我表达",
-  2: "方向与接收",
-  3: "新秩序",
-  4: "答案与公式",
-  5: "固定节律",
-  6: "亲密边界",
-  7: "引导角色",
-  8: "贡献风格",
-  9: "专注细节",
-  10: "自爱与行为",
-  11: "想法",
-  12: "谨慎表达",
-  13: "倾听与记忆",
-  14: "资源能力",
-  15: "极端节律",
-  16: "技能热情",
-  17: "观点结构",
-  18: "修正判断",
-  19: "需求敏感",
-  20: "当下表达",
-  21: "掌控资源",
-  22: "开放与优雅",
-  23: "简化表达",
-  24: "回归思考",
-  25: "本真之爱",
-  26: "说服与记忆",
-  27: "照顾滋养",
-  28: "生命意义的抗争",
-  29: "承诺投入",
-  30: "渴望与情感",
-  31: "影响力",
-  32: "延续与保存",
-  33: "退隐与故事",
-  34: "大力量",
-  35: "经验推进",
-  36: "危机与经验",
-  37: "亲密社群",
-  38: "为意义而战",
-  39: "挑动情绪",
-  40: "独处与意志",
-  41: "想象起点",
-  42: "成熟完成",
-  43: "洞见突破",
-  44: "模式警觉",
-  45: "资源分配",
-  46: "身体之爱",
-  47: "领悟整合",
-  48: "深度",
-  49: "原则与革命",
-  50: "价值责任",
-  51: "震动唤醒",
-  52: "静止专注",
-  53: "开始",
-  54: "野心上升",
-  55: "精神丰盛",
-  56: "故事刺激",
-  57: "直觉清明",
-  58: "喜悦修正",
-  59: "亲密破冰",
-  60: "限制与突变",
-  61: "内在真理",
-  62: "细节命名",
-  63: "怀疑检验",
-  64: "混乱整合"
-};
-
 /* ---------- 渲染前白名单守卫（与后端校验双保险） ---------- */
 
 const planetSymbolPattern = /[♃♄⛢⊕☊☉☽☿♀♂♆♇]/g;
@@ -148,11 +82,20 @@ const bannedMetaPhrases = [
   "validator"
 ];
 
-// 连续 3 个以上英文单词视为后端漏网的裸值，不渲染该行（单个昵称/地名拼音不受影响）
-const englishRunPattern = /(?:[A-Za-z]{2,}[^A-Za-z\n一-龥]{0,3}){3,}/;
+// 只拦截整行 4 个以上的裸英文词；Authority 等合法专业名称必须保留。
+const englishRunPattern = /^\s*(?:[A-Za-z]{2,}[\s,;/|·—-]+){3,}[A-Za-z]{2,}\s*$/;
 
 export function guardText(text: string): string {
-  const cleaned = (text ?? "").replace(planetSymbolPattern, "");
+  const cleaned = (text ?? "")
+    .replace(planetSymbolPattern, "")
+    .replace(/荐骨权威/g, "Sacral Authority（荐骨决策方式）")
+    .replace(/情绪权威/g, "Emotional Authority（情绪清晰后决定）")
+    .replace(/脾权威/g, "Splenic Authority（当下直觉）")
+    .replace(/意志力权威/g, "Ego Authority（意志与承诺）")
+    .replace(/自我投射权威/g, "Self-Projected Authority（听见自己的声音）")
+    .replace(/环境权威/g, "Environmental Authority（环境与对话）")
+    .replace(/月亮权威/g, "Lunar Authority（月亮周期）")
+    .replace(/权威/g, "Authority");
   return cleaned
     .split("\n")
     .filter((line) => {
@@ -230,7 +173,8 @@ export function buildLocalMainReading(
       { key: "mission", title: "使命", hint: "看人生主轴怎样通过角色、选择和长期行动活出来" },
       { key: "body", title: "身体", hint: "身体怎么回应、能量怎么用" },
       { key: "wealth", title: "财富", hint: "钱从哪里来、怎么更稳" },
-      { key: "relationship", title: "关系", hint: "适合怎样的联结与边界" }
+      { key: "relationship", title: "关系", hint: "适合怎样的联结与边界" },
+      { key: "professional", title: "专业信息", hint: "核对类型、Strategy、Authority、中心和通道" }
     ],
     generation_mode: "fallback"
   };
@@ -285,6 +229,7 @@ export function ReadingFlow({
     setExploreMap(null);
     setExploreError(null);
     setExploreLoading(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     try {
       const map = await createInterpretationMap(chart.chart_id, key);
       setExploreMap(map);
@@ -344,14 +289,13 @@ export function ReadingFlow({
         <main className="flow">
           <section className="bodygraph-cover">
             <div className="bodygraph-cover-heading">
-              <span>人类图 · 身体图</span>
-              <h1>{chart.user_name ? `${chart.user_name}的人类图` : "你的人类图"}</h1>
-              <p>先看完整图，再往下读你的核心配置与解读报告。</p>
+              <span>{PUBLIC_VERSION}</span>
+              <h1>人类图</h1>
             </div>
             <div className="bodygraph-cover-svg" dangerouslySetInnerHTML={{ __html: chart.bodygraph_svg }} />
           </section>
 
-          <CoreFacts summary={summary} onOpenDetails={() => setDrawerOpen(true)} />
+          <CoreFacts chart={chart} onOpenDetails={() => setDrawerOpen(true)} />
 
           <section className="report-hero">
             <span className="report-kicker">人类图解读报告</span>
@@ -387,6 +331,10 @@ export function ReadingFlow({
               </article>
             ))}
           </section>
+
+          <CenterGuide chart={chart} />
+          <ChannelGuide chart={chart} />
+          <TalentGuide chart={chart} />
 
           {reading.detail_sections.length > 0 && (
             <DetailDirectory chartId={chart.chart_id} sections={reading.detail_sections} localBodies={localDetailBodies} />
@@ -492,34 +440,195 @@ export function ReadingFlow({
 }
 
 function CoreFacts({
-  summary,
+  chart,
   onOpenDetails
 }: {
-  summary: SavedChartResponse["display_summary"];
+  chart: SavedChartResponse;
   onOpenDetails: () => void;
 }) {
-  const facts: Array<[string, string]> = [
-    ["类型", summary.type],
-    ["策略", summary.strategy],
-    ["权威", summary.authority],
-    ["人生角色", summary.profile],
-    ["定义", summary.definition],
-    ["人生主轴", summary.incarnation_cross]
+  const summary = chart.display_summary;
+  const facts = [
+    { label: "类型", value: summary.type, explanation: typeExplanation(chart.chart.summary.type.code) },
+    { label: "Strategy", value: summary.strategy, explanation: strategyExplanation(chart.chart.summary.strategy.code) },
+    {
+      label: "Authority",
+      value: summary.authority_professional,
+      explanation: authorityExplanation(chart.chart.summary.authority.code)
+    },
+    { label: "人生角色", value: summary.profile, explanation: profileExplanation(chart.chart.summary.profile.code) },
+    { label: "定义", value: summary.definition, explanation: definitionExplanation(chart.chart.summary.definition.code) },
+    {
+      label: "轮回交叉",
+      value: summary.incarnation_cross,
+      explanation: "这是你的人生使命主题名称。它不是指定职业，而是会在选择、关系和长期贡献中反复出现的主线。"
+    }
   ];
   return (
     <section className="core-facts">
       <div className="core-facts-heading">
         <div>
-          <span>你的核心配置</span>
-          <h2>先知道这六件事</h2>
+          <span>个人人类图简要</span>
+          <h2>{chart.user_name ? `${chart.user_name}的核心配置` : "你的核心配置"}</h2>
         </div>
-        <button type="button" onClick={onOpenDetails}>查看中心、通道与闸门</button>
+        <button type="button" onClick={onOpenDetails}>查看专业配置</button>
       </div>
       <div className="core-facts-grid">
-        {facts.map(([label, value]) => (
-          <article key={label}>
-            <span>{label}</span>
-            <strong>{guardText(value)}</strong>
+        {facts.map((fact) => (
+          <article key={fact.label}>
+            <span>{fact.label}</span>
+            <strong>{guardText(fact.value)}</strong>
+            <p>{fact.explanation}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function typeExplanation(code: string): string {
+  return {
+    manifestor: "你的作用是发起和打开局面。行动前先告知会受影响的人，阻力会明显减少。",
+    generator: "你的生命力在回应到正确的人和事之后持续展开，不需要靠头脑主动制造所有机会。",
+    "pure-generator": "你的生命力在回应到正确的人和事之后持续展开，不需要靠头脑主动制造所有机会。",
+    "manifesting-generator": "你先回应，再快速试做和修正；速度是优势，但不要跳过身体确认。",
+    "pure-manifesting-generator": "你先回应，再快速试做和修正；速度是优势，但不要跳过身体确认。",
+    projector: "你擅长看懂人和系统如何运作。重要关系与角色被正确邀请时，洞见更容易被接住。",
+    "energy-projector": "你擅长看懂人和系统如何运作。重要关系与角色被正确邀请时，洞见更容易被接住。",
+    "classic-projector": "你擅长看懂人和系统如何运作。重要关系与角色被正确邀请时，洞见更容易被接住。",
+    "mental-projector": "你通过合适的环境和高质量对话听清方向，不适合独自在头脑里逼出答案。",
+    reflector: "你对环境与群体状态非常敏感。重大决定需要足够时间观察，而不是被某一天的状态定案。"
+  }[code] ?? "类型描述你与外界交换能量、进入事情和发挥作用的基本方式。";
+}
+
+function strategyExplanation(code: string): string {
+  return {
+    respond: "不是被动等，而是先让现实给出具体的人、事或选项，再观察身体是否想靠近。",
+    "to-respond": "不是被动等，而是先让现实给出具体的人、事或选项，再观察身体是否想靠近。",
+    invitation: "重要关系、合作和位置先等到真正的看见与邀请；不是任何邀请都要接受。",
+    "wait-invite": "重要关系、合作和位置先等到真正的看见与邀请；不是任何邀请都要接受。",
+    "wait-for-the-invitation": "重要关系、合作和位置先等到真正的看见与邀请；不是任何邀请都要接受。",
+    inform: "决定发起后，先让会受影响的人知道你要做什么；告知不是请求批准，而是减少阻力。",
+    "respond-inform": "先确认身体有回应，再告知相关的人，然后行动。",
+    "wait-lunar-cycle": "给重大决定一个完整观察周期，让不同日子的你都参与判断。"
+  }[code] ?? "Strategy 说明你怎样进入一件事，能更少阻力地发挥自己的能量。";
+}
+
+function authorityExplanation(code: string): string {
+  return {
+    sacral: "用当下身体的有劲、没劲、想靠近或想退开来确认选择，不靠反复分析说服自己。",
+    "solar-plexus": "重要决定不在情绪高点或低点拍板，等情绪波走过后再看什么仍然清晰。",
+    emotional: "重要决定不在情绪高点或低点拍板，等情绪波走过后再看什么仍然清晰。",
+    splenic: "留意当下第一秒安静而短促的直觉信号，它通常不会不断重复。",
+    ego: "先确认自己真想不想要、愿不愿意为它投入承诺，而不是证明自己值得。",
+    "ego-manifested": "先确认自己真想不想要、愿不愿意为它投入承诺，而不是证明自己值得。",
+    "ego-projected": "在被正确看见的关系里说出愿望，听见自己究竟想承诺什么。",
+    "self-projected": "把问题说出来，听自己的声音在哪个方向上更像真正的自己。",
+    mental: "到适合的环境里与可信任的人谈几轮，用环境和声音的回响帮助自己听清。",
+    "outer-authority": "到适合的环境里与可信任的人谈几轮，用环境和声音的回响帮助自己听清。",
+    lunar: "重大选择要经过足够长的月亮周期观察，不必满足别人要求你立即回答的节奏。"
+  }[code] ?? "Authority 说明你在进入机会之后，怎样确认这个选择是否真正适合自己。";
+}
+
+function profileExplanation(code: string): string {
+  if (code === "2-4") {
+    return "天赋先在独处中养熟，再通过信任关系被看见。别人反复说你做得很自然的能力，尤其值得认真打磨。";
+  }
+  return "人生角色说明你的天赋怎样成熟、怎样与人连接，以及别人通常从什么位置看见你。";
+}
+
+function definitionExplanation(code: string): string {
+  return {
+    single: "一分人内部线路连成一体，通常能独立消化和推进；记得给不同节奏的人接上的时间。",
+    "simple-split": "二分人的稳定能量分成两块，某些人和环境会带来被接通的感觉，但接通感不等于必须依赖。",
+    split: "二分人的稳定能量分成两块，某些人和环境会带来被接通的感觉，但接通感不等于必须依赖。",
+    "wide-split": "二分人的两块稳定能量距离较远，关系与环境会明显影响连通感；不要把补全感误认成命定。",
+    "triple-split": "三分人需要不同的人和流动场域帮助内部信息流转，长期困在单一环境里容易卡住。",
+    "quadruple-split": "四分人的内部结构需要丰富场域慢慢接通，给自己更多时间与空间，不必催促整合。",
+    no: "无定义并不代表没有自己，而是对环境极其敏感；选择什么地方和人，会深刻影响你的状态。"
+  }[code] ?? "定义说明已定义中心怎样彼此连通，以及你在独处和关系中处理信息的方式。";
+}
+
+function CenterGuide({ chart }: { chart: SavedChartResponse }) {
+  const defined = chart.guidance.center_notes.filter((center) => center.defined);
+  const open = chart.guidance.center_notes.filter((center) => !center.defined);
+  return (
+    <section className="guidance-section center-guide">
+      <div className="guidance-heading">
+        <span>你的九大中心</span>
+        <h2>稳定资源与开放学习区</h2>
+        <p>已定义中心是你较稳定的资源；开放中心会放大环境，也最需要边界和观察。</p>
+      </div>
+      <CenterGroup title="已定义中心" description="这些能力更容易稳定重复出现" items={defined} />
+      <CenterGroup title="开放中心" description="这些位置更容易受人和环境影响" items={open} />
+    </section>
+  );
+}
+
+function CenterGroup({
+  title,
+  description,
+  items
+}: {
+  title: string;
+  description: string;
+  items: SavedChartResponse["guidance"]["center_notes"];
+}) {
+  return (
+    <div className="center-group">
+      <div className="center-group-title"><h3>{title}</h3><span>{description}</span></div>
+      <div className="center-card-grid">
+        {items.map((center) => (
+          <article key={center.code} className={center.defined ? "center-card defined" : "center-card open"}>
+            <span>{center.state_label}</span>
+            <h3>{center.label}</h3>
+            <p>{center.body_resource}</p>
+            {!center.defined && <small>留意：{center.consumption_pattern}</small>}
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ChannelGuide({ chart }: { chart: SavedChartResponse }) {
+  const channels = chart.guidance.channel_notes;
+  return (
+    <section className="guidance-section channel-guide">
+      <div className="guidance-heading">
+        <span>你的已定义通道</span>
+        <h2>这些是你能反复调用的能力线路</h2>
+        <p>通道连接两个中心。它比单独看一个闸门更能说明一种稳定能力怎样在你身上运作。</p>
+      </div>
+      <div className="channel-list">
+        {channels.length > 0 ? channels.map((channel) => (
+          <article key={channel.code} className="channel-card">
+            <div><span>{channel.code}</span><h3>{channel.label}</h3></div>
+            <strong>{channel.centers.join(" → ")}</strong>
+            <p>{channel.expression}</p>
+            <small>{channel.practice}</small>
+          </article>
+        )) : <p className="section-hint">你的图里没有固定接通的通道，能力更容易在对的人和环境中被点亮。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TalentGuide({ chart }: { chart: SavedChartResponse }) {
+  return (
+    <section className="guidance-section talent-guide">
+      <div className="guidance-heading">
+        <span>你的天赋</span>
+        <h2>不是单个标签，而是一组能力怎样配合</h2>
+        <p>这里把人生角色、稳定中心和通道放在一起，看天赋是什么、怎样被看见、又怎样练成熟。</p>
+      </div>
+      <div className="talent-section-list">
+        {chart.guidance.talent_sections.map((section) => (
+          <article key={section.key} className="talent-section-card">
+            <h3>{guardText(section.title)}</h3>
+            <p>{guardText(section.summary)}</p>
+            <div>
+              {section.bullets.map((bullet) => <p key={bullet}>{guardText(bullet)}</p>)}
+            </div>
           </article>
         ))}
       </div>
@@ -528,7 +637,7 @@ function CoreFacts({
 }
 
 function buildReportSections(paragraphs: string[]) {
-  const titles = ["核心身份", "决策与行动", "天赋与角色路径", "人生主轴"];
+  const titles = ["核心身份", "决策与行动", "天赋与角色路径", "人生使命"];
   return titles.map((title, index) => ({
     title,
     paragraphs: index === titles.length - 1 ? paragraphs.slice(index) : paragraphs.slice(index, index + 1)
@@ -651,20 +760,12 @@ function ExplorePanel({
 }
 
 function ExploreItemCard({ item, onFollowup }: { item: InterpretationMapItem; onFollowup: (question: string) => void }) {
-  const [meaningOpen, setMeaningOpen] = useState(false);
   const [basisOpen, setBasisOpen] = useState(false);
 
   const mainSentence = guardText(item.user_language);
   if (!mainSentence) {
     return null;
   }
-
-  const meaningLines = [
-    ...item.embodied_expression.map(guardText),
-    ...item.stuck_patterns.slice(0, 1).map(guardText),
-    ...item.stuck_causes.slice(0, 1).map(guardText),
-    ...item.practices.slice(0, 1).map((line) => guardText(line))
-  ].filter(Boolean);
 
   const basisLines = [...item.chart_basis.map(guardText), guardText(item.professional_basis)].filter(Boolean);
 
@@ -675,18 +776,14 @@ function ExploreItemCard({ item, onFollowup }: { item: InterpretationMapItem; on
         {guardText(item.subtitle) && <span>{guardText(item.subtitle)}</span>}
       </header>
       <p className="explore-main-sentence">{mainSentence}</p>
-      {meaningLines.length > 0 && (
-        <div className="fold">
-          <button type="button" onClick={() => setMeaningOpen(!meaningOpen)}>
-            这对你意味着什么 {meaningOpen ? "⌃" : "⌄"}
-          </button>
-          {meaningOpen && (
-            <div className="fold-body">
-              {meaningLines.map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
-            </div>
-          )}
+      {item.diagnosis_depth !== "trace" && (
+        <div className="diagnosis-grid">
+          <DiagnosisBlock title="在生活里会怎样出现" lines={item.life_scenes} />
+          <DiagnosisBlock title="真正活出来时" lines={item.embodied_expression} />
+          <DiagnosisBlock title="容易忽略的盲区" lines={item.blind_spots} />
+          <DiagnosisBlock title="被卡住时" lines={item.stuck_patterns} />
+          <DiagnosisBlock title="为什么会卡住" lines={item.stuck_causes} />
+          <DiagnosisBlock title="可以怎么练" lines={item.practices} />
         </div>
       )}
       {basisLines.length > 0 && (
@@ -716,6 +813,19 @@ function ExploreItemCard({ item, onFollowup }: { item: InterpretationMapItem; on
   );
 }
 
+function DiagnosisBlock({ title, lines }: { title: string; lines: string[] }) {
+  const cleaned = lines.map(guardText).filter(Boolean);
+  if (cleaned.length === 0) {
+    return null;
+  }
+  return (
+    <section className="diagnosis-block">
+      <h3>{title}</h3>
+      {cleaned.map((line, index) => <p key={index}>{line}</p>)}
+    </section>
+  );
+}
+
 /* ---------- 抽屉里的专业信息折叠区 ---------- */
 
 function ProfessionalFold({ chart }: { chart: SavedChartResponse }) {
@@ -729,16 +839,13 @@ function ProfessionalFold({ chart }: { chart: SavedChartResponse }) {
   const channels = chart.chart.channels.map(
     (channel) => `${channel.code} ${channelLabels[channel.code] ?? channel.label}`
   );
-  const gates = chart.chart.activated_gates
-    .map((gate) => `${gate.gate}号 ${gateLabels[gate.gate] ?? gate.theme}`)
-    .slice(0, 24);
   const coreFacts: Array<[string, string]> = [
     ["类型", summary.type],
-    ["策略", summary.strategy],
-    ["权威", summary.authority],
+    ["Strategy", summary.strategy],
+    ["Authority", summary.authority_professional],
     ["人生角色", summary.profile],
     ["定义", summary.definition],
-    ["人生主题", summary.incarnation_cross]
+    ["轮回交叉与人生使命", summary.incarnation_cross]
   ];
   return (
     <details className="professional-fold">
@@ -753,8 +860,7 @@ function ProfessionalFold({ chart }: { chart: SavedChartResponse }) {
       </div>
       <FactRail title="已定义中心" items={definedCenters} />
       <FactRail title="开放中心" items={openCenters} />
-      <FactRail title="通道" items={channels} />
-      <FactRail title="闸门" items={gates} />
+      <FactRail title="已定义通道" items={channels} />
     </details>
   );
 }

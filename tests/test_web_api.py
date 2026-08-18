@@ -57,9 +57,13 @@ def test_create_chart_returns_chart_and_bodygraph_svg() -> None:
     assert payload["birth_profile"]["gender"] == "male"
     assert payload["display_summary"]["type"]
     assert payload["display_summary"]["authority"] == "荐骨权威"
+    assert payload["display_summary"]["authority_professional"] == "Sacral Authority"
+    assert len(payload["guidance"]["center_notes"]) == 9
+    assert payload["guidance"]["channel_notes"]
+    assert payload["guidance"]["talent_sections"]
     assert payload["bodygraph_svg_url"].endswith("/bodygraph.svg")
     assert "<svg" in payload["bodygraph_svg"]
-    assert "荐骨权威" in payload["bodygraph_svg"]
+    assert "Sacral Authority" in payload["bodygraph_svg"]
     assert "阿姬娜中心" in payload["bodygraph_svg"]
     # The web BodyGraph is graphic-only; the long booklet ships via /reading-book.
     assert "人类图解读本" not in payload["bodygraph_svg"]
@@ -162,7 +166,7 @@ def test_interpretation_map_endpoint_returns_v04_structured_map() -> None:
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.5.0"
+    assert payload["product_version"] == "0.5.1"
     assert payload["map_type"] == "wealth"
     assert payload["title"] == "财富地图"
     assert payload["overview"]
@@ -204,7 +208,7 @@ def test_readings_main_returns_contract_fields() -> None:
         assert set(section) == {"key", "title", "summary"}
     for entry in payload["explore"]:
         assert set(entry) == {"key", "title", "hint"}
-    assert [entry["key"] for entry in payload["explore"]] == ["talent", "mission", "body", "wealth", "relationship"]
+    assert [entry["key"] for entry in payload["explore"]] == ["talent", "mission", "body", "wealth", "relationship", "professional"]
     # 内容硬红线：零英文、零符号
     full_text = payload["l1"] + payload["l2"] + payload["signature"] + payload["not_self"]
     assert not re.search(r"[A-Za-z]{3,}", full_text)
@@ -247,6 +251,17 @@ def test_readings_detail_returns_lazy_body() -> None:
         assert set(payload) == {"title", "body", "generation_mode"}
         assert payload["title"] and payload["body"]
         assert payload["generation_mode"] == "fallback"
+
+
+def test_main_reading_directory_does_not_list_gate_catalogue() -> None:
+    client = _client()
+    chart = _create_chart(client)
+    response = client.post("/api/readings/main", json={"chart_id": chart["chart_id"]})
+
+    assert response.status_code == 200
+    keys = [section["key"] for section in response.json()["detail_sections"]]
+    assert "gates" not in keys
+    assert "channels" in keys
 
 
 def test_readings_detail_unknown_key_returns_422() -> None:

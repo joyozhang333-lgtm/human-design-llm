@@ -40,6 +40,15 @@
 {
   "chart_id": "chart_xxx",
   "chart": {},
+  "display_summary": {
+    "strategy": "等待回应",
+    "authority_professional": "Sacral Authority"
+  },
+  "guidance": {
+    "center_notes": [],
+    "channel_notes": [],
+    "talent_sections": []
+  },
   "bodygraph_svg_url": "/api/charts/chart_xxx/bodygraph.svg",
   "bodygraph_svg": "<svg ...",
   "precision_warnings": []
@@ -163,7 +172,7 @@
 
 ```json
 {
-  "product_version": "0.5.0",
+  "product_version": "0.5.1",
   "map_type": "wealth",
   "title": "财富地图",
   "description": "...",

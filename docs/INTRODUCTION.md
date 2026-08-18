@@ -28,7 +28,7 @@ Human Design LLM is an LLM-native product layer for Human Design. It wraps chart
 
 The core output is not just a markdown reading. The project can produce a full LLM product package containing chart facts, reading sections, source references, assistant instructions, context blocks, answer citations, suggested follow-ups, delivery depth, and session state. This makes it suitable for AI agents, API backends, prompt orchestration systems, and local Codex/OpenAI-style skills.
 
-The current V0.5 release places the BodyGraph first, follows it with a readable four-part report, and adds distinct body, talent, wealth, relationship, and mission maps. DeepSeek powers grounded whole-chart readings and follow-up consultation, while deterministic validators block invented gates, channels, strategy conflicts, prompt leakage, and developer language. The release passes 177 pytest tests, a production frontend build, and desktop/mobile end-to-end checks.
+The current V0.5 release places the BodyGraph first, explains Strategy and Authority in context, separates defined/open centers and channels, and follows with a readable four-part report. Six distinct body, talent, wealth, relationship, mission, and professional maps always return complete whole-chart readings. DeepSeek powers grounded follow-up consultation, while deterministic validators block invented gates, channels, strategy conflicts, prompt leakage, and developer language. The release passes 179 pytest tests, a production frontend build, and desktop/mobile end-to-end checks.
 
 ## 中文长介绍
 
@@ -36,7 +36,7 @@ Human Design LLM 是一个面向大模型的人类图产品层。它把人类图
 
 这个项目的核心输出不只是 Markdown 解读，而是一份完整的 LLM 产品包：包含 chart 事实、阅读章节、来源引用、助手指令、上下文块、回答引用、推荐追问、输出深度和会话状态。因此它适合 AI Agent、API 后端、prompt orchestration、Codex/OpenAI 风格技能，以及任何需要结构化人类图事实的大模型应用。
 
-当前 V0.5 版本把 BodyGraph 放在结果页首屏，随后给出核心配置与“核心身份、决策与行动、天赋与角色路径、人生主轴”四段式报告。身体、天赋、财富、关系和使命地图会分别结合整张盘解读；DeepSeek 负责主阅读与连续咨询，确定性护栏负责拦截编造闸门、虚构通道、策略冲突、提示词泄漏和开发者语言。当前发布通过 177 个 pytest、前端生产构建及桌面/移动端端到端验收。
+当前 V0.5 版本把 BodyGraph 放在结果页首屏，随后解释类型、Strategy、Authority、人生角色、定义和轮回交叉，再给出“核心身份、决策与行动、天赋与角色路径、人生使命”四段式报告。已定义/开放中心、通道和天赋组合都有独立解读；身体、天赋、财富、关系、使命和专业信息六张地图始终返回完整的全盘报告。DeepSeek 负责连续咨询，确定性护栏负责拦截编造闸门、虚构通道、策略冲突、提示词泄漏和开发者语言。当前发布通过 179 个 pytest、前端生产构建及桌面/移动端端到端验收。
 
 ## GitHub Description Options
 
