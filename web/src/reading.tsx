@@ -169,11 +169,11 @@ export function buildLocalMainReading(
     not_self: guardText(summary.not_self_theme),
     detail_sections: detailSections,
     explore: [
-      { key: "talent", title: "天赋", hint: "看哪些能力像天然会的，又该怎样练成稳定贡献" },
-      { key: "mission", title: "使命", hint: "看人生主轴怎样通过角色、选择和长期行动活出来" },
-      { key: "body", title: "身体", hint: "身体怎么回应、能量怎么用" },
-      { key: "wealth", title: "财富", hint: "钱从哪里来、怎么更稳" },
-      { key: "relationship", title: "关系", hint: "适合怎样的联结与边界" },
+      { key: "talent", title: "天赋报告", hint: "逐条看稳定天赋，以及怎样从八十分练到一百分" },
+      { key: "mission", title: "使命报告", hint: "讲清使命名称、落地能力和九十天验证方式" },
+      { key: "body", title: "身体报告", hint: "身体怎样决定、压力从哪里进入、怎样恢复" },
+      { key: "wealth", title: "财富报告", hint: "钱怎样进入、能力怎样变现、承诺怎样设边界" },
+      { key: "relationship", title: "关系报告", hint: "连接方式、情绪边界和适合你的相处条件" },
       { key: "professional", title: "专业信息", hint: "核对类型、Strategy、Authority、中心和通道" }
     ],
     generation_mode: "fallback"
@@ -212,6 +212,7 @@ export function ReadingFlow({
   const narrativeRef = useRef<HTMLElement | null>(null);
   const chatZoneRef = useRef<HTMLElement | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const mapCacheRef = useRef<Record<string, InterpretationMapResponse>>({});
 
   const summary = chart.display_summary;
   const l1Text = useMemo(() => guardText(reading.l1), [reading.l1]);
@@ -224,18 +225,47 @@ export function ReadingFlow({
     }
   }, [chatLines]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      reading.explore
+        .filter((entry) => entry.key !== "professional" && !mapCacheRef.current[entry.key])
+        .forEach((entry) => {
+          void createInterpretationMap(chart.chart_id, entry.key)
+            .then((map) => {
+              if (!cancelled) {
+                mapCacheRef.current[entry.key] = map;
+              }
+            })
+            .catch(() => undefined);
+        });
+    }, 500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [chart.chart_id, reading.explore]);
+
   async function openExplore(key: string) {
     setExploreKey(key);
-    setExploreMap(null);
     setExploreError(null);
-    setExploreLoading(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    const cached = mapCacheRef.current[key];
+    if (cached) {
+      setExploreMap(cached);
+      setExploreLoading(false);
+      return;
+    }
+    setExploreMap(null);
+    const loadingTimer = window.setTimeout(() => setExploreLoading(true), 160);
     try {
       const map = await createInterpretationMap(chart.chart_id, key);
+      mapCacheRef.current[key] = map;
       setExploreMap(map);
     } catch (err) {
       setExploreError(err instanceof Error ? err.message : "这部分暂时打不开，可以稍后再试。");
     } finally {
+      window.clearTimeout(loadingTimer);
       setExploreLoading(false);
     }
   }
@@ -342,8 +372,8 @@ export function ReadingFlow({
 
           {reading.explore.length > 0 && (
             <section className="explore-row">
-              <h2 className="section-title">按主题继续深读</h2>
-              <p className="section-hint">每一张地图都会把当前主题和你的整张盘放在一起讲。</p>
+              <h2 className="section-title">六份个人报告</h2>
+              <p className="section-hint">身体、天赋、财富、关系和使命分别成篇；专业信息用于核对盘面。</p>
               <div className="explore-cards">
                 {reading.explore.map((entry) => (
                   <button key={entry.key} type="button" className="explore-card" onClick={() => void openExplore(entry.key)}>
@@ -358,9 +388,9 @@ export function ReadingFlow({
       ) : (
         <main className="flow explore-view">
           <button type="button" className="back-link" onClick={closeExplore}>← 回到完整报告</button>
-          <h1 className="explore-title">{exploreEntry?.title ?? ""}</h1>
-          {exploreEntry?.hint && <p className="explore-hint">{exploreEntry.hint}</p>}
-          {exploreLoading && <p className="soft-note">正在结合整张图为你解读……</p>}
+          {!exploreMap && <h1 className="explore-title">{exploreEntry?.title ?? ""}</h1>}
+          {!exploreMap && exploreEntry?.hint && <p className="explore-hint">{exploreEntry.hint}</p>}
+          {exploreLoading && <p className="soft-note">正在打开报告……</p>}
           {exploreError && <p className="error-text">{exploreError}</p>}
           {exploreMap && (
             <ExplorePanel
@@ -717,7 +747,7 @@ function DetailDirectory({
   );
 }
 
-/* ---------- 继续探索二级视图：主句可见 + 两层折叠 ---------- */
+/* ---------- 主题报告：结论、章节、现实场景与行动建议 ---------- */
 
 function ExplorePanel({
   mapPackage,
@@ -726,26 +756,56 @@ function ExplorePanel({
   mapPackage: InterpretationMapResponse;
   onFollowup: (question: string, itemKey?: string) => void;
 }) {
+  const visibleSections = mapPackage.sections.filter((section) => section.items.length > 0);
+  const quickFacts = mapPackage.professional_facts.slice(0, 5).map(guardText).filter(Boolean);
   return (
-    <div className="explore-panel">
+    <article className="map-report">
+      <header className="map-report-cover">
+        <span>个人人类图主题报告</span>
+        <h1>{guardText(mapPackage.title)}</h1>
+        <p>{guardText(mapPackage.description)}</p>
+        {quickFacts.length > 0 && (
+          <div className="map-report-facts">
+            {quickFacts.map((fact) => <b key={fact}>{fact}</b>)}
+          </div>
+        )}
+      </header>
+
       {guardText(mapPackage.overview) && (
-        <section className="map-overview">
-          <span>全盘综合解读</span>
+        <section className="map-report-lead">
+          <span>先看结论</span>
           {splitParagraphs(mapPackage.overview).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         </section>
       )}
-      {mapPackage.sections.filter((section) => section.items.length > 0).map((section) => (
-        <section key={section.key} className="explore-section">
-          {guardText(section.title) && <h2 className="section-title">{guardText(section.title)}</h2>}
-          {guardText(section.intro) && <p className="section-hint">{guardText(section.intro)}</p>}
+
+      {visibleSections.length > 1 && (
+        <nav className="map-report-toc" aria-label="报告目录">
+          <span>报告目录</span>
+          {visibleSections.map((section) => (
+            <a key={section.key} href={`#${section.key}`}>{guardText(section.title)}</a>
+          ))}
+        </nav>
+      )}
+
+      {visibleSections.map((section, sectionIndex) => (
+        <section key={section.key} id={section.key} className="map-report-chapter">
+          <header className="map-report-chapter-heading">
+            <span>{String(sectionIndex + 1).padStart(2, "0")}</span>
+            <div>
+              {guardText(section.title) && <h2>{guardText(section.title)}</h2>}
+              {guardText(section.intro) && <p>{guardText(section.intro)}</p>}
+            </div>
+          </header>
           {section.items.map((item) => (
-            <ExploreItemCard key={item.key} item={item} onFollowup={(next) => onFollowup(next, item.key)} />
+            <ReportArticle key={item.key} item={item} onFollowup={(next) => onFollowup(next, item.key)} />
           ))}
         </section>
       ))}
       {mapPackage.suggested_questions.length > 0 && (
-        <div className="followup-block">
-          <strong>可以继续问</strong>
+        <section className="map-report-followups">
+          <span>这份报告不是结论的终点</span>
+          <h2>带一个真实问题继续聊</h2>
+          <p>点击后会进入咨询对话，并结合整张盘继续分析，不会复述这份报告。</p>
           <div className="chip-row">
             {mapPackage.suggested_questions.map((item) => (
               <button key={item} type="button" onClick={() => onFollowup(item)}>
@@ -753,55 +813,49 @@ function ExplorePanel({
               </button>
             ))}
           </div>
-        </div>
+        </section>
       )}
-    </div>
+    </article>
   );
 }
 
-function ExploreItemCard({ item, onFollowup }: { item: InterpretationMapItem; onFollowup: (question: string) => void }) {
-  const [basisOpen, setBasisOpen] = useState(false);
-
+function ReportArticle({ item, onFollowup }: { item: InterpretationMapItem; onFollowup: (question: string) => void }) {
   const mainSentence = guardText(item.user_language);
   if (!mainSentence) {
     return null;
   }
-
   const basisLines = [...item.chart_basis.map(guardText), guardText(item.professional_basis)].filter(Boolean);
 
   return (
-    <article className="explore-item">
+    <article className="map-report-article">
       <header>
-        <strong>{guardText(item.title)}</strong>
+        <h3>{guardText(item.title)}</h3>
         {guardText(item.subtitle) && <span>{guardText(item.subtitle)}</span>}
       </header>
-      <p className="explore-main-sentence">{mainSentence}</p>
+      <div className="map-report-prose">
+        {splitParagraphs(mainSentence).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>
       {item.diagnosis_depth !== "trace" && (
-        <div className="diagnosis-grid">
-          <DiagnosisBlock title="在生活里会怎样出现" lines={item.life_scenes} />
-          <DiagnosisBlock title="真正活出来时" lines={item.embodied_expression} />
-          <DiagnosisBlock title="容易忽略的盲区" lines={item.blind_spots} />
-          <DiagnosisBlock title="被卡住时" lines={item.stuck_patterns} />
-          <DiagnosisBlock title="为什么会卡住" lines={item.stuck_causes} />
-          <DiagnosisBlock title="可以怎么练" lines={item.practices} />
-        </div>
+        <>
+          <ReportList title="你可能会在这些场景里认出它" lines={item.life_scenes} />
+          <ReportCallout title="顺着使用时" lines={item.embodied_expression} tone="positive" />
+          <div className="map-report-risk-grid">
+            <ReportCallout title="容易忽略的地方" lines={item.blind_spots} tone="warning" />
+            <ReportCallout title="卡住时会怎样" lines={item.stuck_patterns} tone="warning" />
+          </div>
+          <ReportList title="为什么会这样" lines={item.stuck_causes} />
+          <ReportSteps title="现在可以做" lines={item.practices} />
+        </>
       )}
       {basisLines.length > 0 && (
-        <div className="fold">
-          <button type="button" onClick={() => setBasisOpen(!basisOpen)}>
-            看图表依据 {basisOpen ? "⌃" : "⌄"}
-          </button>
-          {basisOpen && (
-            <div className="fold-body basis">
-              {basisLines.map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
-            </div>
-          )}
-        </div>
+        <details className="map-report-basis">
+          <summary>这段解读用了哪些盘面信息</summary>
+          <div>{basisLines.map((line, index) => <p key={index}>{line}</p>)}</div>
+        </details>
       )}
       {item.followup_questions.length > 0 && (
-        <div className="chip-row">
+        <div className="map-report-item-followup">
+          <span>和咨询师继续聊</span>
           {item.followup_questions.map((next) => (
             <button key={next} type="button" onClick={() => onFollowup(next)}>
               {next}
@@ -813,15 +867,51 @@ function ExploreItemCard({ item, onFollowup }: { item: InterpretationMapItem; on
   );
 }
 
-function DiagnosisBlock({ title, lines }: { title: string; lines: string[] }) {
+function ReportList({ title, lines }: { title: string; lines: string[] }) {
   const cleaned = lines.map(guardText).filter(Boolean);
   if (cleaned.length === 0) {
     return null;
   }
   return (
-    <section className="diagnosis-block">
+    <section className="map-report-list">
+      <h3>{title}</h3>
+      {cleaned.map((line, index) => <p key={index}><span>{String(index + 1).padStart(2, "0")}</span>{line}</p>)}
+    </section>
+  );
+}
+
+function ReportCallout({
+  title,
+  lines,
+  tone
+}: {
+  title: string;
+  lines: string[];
+  tone: "positive" | "warning";
+}) {
+  const cleaned = lines.map(guardText).filter(Boolean);
+  if (cleaned.length === 0) {
+    return null;
+  }
+  return (
+    <aside className={`map-report-callout ${tone}`}>
       <h3>{title}</h3>
       {cleaned.map((line, index) => <p key={index}>{line}</p>)}
+    </aside>
+  );
+}
+
+function ReportSteps({ title, lines }: { title: string; lines: string[] }) {
+  const cleaned = lines.map(guardText).filter(Boolean);
+  if (cleaned.length === 0) {
+    return null;
+  }
+  return (
+    <section className="map-report-steps">
+      <h3>{title}</h3>
+      {cleaned.map((line, index) => (
+        <p key={index}><b>{index + 1}</b>{line}</p>
+      ))}
     </section>
   );
 }

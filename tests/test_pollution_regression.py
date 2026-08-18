@@ -69,12 +69,13 @@ def test_cold_config_maps_never_fall_back_to_professional(cold_config_chart, map
         assert banned.lower() not in text, banned
 
 
-def test_cold_config_wealth_mission_have_grounded_whole_chart_reports(cold_config_chart) -> None:
+def test_cold_config_wealth_mission_have_grounded_reports(cold_config_chart) -> None:
     for map_type in ("wealth", "mission"):
         package = build_interpretation_map(cold_config_chart, map_type=map_type)
         items = [item for section in package.sections for item in section.items]
         assert items, f"{map_type} 必须有完整解读"
-        assert items[0].key == f"{map_type}.whole-chart"
+        assert len(package.sections) >= 4
+        assert items[0].key.startswith(f"{map_type}.")
         assert items[0].chart_basis
         assert items[0].user_language
         assert all("宁可先空着" not in section.intro for section in package.sections)

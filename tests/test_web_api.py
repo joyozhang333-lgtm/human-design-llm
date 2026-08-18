@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from time import perf_counter
+
 from fastapi.testclient import TestClient
 import pytest
 
@@ -156,7 +158,7 @@ def test_talent_report_returns_deep_synthesis_profile() -> None:
     assert "焦点提示" not in payload["answer_markdown"]
 
 
-def test_interpretation_map_endpoint_returns_v04_structured_map() -> None:
+def test_interpretation_map_endpoint_returns_instant_structured_report() -> None:
     client = _client()
     chart = _create_chart(client)
     response = client.post(
@@ -166,16 +168,16 @@ def test_interpretation_map_endpoint_returns_v04_structured_map() -> None:
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.5.1"
+    assert payload["product_version"] == "0.5.2"
     assert payload["map_type"] == "wealth"
-    assert payload["title"] == "财富地图"
+    assert payload["title"] == "财富报告"
     assert payload["overview"]
-    assert payload["generation_mode"] == "fallback"
+    assert payload["generation_mode"] == "instant"
     assert "系统有没有编造" not in payload["overview"]
     assert payload["professional_facts"]
     assert payload["sections"][0]["items"]
     item_titles = [item["title"] for section in payload["sections"] for item in section["items"]]
-    assert "财富来源：方向感加资源配置" in item_titles
+    assert any("形成价值" in title for title in item_titles)
     item = next(item for section in payload["sections"] for item in section["items"] if item["key"] == "wealth.02-14-main-track")
     assert item["diagnosis_depth"] == "deep"
     assert item["embodied_expression"]
@@ -185,6 +187,21 @@ def test_interpretation_map_endpoint_returns_v04_structured_map() -> None:
     assert any("盘面机制" in cause and "现实场景" in cause for cause in item["stuck_causes"])
     assert payload["retrieved_knowledge"]
     assert payload["sources"]
+
+
+def test_interpretation_map_endpoint_opens_without_model_latency() -> None:
+    client = _client()
+    chart = _create_chart(client)
+    started = perf_counter()
+    response = client.post(
+        "/api/interpretation-maps",
+        json={"chart_id": chart["chart_id"], "map_type": "talent", "depth": "deep"},
+    )
+    elapsed = perf_counter() - started
+
+    assert response.status_code == 200
+    assert response.json()["generation_mode"] == "instant"
+    assert elapsed < 0.25
 
 
 def test_readings_main_returns_contract_fields() -> None:

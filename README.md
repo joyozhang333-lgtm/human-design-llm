@@ -3,7 +3,7 @@
 > 把 Human Design（人类图）从昂贵、封闭的一次性报告，变成人人可以运行、验证、扩展和自托管的开源产品。
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-humandesign.guichu.chat-c46f55)](https://humandesign.guichu.chat)
-[![Version](https://img.shields.io/badge/version-0.5.1-222222)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.2-222222)](./CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-179_passing-2E8B57)](./tests)
 [![License](https://img.shields.io/badge/license-MIT-2E8B57)](./LICENSE)
@@ -188,7 +188,7 @@ python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' --output outputs/
 | `POST /api/readings/detail` | 按需生成中心、通道、闸门、变量或人生主轴细读 |
 | `GET /api/charts/{id}/bodygraph.svg` | 获取固定模板 BodyGraph SVG |
 | `GET /api/charts/{id}/reading-book` | 获取结构化阅读本 |
-| `POST /api/interpretation-maps` | 获取身体、财富、天赋、关系、使命或专业信息地图 |
+| `POST /api/interpretation-maps` | 即时获取身体、财富、天赋、关系、使命或专业信息报告，不等待模型 |
 | `POST /api/reports` | 生成总览、身体、天赋、职业或深度报告包 |
 | `POST /api/chat` | 基于当前盘面、地图上下文和会话历史继续对话 |
 | `GET /api/product/providers` | 查看模型是否已配置，不返回任何 Key |

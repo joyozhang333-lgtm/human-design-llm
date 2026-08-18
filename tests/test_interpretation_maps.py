@@ -30,14 +30,14 @@ def test_talent_map_uses_profile_channel_cross_and_user_language() -> None:
     package = build_interpretation_map(_anonymous_0214_chart(), map_type="talent", chart_id="chart_test")
     text = map_context_text(package)
 
-    assert package.product_version == "0.5.1"
+    assert package.product_version == "0.5.2"
     assert package.map_type == "talent"
-    assert package.title == "天赋地图"
+    assert package.title == "天赋报告"
     assert "人生角色：2/4" in package.professional_facts
     assert "已定义通道：02-14" in "\n".join(package.professional_facts)
-    assert "2/4 天赋" in text
+    assert "2/4：你的天赋怎样成熟" in text
     assert "轮回交叉与人生使命：斯芬克斯右角度交叉" in "\n".join(package.professional_facts)
-    assert "独处养熟" in text
+    assert "天然八十分" in text
     assert "当前聚焦" not in text
     assert "焦点提示" not in text
 
@@ -47,8 +47,8 @@ def test_wealth_map_surfaces_money_source_and_promise_boundary() -> None:
     titles = [item.title for section in package.sections for item in section.items]
     wealth_item = next(item for section in package.sections for item in section.items if item.key == "wealth.02-14-main-track")
 
-    assert "财富来源：方向感加资源配置" in titles
-    assert any("14号闸门" in "；".join(item.chart_basis) for section in package.sections for item in section.items)
+    assert any("02-14" in title and "形成价值" in title for title in titles)
+    assert any("02-14" in "；".join(item.chart_basis) for section in package.sections for item in section.items)
     assert "02-14" in map_context_text(package)
     assert wealth_item.diagnosis_depth == "deep"
     assert wealth_item.embodied_expression
@@ -63,26 +63,65 @@ def test_body_and_mission_maps_are_grounded_in_real_chart_facts() -> None:
     body = build_interpretation_map(_anonymous_0214_chart(), map_type="body")
     mission = build_interpretation_map(_anonymous_0214_chart(), map_type="mission")
 
-    assert any("荐骨怎么真正参与选择" == item.title for section in body.sections for item in section.items)
+    assert any("身体怎样告诉你“要”还是“不要”" == item.title for section in body.sections for item in section.items)
     assert mission.professional_facts
     assert "纯生产者" in "\n".join(mission.professional_facts)
     assert "Authority：Sacral Authority" in "\n".join(mission.professional_facts)
-    assert any(item.key == "mission.whole-chart" for section in mission.sections for item in section.items)
+    assert any(item.key == "mission.generator-cross" for section in mission.sections for item in section.items)
 
 
-def test_every_user_map_has_a_complete_whole_chart_reading() -> None:
+def test_every_user_map_is_a_complete_four_chapter_report() -> None:
     chart = _anonymous_0214_chart()
     for map_type in ("body", "wealth", "talent", "relationship", "mission"):
         package = build_interpretation_map(chart, map_type=map_type)
         items = [item for section in package.sections for item in section.items]
-        whole_chart = next(item for item in items if item.key == f"{map_type}.whole-chart")
-        assert whole_chart.user_language
-        assert whole_chart.life_scenes
-        assert whole_chart.embodied_expression
-        assert whole_chart.blind_spots
-        assert whole_chart.stuck_patterns
-        assert whole_chart.stuck_causes
-        assert whole_chart.practices
+        assert len(package.sections) >= 4
+        assert all(section.items for section in package.sections)
+        assert all(item.user_language and item.chart_basis for item in items)
+        assert any(item.life_scenes for item in items)
+        assert any(item.embodied_expression for item in items)
+        assert any(item.blind_spots for item in items)
+        assert any(item.stuck_patterns for item in items)
+        assert any(item.stuck_causes for item in items)
+        assert any(item.practices for item in items)
+
+
+def test_talent_wealth_and_mission_cover_every_defined_channel() -> None:
+    chart = _anonymous_0214_chart()
+    for map_type in ("talent", "wealth", "mission"):
+        package = build_interpretation_map(chart, map_type=map_type)
+        text = map_context_text(package)
+        for channel in chart.channels:
+            assert channel.code in text
+
+
+def test_body_report_covers_every_center_state() -> None:
+    chart = _anonymous_0214_chart()
+    package = build_interpretation_map(chart, map_type="body")
+    items = [item for section in package.sections for item in section.items]
+    stable = next(item for item in items if item.key == "body.stable-resources")
+    pressure = next(item for item in items if item.key == "body.open-pressure-chain")
+    assert len(stable.chart_basis) == sum(center.defined for center in chart.centers)
+    assert len(pressure.chart_basis) == sum(not center.defined for center in chart.centers)
+
+
+def test_suggested_questions_only_reference_the_current_chart() -> None:
+    chart = calculate_chart(normalize_birth_input("1991-07-12T09:40:00+08:00"))
+    package = build_interpretation_map(chart, map_type="talent")
+    questions = "\n".join(package.suggested_questions)
+
+    assert "5/1" in questions
+    assert "2/4" not in questions
+    assert "02-14" not in questions
+
+
+def test_mission_report_names_cross_and_four_core_activations() -> None:
+    package = build_interpretation_map(_anonymous_0214_chart(), map_type="mission")
+    theme = next(item for section in package.sections for item in section.items if item.key == "mission.cross-theme")
+
+    assert theme.title.startswith("你的使命主题：")
+    assert any(line.startswith("使命名称：") for line in theme.chart_basis)
+    assert sum(any(label in line for label in ("人格太阳", "人格地球", "设计太阳", "设计地球")) for line in theme.chart_basis) == 4
 
 
 def test_professional_map_uses_trace_diagnosis_without_long_sections() -> None:

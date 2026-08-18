@@ -127,7 +127,7 @@
   "citations": [],
   "map_context": {
     "map_type": "body",
-    "title": "身体地图",
+    "title": "身体报告",
     "sections": [],
     "retrieved_knowledge": []
   },
@@ -147,7 +147,7 @@
 
 ## `POST /api/interpretation-maps`
 
-生成 V0.5 全盘综合解读地图。前端展示独立的长解读，并保留结构化诊断条目和追问入口。
+即时生成 V0.5 主题报告。该接口不等待外部模型；前端先展示完整结构化报告，DeepSeek 只在用户主动追问时通过 `/api/chat` 参与。
 
 请求：
 
@@ -172,21 +172,21 @@
 
 ```json
 {
-  "product_version": "0.5.1",
+  "product_version": "0.5.2",
   "map_type": "wealth",
-  "title": "财富地图",
+  "title": "财富报告",
   "description": "...",
-  "overview": "基于整张盘生成的独立长解读",
-  "generation_mode": "llm",
+  "overview": "基于整张盘生成的报告结论",
+  "generation_mode": "instant",
   "professional_facts": ["类型：纯生产者"],
   "sections": [
     {
-      "key": "wealth-core",
-      "title": "财富从哪里来",
+      "key": "wealth-assets",
+      "title": "可变现的能力",
       "items": [
         {
           "key": "wealth.02-14-main-track",
-          "title": "财富来源：方向感加资源配置",
+          "title": "02-14「方向与资源通道」能怎样形成价值",
           "diagnosis_depth": "deep",
           "chart_basis": ["通道：02-14"],
           "professional_basis": "...",

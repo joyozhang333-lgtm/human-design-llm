@@ -24,6 +24,7 @@ from .research_corpus import (
     normalize_map_type,
     sources_by_id,
 )
+from .report_maps import build_report_sections
 from .schema import (
     HumanDesignChart,
     InterpretationMapItem,
@@ -37,12 +38,12 @@ from .schema import (
 from .version import VERSION
 
 MAP_TITLES = {
-    "body": ("身体地图", "看身体怎么回应、哪里容易被外界压力带走，以及能量要怎么回到自己身上。"),
-    "wealth": ("财富地图", "看钱从哪里来、资源怎么配置、什么承诺会损耗你，以及该怎么形成长期资产。"),
-    "talent": ("天赋地图", "看你的爻位、主通道、关键闸门和意识主题如何组合成可被使用的能力。"),
-    "relationship": ("关系地图", "看你适合什么样的关系、边界如何设定，以及情绪和表达如何不失真。"),
-    "mission": ("使命地图", "看轮回交叉、人生角色和稳定通道如何落成长期人生主线。"),
-    "professional": ("专业信息地图", "把类型、Strategy、Authority、人生角色、定义、中心和通道列清楚，作为所有解读的依据。"),
+    "body": ("身体报告", "看身体怎样参与决定、稳定能量从哪里来、压力从哪里进入，以及乱掉以后怎样回来。"),
+    "wealth": ("财富报告", "看钱怎样沿着你的稳定能力进入、哪些能力可以变现、什么承诺会吞掉利润。"),
+    "talent": ("天赋报告", "把人生角色、每条已定义通道和稳定中心放在一起，看天赋怎样从八十分练到一百分。"),
+    "relationship": ("关系报告", "看你怎样进入关系、最容易替别人承担什么，以及适合你的相处条件。"),
+    "mission": ("使命报告", "讲清轮回交叉的名字、四个核心位置，以及使命怎样通过真实能力落到日常。"),
+    "professional": ("专业信息", "把类型、Strategy、Authority、人生角色、定义、中心和通道列清楚，作为所有解读的依据。"),
 }
 
 SECTION_TITLES = {
@@ -66,9 +67,9 @@ MAP_FOLLOWUPS = {
         "我的定价和承诺边界应该怎么设？",
     ),
     "talent": (
-        "我的 2/4 爻位怎么变成真实优势？",
-        "02-14 通道如何变成事业主航道？",
-        "63/64 和 5/35 怎么组合成判断力？",
+        "我的人生角色最容易让我忽视哪种天赋？",
+        "哪一条已定义通道最值得先练成代表作？",
+        "我怎样把天然八十分的能力练到一百分？",
     ),
     "relationship": (
         "什么样的人最适合我？",
@@ -148,7 +149,7 @@ def build_interpretation_map(
         prompt_pack=prompt_pack,
         retrieved_knowledge=retrieved_atoms,
         sources=source_cards,
-        suggested_questions=MAP_FOLLOWUPS[map_key],
+        suggested_questions=_suggested_questions(map_key, chart),
         chart=chart,
     )
 
@@ -162,6 +163,47 @@ def map_type_from_focus(focus: str | None) -> str:
         "decision": "mission",
         "overview": "professional",
     }.get(focus or "", "talent")
+
+
+def _suggested_questions(map_key: str, chart: HumanDesignChart) -> tuple[str, ...]:
+    summary = _summary(chart)
+    first_channel = next(iter(chart.channels), None)
+    channel_name = (
+        f"{first_channel.code}「{display_channel_label(first_channel.code, first_channel.label)}」"
+        if first_channel
+        else "我在不同环境里被点亮的能力"
+    )
+    first_open = next((center for center in chart.centers if not center.defined), None)
+    open_name = normalize_center_title(CENTER_LABELS.get(first_open.code, first_open.label)) if first_open else "稳定中心"
+    questions = {
+        "body": (
+            f"我的 {display_authority_professional(chart.summary.authority.code, summary['authority'])} 应该怎么练？",
+            f"{open_name}最容易在什么场景把我带跑？",
+            "拿我最近一次能量低落，帮我判断压力链从哪里开始。",
+        ),
+        "wealth": (
+            f"{channel_name}最适合怎样形成收入？",
+            "我现在的定价和承诺边界，最需要先改哪一条？",
+            "结合我的现实工作，帮我选一条 30 天财富主线。",
+        ),
+        "talent": (
+            f"我的{summary['profile']}最容易让我忽视哪一种天赋？",
+            f"{channel_name}怎样从天然能力练成代表作？",
+            "我已经有八十分基础、却一直没认真发展的能力可能是什么？",
+        ),
+        "relationship": (
+            f"{open_name}会让我在关系里把什么误认为爱？",
+            f"{summary['profile']}需要怎样的亲密和独处节奏？",
+            "拿一段真实关系，帮我分析我正在替对方承担什么。",
+        ),
+        "mission": (
+            f"「{summary['incarnation_cross']}」在我的经历里可能怎样反复出现？",
+            f"{channel_name}怎样成为我落地使命的能力？",
+            "结合我最近三年的经历，帮我找使命主线的重复证据。",
+        ),
+        "professional": MAP_FOLLOWUPS["professional"],
+    }
+    return questions[map_key]
 
 
 def map_context_text(
@@ -234,23 +276,17 @@ def _build_sections(
     source_lookup: dict[str, SourceCard],
     depth: str,
 ) -> tuple[InterpretationMapSection, ...]:
-    section_title, intro = SECTION_TITLES[map_key]
-    items = [
-        _rule_to_item(rule, chart, atom_lookup, source_lookup, depth)
-        for rule in selected_rules
-    ]
     if map_key == "professional":
-        items.append(_professional_detail_item(chart))
-    else:
-        items.insert(0, _whole_chart_item(map_key, chart))
-    return (
-        InterpretationMapSection(
-            key=f"{map_key}-core",
-            title=section_title,
-            intro=intro,
-            items=tuple(items),
-        ),
-    )
+        section_title, intro = SECTION_TITLES[map_key]
+        return (
+            InterpretationMapSection(
+                key=f"{map_key}-core",
+                title=section_title,
+                intro=intro,
+                items=(_professional_detail_item(chart),),
+            ),
+        )
+    return build_report_sections(map_key, chart)
 
 
 def _rule_to_item(

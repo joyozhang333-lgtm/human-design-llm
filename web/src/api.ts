@@ -170,7 +170,7 @@ export type InterpretationMapResponse = {
   title: string;
   description: string;
   overview: string;
-  generation_mode: "llm" | "fallback";
+  generation_mode: "instant" | "llm" | "fallback";
   chart_id?: string | null;
   professional_facts: string[];
   sections: InterpretationMapSection[];

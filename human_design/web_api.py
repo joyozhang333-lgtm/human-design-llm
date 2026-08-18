@@ -13,7 +13,7 @@ from .body_energy import build_body_energy_profile
 from .bodygraph import render_bodygraph_svg
 from .deep_synthesis import build_deep_synthesis_profile
 from .engine import calculate_chart
-from .generation import generate_detail_reading, generate_main_reading, generate_map_reading
+from .generation import generate_detail_reading, generate_main_reading
 from .generation.facts import extract_chart_facts
 from .generation.validator import validate_and_repair
 from .input import InputNormalizationError, normalize_birth_input
@@ -34,6 +34,7 @@ from .labels import (
     normalize_center_title,
 )
 from .product import build_llm_product
+from .report_maps import build_report_overview
 from .reading import generate_reading
 from .providers import (
     DeepSeekClient,
@@ -373,22 +374,21 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
     @app.post("/api/interpretation-maps")
     def create_interpretation_map(request: InterpretationMapRequest) -> dict[str, Any]:
         saved_chart = active_store.get_chart(request.chart_id)
-        package = build_interpretation_map(
-            saved_chart.chart,
-            map_type=request.map_type,
-            depth=request.depth,
-            chart_id=request.chart_id,
-        )
         try:
-            overview = generate_map_reading(saved_chart.chart, package.map_type)
+            package = build_interpretation_map(
+                saved_chart.chart,
+                map_type=request.map_type,
+                depth=request.depth,
+                chart_id=request.chart_id,
+            )
         except KeyError as exc:
             raise HTTPException(
                 status_code=422,
                 detail={"code": "map_type_invalid", "message": f"未知解读地图：{request.map_type}"},
             ) from exc
         payload = package.to_dict()
-        payload["overview"] = overview.body
-        payload["generation_mode"] = overview.generation_mode
+        payload["overview"] = build_report_overview(package.map_type, saved_chart.chart)
+        payload["generation_mode"] = "instant"
         return payload
 
     @app.post("/api/chat")

@@ -25,6 +25,8 @@ Use systemd or another process supervisor. The environment file should be readab
 
 Upload `web/dist/` to a versioned release directory and atomically switch a `current` symlink. Serve the SPA from that directory and proxy `/api/` to `http://127.0.0.1:8000`.
 
+The HTML entry must not be cached across releases. Use `Cache-Control: no-cache, no-store, must-revalidate` for `/` and `/index.html`; hashed assets under `/assets/` may use long-lived immutable caching. This prevents an old public version badge and bundle from surviving a deployment.
+
 Set the API proxy timeout to at least 180 seconds because model-backed readings can take longer than ordinary JSON requests.
 
 ## Verification
