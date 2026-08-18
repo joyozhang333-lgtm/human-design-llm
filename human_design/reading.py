@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime
 
 from .knowledge import (
@@ -22,9 +23,20 @@ from .knowledge import (
     VARIABLE_ORIENTATION_GUIDES,
     to_source_reference,
 )
+from .glossary import (
+    display_circuit_group,
+    display_channel_type,
+    display_imprint,
+    display_planet,
+    display_variables,
+    scrub_technical_terms,
+)
 from .labels import (
     display_authority,
+    display_channel_label,
     display_definition,
+    display_gate_theme,
+    display_incarnation_cross,
     display_not_self,
     display_profile,
     display_signature,
@@ -35,11 +47,36 @@ from .labels import (
 from .schema import HumanDesignChart, HumanDesignReading, ReadingSection, SourceReference
 
 PRECISION_LABELS = {
-    "explicit-offset": "显式 UTC offset",
-    "timezone-name": "显式 IANA 时区",
-    "city-resolved": "城市解析时区",
-    "assumed-utc": "默认按 UTC",
+    "explicit-offset": "出生时间自带精确时区偏移",
+    "timezone-name": "使用了明确指定的时区",
+    "city-resolved": "时区由出生城市解析",
+    "assumed-utc": "未提供时区，按世界时处理",
 }
+
+# 手写优质卡片的确定性识别：命中模板指纹或含英文的填空版卡片不进入用户文本。
+_TEMPLATE_FINGERPRINT_RES = tuple(
+    re.compile(pattern)
+    for pattern in (
+        r"把与「?.+?」?相关的体验持续带进你的生命结构",
+        r"当这股能量运作成熟时",
+        r"形成稳定贡献",
+        r"如果.{0,6}被焦虑或外界压力带偏",
+        r"活成过度反应或反复内耗",
+    )
+)
+_ENGLISH_RE = re.compile(r"[A-Za-z]{3,}")
+
+
+def _clean_card_text(text: str) -> str:
+    """只放行手写优质文案：模板指纹或英文命中即整句弃用（宁缺毋滥）。"""
+    candidate = (text or "").strip()
+    if not candidate:
+        return ""
+    if _ENGLISH_RE.search(candidate):
+        return ""
+    if any(regex.search(candidate) for regex in _TEMPLATE_FINGERPRINT_RES):
+        return ""
+    return candidate
 
 
 def generate_reading(chart: HumanDesignChart) -> HumanDesignReading:
@@ -49,8 +86,8 @@ def generate_reading(chart: HumanDesignChart) -> HumanDesignReading:
     profile_label = display_profile(chart.summary.profile.code, chart.summary.profile.label)
     definition_label = display_definition(chart.summary.definition.code, chart.summary.definition.label)
     precision_facts = (
-        f"输入精度：{PRECISION_LABELS.get(chart.input.source_precision, chart.input.source_precision)}",
-        *tuple(f"精度提示：{warning}" for warning in chart.input.warnings),
+        f"输入精度：{scrub_technical_terms(PRECISION_LABELS.get(chart.input.source_precision, '见录入信息'))}",
+        *tuple(f"精度提示：{scrub_technical_terms(warning)}" for warning in chart.input.warnings),
     )
     sections = (
         _core_section(chart),
@@ -60,6 +97,7 @@ def generate_reading(chart: HumanDesignChart) -> HumanDesignReading:
         _centers_section(chart),
         _channels_section(chart),
         _gates_section(chart),
+        _gates_full_section(chart),
         _integration_section(chart),
     )
     headline = (
@@ -72,7 +110,7 @@ def generate_reading(chart: HumanDesignChart) -> HumanDesignReading:
         f"权威：{authority_label}",
         f"人生角色：{profile_label}",
         f"定义：{definition_label}",
-        f"轮回交叉：{chart.summary.incarnation_cross.label}",
+        f"轮回交叉：{display_incarnation_cross(chart.summary.incarnation_cross.code, chart.summary.incarnation_cross.label)}",
         *precision_facts,
     )
     suggested_questions = (
@@ -240,21 +278,23 @@ def _cross_and_variables_section(chart: HumanDesignChart) -> ReadingSection:
     p_earth = _find_activation(chart, "personality", "earth")
     d_sun = _find_activation(chart, "design", "sun")
     d_earth = _find_activation(chart, "design", "earth")
+    cross_label = display_incarnation_cross(
+        chart.summary.incarnation_cross.code, chart.summary.incarnation_cross.label
+    )
     summary = (
-        f"你的轮回交叉是「{chart.summary.incarnation_cross.label}」。"
-        "它更像一条人生主轴：不是职业名称，而是你反复会遇到、也会反复贡献出去的主题。"
+        f"你的人生主轴（轮回交叉）是「{cross_label}」。"
+        "它不是职业名称，而是你一生反复会遇到、也会反复贡献出去的主题。"
     )
     bullets = (
-        f"人格太阳/地球：{p_sun.gate} / {p_earth.gate}。它们描述你较显性的驱动力与平衡点。",
-        f"设计太阳/地球：{d_sun.gate} / {d_earth.gate}。它们描述更底层、身体化、未必总被头脑意识到的驱动。",
-        f"变量方向是「{chart.variables.orientation.label}」。"
-        f"其中 Motivation = {chart.variables.motivation.label}，Perspective = {chart.variables.perspective.label}，"
-        f"Determination = {chart.variables.determination.label}，Environment = {chart.variables.environment.label}。",
+        f"人格面（意识层）太阳/地球落在 {p_sun.gate} 号与 {p_earth.gate} 号闸门，描述你较显性的驱动力与平衡点。",
+        f"设计面（身体层）太阳/地球落在 {d_sun.gate} 号与 {d_earth.gate} 号闸门，描述更底层、身体化、未必总被头脑意识到的驱动。",
+        *display_variables(chart.variables),
         _describe_variable_orientations(chart.variables.orientation.label),
+        "这一小节看看就好，不必当规定：它描述的是让你更省力的倾向，不是必须执行的清单。",
     )
     return ReadingSection(
         key="cross-variables",
-        title="人生主轴与变量",
+        title="人生主轴与运作微调",
         summary=summary,
         bullets=bullets,
     )
@@ -314,21 +354,64 @@ def _channels_section(chart: HumanDesignChart) -> ReadingSection:
     )
 
 
+GATE_PRIORITY = (2, 14, 63, 64, 5, 35, 13, 17, 27, 28, 29, 34, 60, 61)
+
+
+def _cross_axis_gate_numbers(chart: HumanDesignChart) -> list[int]:
+    numbers: list[int] = []
+    for imprint, planet in (("personality", "sun"), ("personality", "earth"), ("design", "sun"), ("design", "earth")):
+        bucket = chart.personality if imprint == "personality" else chart.design
+        for activation in bucket.activations:
+            if activation.planet_code == planet:
+                numbers.append(activation.gate)
+                break
+    return numbers
+
+
+def _prioritized_gates(chart: HumanDesignChart) -> list:
+    """按主轴 + 天赋优先级排序激活闸门（复用 deep_synthesis 的优先级表）。"""
+    by_number = {gate.gate: gate for gate in chart.activated_gates}
+    ordered = []
+    for num in (*_cross_axis_gate_numbers(chart), *GATE_PRIORITY):
+        gate = by_number.get(num)
+        if gate is not None and gate not in ordered:
+            ordered.append(gate)
+    for gate in chart.activated_gates:
+        if gate not in ordered:
+            ordered.append(gate)
+    return ordered
+
+
 def _gates_section(chart: HumanDesignChart) -> ReadingSection:
+    top_gates = _prioritized_gates(chart)[:6]
     summary = (
-        f"你当前有 {len(chart.activated_gates)} 个被激活的闸门。下面优先列出完整激活清单，方便后续继续做更细的门线解读。"
+        f"你当前有 {len(chart.activated_gates)} 个被激活的闸门。"
+        "下面先看和你的主线最相关的几个，其余收在后面的完整清单里，想细看时再展开。"
     )
-    gate_cards = [get_gate_card(gate.gate) for gate in chart.activated_gates]
+    gate_cards = [get_gate_card(gate.gate) for gate in top_gates]
     bullets = tuple(
         _describe_gate(gate, gate_card)
-        for gate, gate_card in zip(chart.activated_gates, gate_cards, strict=True)
+        for gate, gate_card in zip(top_gates, gate_cards, strict=True)
     )
     return ReadingSection(
         key="gates",
-        title="闸门与行星激活",
+        title="关键闸门",
         summary=summary,
         bullets=bullets,
         sources=_unique_sources(tuple(_source_from_card("gate", gate_card) for gate_card in gate_cards)),
+    )
+
+
+def _gates_full_section(chart: HumanDesignChart) -> ReadingSection:
+    bullets = tuple(
+        f"{gate.gate} 号闸门·{display_gate_theme(gate.gate) or '主题见专业信息'}（位于{_center_label(gate.center)}）"
+        for gate in _prioritized_gates(chart)
+    )
+    return ReadingSection(
+        key="gates-full",
+        title="完整闸门清单",
+        summary="这是你全部被激活的闸门，每个只给名字，供想细看的时候核对。",
+        bullets=bullets,
     )
 
 
@@ -339,8 +422,8 @@ def _integration_section(chart: HumanDesignChart) -> ReadingSection:
     type_card = get_type_card(chart.summary.type.code)
     authority_card = get_authority_card(chart.summary.authority.code)
     summary = (
-        "真正让人类图变成产品价值的，不是知道术语，而是把它变成可执行的自我观察。"
-        "你现在最需要的不是再多看一堆标签，而是把图里最关键的 2 到 3 个机制活到日常里。"
+        "读完这张图，最有用的不是记住术语，而是把里面最关键的两三个机制放进日常里观察。"
+        "答案不在图里，在你接下来怎么观察自己。"
     )
     bullets = (
         f"先从「{authority_label}」练起：未来两周，把所有重要决定都延后到你的权威真正有回应时再定。",
@@ -369,11 +452,17 @@ def _describe_channel(channel, card=None) -> str:
     center_names = " 与 ".join(_center_label(code) for code in channel.centers)
     details = ""
     if card:
-        detail_parts = [card.summary, *_limit_bullets(card.gifts, 2), *_limit_bullets(card.shadows, 1)]
+        detail_parts = [
+            _clean_card_text(card.summary),
+            *(_clean_card_text(item) for item in _limit_bullets(card.gifts, 2)),
+            *(_clean_card_text(item) for item in _limit_bullets(card.shadows, 1)),
+        ]
         details = " ".join(part for part in detail_parts if part).strip()
+    channel_name = display_channel_label(channel.code) or f"{channel.code} 通道"
     return (
-        f"{channel.label}：连接 {center_names}，属于 {channel.circuit_group.label} 回路中的 "
-        f"{channel.channel_type.label} 通道。{channel_type} {circuit_group}"
+        f"{channel.code}「{channel_name}」：连接{center_names}，"
+        f"属于{display_circuit_group(channel.circuit_group.code)}的{display_channel_type(channel.channel_type.code)}通道。"
+        f"{channel_type} {circuit_group}"
         f"{(' ' + details) if details else ''}"
     ).strip()
 
@@ -382,26 +471,30 @@ def _describe_gate(gate, card=None) -> str:
     if card is None:
         card = get_gate_card(gate.gate)
     planet_bits = []
-    for activation in gate.activations:
+    for activation in gate.activations[:2]:
         planet_meaning = PLANET_GUIDES.get(
             activation.planet_code, "这个行星会把该主题带进你的生命经验。"
         )
         line_guide = LINE_GUIDES.get(activation.line, "")
         planet_bits.append(
-            f"{activation.imprint} {activation.planet_label} 激活 {activation.line} 线：{planet_meaning} {line_guide}".strip()
+            f"{display_imprint(activation.imprint, short=True)}·{display_planet(activation.planet_code, activation.planet_label)}"
+            f" 激活 {activation.line} 线：{planet_meaning} {line_guide}".strip()
         )
 
+    # 只用手写优质卡片的一句具体白话；填空模板卡片不进入用户文本。
     card_summary = ""
     if card:
-        detail_parts = [card.summary, *_limit_bullets(card.gifts, 1), *_limit_bullets(card.shadows, 1)]
-        card_summary = " ".join(part for part in detail_parts if part).strip()
+        card_summary = _clean_card_text(card.summary)
+        if not card_summary:
+            gift = _clean_card_text(card.gifts[0]) if card.gifts else ""
+            card_summary = gift
 
+    theme_cn = display_gate_theme(gate.gate) or "主题见专业信息"
     return (
-        f"{gate.gate} 号闸门《{gate.title}》位于 {_center_label(gate.center)}，主题是「{gate.theme}」。"
-        f"相关通道：{', '.join(gate.channels) or '无'}。"
+        f"{gate.gate} 号闸门·{theme_cn}，位于{_center_label(gate.center)}。"
         f"{(card_summary + ' ') if card_summary else ''}"
         f"{' '.join(planet_bits)}"
-    )
+    ).strip()
 
 
 def _describe_variable_orientations(label: str) -> str:

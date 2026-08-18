@@ -7,7 +7,7 @@ import shutil
 
 
 class SkillInstallError(RuntimeError):
-    """Raised when the skill cannot be installed into the target Codex directory."""
+    """Raised when the skill cannot be installed into the target agent directory."""
 
 
 @dataclass(frozen=True)
@@ -22,7 +22,8 @@ def default_codex_home() -> Path:
     configured = os.environ.get("CODEX_HOME")
     if configured:
         return Path(configured).expanduser()
-    return Path.home() / ".codex"
+    # Codex discovers personal skills from the shared Agent Skills directory.
+    return Path.home() / ".agents"
 
 
 def resolve_skill_target(
@@ -64,7 +65,7 @@ def install_skill(
     if mode == "link":
         target.symlink_to(source, target_is_directory=True)
     elif mode == "copy":
-        shutil.copytree(source, target)
+        shutil.copytree(source, target, ignore=_copy_ignore)
     else:
         raise SkillInstallError(f"不支持的安装模式：{mode}")
 
@@ -74,6 +75,29 @@ def install_skill(
         target_dir=str(target),
         mode=mode,
     )
+
+
+def _copy_ignore(directory: str, names: list[str]) -> set[str]:
+    """Keep local secrets, caches, build output, and VCS metadata out of copied skills."""
+    ignored_names = {
+        ".git",
+        ".venv",
+        ".pytest_cache",
+        ".cache",
+        ".env",
+        "node_modules",
+        "dist",
+        "outputs",
+        "__pycache__",
+        "cache.db",
+        "cache.db-wal",
+        "cache.db-shm",
+    }
+    return {
+        name
+        for name in names
+        if name in ignored_names or name.endswith((".pyc", ".pyo"))
+    }
 
 
 def _remove_existing_target(target: Path) -> None:

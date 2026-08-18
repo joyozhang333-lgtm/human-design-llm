@@ -18,3 +18,14 @@ task_plan.md
 findings.md
 progress.md
 docs/research/*talent-reading*.md
+.gstack/
+cache.db
+cache.db-wal
+cache.db-shm
+
+# Product strategy and visual review artifacts stay local; public docs must not expose
+# workstation paths, private background notes, or real-user chart screenshots.
+docs/v0.5-content-precision-prd.md
+docs/v0.5-prd-审稿修正清单.md
+docs/v0.5-tech-stack-and-acceptance.md
+docs/v0.5-screenshots/

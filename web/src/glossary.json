@@ -1,0 +1,594 @@
+[
+  {
+    "key": "sun",
+    "en": "sun",
+    "zh": "太阳",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "earth",
+    "en": "earth",
+    "zh": "地球",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "moon",
+    "en": "moon",
+    "zh": "月亮",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "north-node",
+    "en": "north-node",
+    "zh": "北交点",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "south-node",
+    "en": "south-node",
+    "zh": "南交点",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "mercury",
+    "en": "mercury",
+    "zh": "水星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "venus",
+    "en": "venus",
+    "zh": "金星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "mars",
+    "en": "mars",
+    "zh": "火星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "jupiter",
+    "en": "jupiter",
+    "zh": "木星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "saturn",
+    "en": "saturn",
+    "zh": "土星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "uranus",
+    "en": "uranus",
+    "zh": "天王星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "neptune",
+    "en": "neptune",
+    "zh": "海王星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "pluto",
+    "en": "pluto",
+    "zh": "冥王星",
+    "tier": "translate",
+    "group": "planet"
+  },
+  {
+    "key": "☉",
+    "en": "☉",
+    "zh": "太阳",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "⊕",
+    "en": "⊕",
+    "zh": "地球",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "☽",
+    "en": "☽",
+    "zh": "月亮",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "☊",
+    "en": "☊",
+    "zh": "北交点",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "☋",
+    "en": "☋",
+    "zh": "南交点",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "☿",
+    "en": "☿",
+    "zh": "水星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "♀",
+    "en": "♀",
+    "zh": "金星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "♂",
+    "en": "♂",
+    "zh": "火星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "♃",
+    "en": "♃",
+    "zh": "木星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "♄",
+    "en": "♄",
+    "zh": "土星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "⛢",
+    "en": "⛢",
+    "zh": "天王星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "♅",
+    "en": "♅",
+    "zh": "天王星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "♆",
+    "en": "♆",
+    "zh": "海王星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "♇",
+    "en": "♇",
+    "zh": "冥王星",
+    "tier": "hide",
+    "group": "planet-symbol"
+  },
+  {
+    "key": "design",
+    "en": "design",
+    "zh": "设计面（身体层）",
+    "tier": "translate",
+    "group": "imprint",
+    "first_hint": "设计面来自身体层，人格面来自意识层"
+  },
+  {
+    "key": "personality",
+    "en": "personality",
+    "zh": "人格面（意识层）",
+    "tier": "translate",
+    "group": "imprint",
+    "first_hint": "设计面来自身体层，人格面来自意识层"
+  },
+  {
+    "key": "individual",
+    "en": "individual",
+    "zh": "个体人回路",
+    "tier": "translate",
+    "group": "circuit",
+    "first_hint": "推动「与众不同」和突变的能量"
+  },
+  {
+    "key": "tribal",
+    "en": "tribal",
+    "zh": "社群人回路",
+    "tier": "translate",
+    "group": "circuit",
+    "first_hint": "关于支持、契约、照顾彼此"
+  },
+  {
+    "key": "collective",
+    "en": "collective",
+    "zh": "集体人回路",
+    "tier": "translate",
+    "group": "circuit",
+    "first_hint": "关于分享经验、为众人探路"
+  },
+  {
+    "key": "integration",
+    "en": "integration",
+    "zh": "整合回路",
+    "tier": "translate",
+    "group": "circuit",
+    "first_hint": "关于自我保存与本能整合"
+  },
+  {
+    "key": "projected",
+    "en": "projected",
+    "zh": "投射型",
+    "tier": "translate",
+    "group": "channel-type"
+  },
+  {
+    "key": "generated",
+    "en": "generated",
+    "zh": "生成型",
+    "tier": "translate",
+    "group": "channel-type"
+  },
+  {
+    "key": "manifested",
+    "en": "manifested",
+    "zh": "显示型",
+    "tier": "translate",
+    "group": "channel-type"
+  },
+  {
+    "key": "manifesting-generated",
+    "en": "manifesting-generated",
+    "zh": "显示生成型",
+    "tier": "translate",
+    "group": "channel-type"
+  },
+  {
+    "key": "Fear",
+    "en": "Fear",
+    "zh": "恐惧",
+    "tier": "translate",
+    "group": "motivation",
+    "first_hint": "你做事更多被「想守住什么」推动，先看清风险反而让你安心"
+  },
+  {
+    "key": "Hope",
+    "en": "Hope",
+    "zh": "希望",
+    "tier": "translate",
+    "group": "motivation",
+    "first_hint": "你做事更多被「盼着会更好」推动，希望感在，劲就在"
+  },
+  {
+    "key": "Desire",
+    "en": "Desire",
+    "zh": "渴望",
+    "tier": "translate",
+    "group": "motivation",
+    "first_hint": "你做事更多被「想要」而非「害怕」推动"
+  },
+  {
+    "key": "Need",
+    "en": "Need",
+    "zh": "需要",
+    "tier": "translate",
+    "group": "motivation",
+    "first_hint": "你做事更多被「真的需要」推动，可有可无的事很难让你上心"
+  },
+  {
+    "key": "Guilt",
+    "en": "Guilt",
+    "zh": "愧疚",
+    "tier": "translate",
+    "group": "motivation",
+    "first_hint": "你容易被「我是不是亏欠了谁」推动，值得留意这股劲的来处"
+  },
+  {
+    "key": "Innocence",
+    "en": "Innocence",
+    "zh": "纯真",
+    "tier": "translate",
+    "group": "motivation",
+    "first_hint": "你状态最好的时候是不带算计地去做，越单纯越有力"
+  },
+  {
+    "key": "Smell",
+    "en": "Smell",
+    "zh": "直觉嗅觉",
+    "tier": "translate",
+    "group": "perspective",
+    "first_hint": "你习惯先靠一种说不清的「气味感」判断对不对劲"
+  },
+  {
+    "key": "Taste",
+    "en": "Taste",
+    "zh": "品味分辨",
+    "tier": "translate",
+    "group": "perspective",
+    "first_hint": "你习惯先分辨「合不合口味」，挑剔其实是你的天线"
+  },
+  {
+    "key": "Outer Vision",
+    "en": "Outer Vision",
+    "zh": "外观全景",
+    "tier": "translate",
+    "group": "perspective",
+    "first_hint": "你习惯先扫一眼全景，把局面尽收眼底再说"
+  },
+  {
+    "key": "Inner Vision",
+    "en": "Inner Vision",
+    "zh": "内在画面",
+    "tier": "translate",
+    "group": "perspective",
+    "first_hint": "你习惯先在心里成像，画面清楚了才觉得看懂了"
+  },
+  {
+    "key": "Feeling",
+    "en": "Feeling",
+    "zh": "感受",
+    "tier": "translate",
+    "group": "perspective",
+    "first_hint": "你习惯先用感受去读一个人、一件事，而不是先讲道理"
+  },
+  {
+    "key": "Touch",
+    "en": "Touch",
+    "zh": "贴近触感",
+    "tier": "translate",
+    "group": "perspective",
+    "first_hint": "你习惯靠得足够近、亲手碰过，才真正相信自己看到的"
+  },
+  {
+    "key": "Appetite, Consecutive",
+    "en": "Appetite, Consecutive",
+    "zh": "一次专注一样、按顺序来，身体最好消化",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Appetite, Alternating",
+    "en": "Appetite, Alternating",
+    "zh": "换着花样来，身体反而吸收得好",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Taste, Open",
+    "en": "Taste, Open",
+    "zh": "口味开放、多尝多试，营养面宽一点更滋养你",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Taste, Closed",
+    "en": "Taste, Closed",
+    "zh": "认准合适的就固定下来，重复反而养人",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Thirst, Hot",
+    "en": "Thirst, Hot",
+    "zh": "偏温热的饮食和环境更养你",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Thirst, Cold",
+    "en": "Thirst, Cold",
+    "zh": "偏清凉的饮食和环境更养你",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Touch, Calm",
+    "en": "Touch, Calm",
+    "zh": "靠身体触感判断、需要安静不被打扰",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Touch, Nervous",
+    "en": "Touch, Nervous",
+    "zh": "身体敏感度高，有点动静反而帮你消化",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Sound, High",
+    "en": "Sound, High",
+    "zh": "环境里有清亮的声音时你吸收得更好",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Sound, Low",
+    "en": "Sound, Low",
+    "zh": "低沉安稳的声音环境里你更能消化",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Light, Direct",
+    "en": "Light, Direct",
+    "zh": "光线充足、白天进食状态最好",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Light, Indirect",
+    "en": "Light, Indirect",
+    "zh": "柔和的光线下你更放松、吸收更好",
+    "tier": "translate",
+    "group": "determination"
+  },
+  {
+    "key": "Caves, Selective",
+    "en": "Caves, Selective",
+    "zh": "有安全感的小空间最让你松下来，入口由你把关",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Caves, Blending",
+    "en": "Caves, Blending",
+    "zh": "有包裹感又不封死的空间最养你",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Markets, Internal",
+    "en": "Markets, Internal",
+    "zh": "有人来人往、可交换的地方让你有活力，但要能退回自己的角落",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Markets, External",
+    "en": "Markets, External",
+    "zh": "热闹的交换场域让你状态好，越开放越自在",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Kitchens, Wet",
+    "en": "Kitchens, Wet",
+    "zh": "湿润、有烟火气的环境最让你舒服",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Kitchens, Dry",
+    "en": "Kitchens, Dry",
+    "zh": "干爽、有烟火气的环境最让你舒服",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Mountains, Active",
+    "en": "Mountains, Active",
+    "zh": "地势高、空气流动的地方让你清醒有力",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Mountains, Passive",
+    "en": "Mountains, Passive",
+    "zh": "地势高、安静开阔的地方最能安你的神",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Valleys, Narrow",
+    "en": "Valleys, Narrow",
+    "zh": "地势偏低、有围合感的空间让你踏实",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Valleys, Wide",
+    "en": "Valleys, Wide",
+    "zh": "地势偏低、视野开阔的空间最让你松下来",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Shores, Natural",
+    "en": "Shores, Natural",
+    "zh": "水边、边界地带最养你，越自然越好",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Shores, Artificial",
+    "en": "Shores, Artificial",
+    "zh": "水边、边界地带最养你，城市水岸也可以",
+    "tier": "translate",
+    "group": "environment"
+  },
+  {
+    "key": "Uncertainty",
+    "en": "Uncertainty",
+    "zh": "不确定",
+    "tier": "translate",
+    "group": "sense"
+  },
+  {
+    "key": "Certainty",
+    "en": "Certainty",
+    "zh": "确定",
+    "tier": "translate",
+    "group": "sense"
+  },
+  {
+    "key": "Action",
+    "en": "Action",
+    "zh": "行动",
+    "tier": "translate",
+    "group": "sense"
+  },
+  {
+    "key": "Meditation",
+    "en": "Meditation",
+    "zh": "静观",
+    "tier": "translate",
+    "group": "sense"
+  },
+  {
+    "key": "Observation",
+    "en": "Observation",
+    "zh": "观察",
+    "tier": "translate",
+    "group": "sense"
+  },
+  {
+    "key": "Acceptance",
+    "en": "Acceptance",
+    "zh": "接纳",
+    "tier": "translate",
+    "group": "sense"
+  },
+  {
+    "key": "r",
+    "en": "r",
+    "zh": "右角度交叉",
+    "tier": "translate",
+    "group": "cross-angle"
+  },
+  {
+    "key": "l",
+    "en": "l",
+    "zh": "左角度交叉",
+    "tier": "translate",
+    "group": "cross-angle"
+  },
+  {
+    "key": "j",
+    "en": "j",
+    "zh": "并列交叉",
+    "tier": "translate",
+    "group": "cross-angle"
+  }
+]

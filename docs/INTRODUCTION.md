@@ -4,11 +4,11 @@ This file contains copy-ready descriptions for GitHub, package registries, newsl
 
 ## One-Line English
 
-Human Design LLM is an open-source AI toolkit for Human Design BodyGraph calculation, structured readings, career analysis, relationship comparison, timing context, source-traceable LLM prompts, and empirical validation workflows.
+Human Design LLM is the open-source product behind HumanDesign.guichu.chat: a BodyGraph calculator, whole-chart reading engine, DeepSeek-powered consultant, Web app, API, and installable AI Agent Skill.
 
 ## 一句话中文
 
-Human Design LLM 是一个开源人类图 AI 工具库，覆盖 BodyGraph 排盘、结构化解读、职业深读、关系合盘、时机分析、可追溯引用的 LLM 产品包和客观准确性实验评估流程。
+Human Design LLM 是 HumanDesign.guichu.chat 的完整开源产品，覆盖 BodyGraph 排盘、全盘综合解读、天赋与使命地图、DeepSeek 咨询、Web/API 与可安装的 AI Agent Skill。
 
 ## Short English Introduction
 
@@ -28,7 +28,7 @@ Human Design LLM is an LLM-native product layer for Human Design. It wraps chart
 
 The core output is not just a markdown reading. The project can produce a full LLM product package containing chart facts, reading sections, source references, assistant instructions, context blocks, answer citations, suggested follow-ups, delivery depth, and session state. This makes it suitable for AI agents, API backends, prompt orchestration systems, and local Codex/OpenAI-style skills.
 
-The current V0.4 release supports single-chart readings, layered diagnosis interpretation maps, career deep readings, relationship comparison, timing/transit context, birth-time uncertainty analysis, template-based BodyGraph SVG rendering, blinded forced-choice empirical analysis, 1000+ public-figure holdout trials, and prospective prediction registry tooling. The product is tested with pytest, smoke suites, narrative evaluations, public-figure accuracy checks, empirical-readiness checks, benchmark-readiness checks, and the legacy scorecard.
+The current V0.5 release places the BodyGraph first, follows it with a readable four-part report, and adds distinct body, talent, wealth, relationship, and mission maps. DeepSeek powers grounded whole-chart readings and follow-up consultation, while deterministic validators block invented gates, channels, strategy conflicts, prompt leakage, and developer language. The release passes 177 pytest tests, a production frontend build, and desktop/mobile end-to-end checks.
 
 ## 中文长介绍
 
@@ -36,7 +36,7 @@ Human Design LLM 是一个面向大模型的人类图产品层。它把人类图
 
 这个项目的核心输出不只是 Markdown 解读，而是一份完整的 LLM 产品包：包含 chart 事实、阅读章节、来源引用、助手指令、上下文块、回答引用、推荐追问、输出深度和会话状态。因此它适合 AI Agent、API 后端、prompt orchestration、Codex/OpenAI 风格技能，以及任何需要结构化人类图事实的大模型应用。
 
-当前 V0.4 版本支持单盘解读、六张分层诊断解读地图、职业深读、关系合盘、时机 / transit 分析、出生时间不确定性采样、模板驱动的 BodyGraph SVG 出图、盲测 forced-choice 实验分析、1000+ 公开人物 holdout trials 和前瞻预测注册表。产品质量通过 pytest、smoke suite、narrative eval、公开人物准确度、经验验证准备度、benchmark readiness 和历史 scorecard 做回归验证。
+当前 V0.5 版本把 BodyGraph 放在结果页首屏，随后给出核心配置与“核心身份、决策与行动、天赋与角色路径、人生主轴”四段式报告。身体、天赋、财富、关系和使命地图会分别结合整张盘解读；DeepSeek 负责主阅读与连续咨询，确定性护栏负责拦截编造闸门、虚构通道、策略冲突、提示词泄漏和开发者语言。当前发布通过 177 个 pytest、前端生产构建及桌面/移动端端到端验收。
 
 ## GitHub Description Options
 

@@ -1,139 +1,80 @@
-# Human Design LLM - Human Design AI Toolkit | 人类图 AI 解读引擎
+# Human Design LLM | 开源人类图 AI、BodyGraph 与 Agent Skill
 
-**Human Design LLM** is an open-source Human Design AI toolkit and Web/App product foundation for **BodyGraph chart calculation, Human Design reading generation, body-energy interpretation, career analysis, relationship comparison, timing/transit context, source-traceable LLM prompts, installable AI skills, and a Chinese-first user-facing app**.
+> 把 Human Design（人类图）从昂贵、封闭的一次性报告，变成人人可以运行、验证、扩展和自托管的开源产品。
 
-**人类图 LLM** 是一个面向 AI Agent / LLM Runtime 与 Web/App 的开源人类图产品底座，覆盖 **人类图排盘、BodyGraph 出图、身体能量解读、人类图职业解读、人类图合盘、时机分析、知识卡引用追踪、会话协议、Web API、React 前端和 Codex skill**。
+[![Live Demo](https://img.shields.io/badge/Live_Demo-humandesign.guichu.chat-c46f55)](https://humandesign.guichu.chat)
+[![Version](https://img.shields.io/badge/version-0.5.0-222222)](./CHANGELOG.md)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/tests-177_passing-2E8B57)](./tests)
+[![License](https://img.shields.io/badge/license-MIT-2E8B57)](./LICENSE)
 
-It is not a static Human Design website. It is a Python product layer that turns birth data into structured chart facts, then packages those facts into LLM-ready context blocks and grounded interpretation workflows.
+**在线体验 / Live Demo：<https://humandesign.guichu.chat>**
 
-它不是一个静态网页，也不是单纯 prompt 模板，而是把出生资料转成结构化人类图事实，再把这些事实封装成大模型可直接使用的产品包。
+**Human Design LLM** 是 [HumanDesign.guichu.chat](https://humandesign.guichu.chat) 的完整开源代码。它既是一个可直接使用的人类图 Web 产品，也是一个可安装到 Codex、Claude Code、Hermes、OpenClaw 或其他 AI Agent 的 Skill，同时提供 Python API、FastAPI 服务和 React 前端，方便开发者构建自己的 Human Design 产品。
 
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-0.4.0-black)](./CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-98%20passing-brightgreen)](./tests)
-[![LLM Native](https://img.shields.io/badge/LLM-native-orange)](./docs/contracts/llm-package.md)
+The repository contains the complete open-source product behind [HumanDesign.guichu.chat](https://humandesign.guichu.chat). Use it as a standalone Web app, a Human Design skill for AI agents, a Python library, or a backend/frontend foundation for your own product.
 
-## What It Does
+## 为什么开源
 
-Human Design LLM turns a birth time into reusable product layers:
+认识自己的身体节奏、决策方式和天赋，不应该只能依赖高昂的一次性解读费用。本项目希望让更多人能够：
 
-| Layer | English | 中文 |
-| --- | --- | --- |
-| Chart | Human Design chart calculator and BodyGraph schema | 人类图排盘与 BodyGraph 结构化数据 |
-| Reading | Source-backed Human Design reading generator | 带知识卡来源的人类图解读生成器 |
-| Body Energy | Center/channel/gate interpretation for body resources and energy management | 身体资源、九大中心、通道、闸门与能量管理解读 |
-| Product Package | LLM-ready prompts, context blocks, citations, follow-ups, session state | 大模型可直接消费的 prompts、上下文块、引用、追问和会话状态 |
-| Visuals | Template-based BodyGraph SVG rendering | 模板驱动的人类图 BodyGraph 出图 |
-| Web/App | FastAPI endpoints and React/Vite user interface | FastAPI 接口与 React/Vite 用户界面 |
+- 免费运行或自托管一套完整的人类图产品。
+- 在自己的 AI 中调用结构化盘面，而不是让模型凭空猜测。
+- 看懂类型、策略、权威、人生角色、中心、通道、闸门与人生主轴如何共同作用。
+- 用清晰、非决定论的语言观察自己的生命，而不是被术语或标签限制。
+- 共同改进中文术语、解释质量、产品体验与工程可靠性。
 
-## Who It Is For
+仓库使用 MIT License。你可以学习、修改、部署和用于自己的产品；外部模型 API 与服务器费用仍由使用者自行承担。
 
-This repository is designed for developers and AI builders who want to create:
+## V0.5 更新了什么
 
-- Human Design AI assistants.
-- Human Design chart calculator APIs.
-- BodyGraph interpretation agents.
-- Human Design career reading products.
-- Human Design talent and deep-reading products.
-- Human Design relationship chart and compatibility tools.
-- Human Design timing, transit, and cycle analysis workflows.
-- Chinese Human Design Web/App products with chart, report, and chat flows.
-- Codex / OpenAI / Hermes / OpenClaw skills that need structured chart facts.
+V0.5 的关键词是 **从术语墙到完整阅读体验**。本版本不再只把固定模板拼成报告，而是引入新的内容生成链路：
 
-这个项目适合用来搭建：
+```text
+出生信息
+  -> HumanDesignChart 结构化排盘
+  -> 中文 ChartFacts 与事实白名单
+  -> 分层解读 Prompt
+  -> DeepSeek / Claude 综合生成
+  -> 闸门、通道、中心与术语护栏校验
+  -> SQLite 缓存
+  -> 无模型或校验失败时安全回退
+```
 
-- 人类图 AI 解读助手
-- 人类图排盘 API
-- BodyGraph 自动出图工具
-- 人类图职业解读产品
-- 人类图天赋深挖 / 深度解读产品
-- 人类图合盘 / 关系分析工具
-- 人类图流年 / transit / timing 分析流程
-- 中文人类图 Web/App 产品：排盘、报告、出图和聊天问答
-- 面向 Codex / OpenAI / Hermes / OpenClaw 的本地 skill
+主要变化：
 
-## Why This Project Is Different
+- **主线叙事**：先讲“这张图对你意味着什么”，再按需展开中心、通道、闸门、变量与人生主轴。
+- **全盘综合解读**：类型、策略、权威、人生角色、通道与开放中心在同一条叙事中联动，不再只做单个术语查询。
+- **真实 AI 生成**：主阅读与细读可以调用 DeepSeek 或 Claude；没有 API Key 时自动使用结构化中文回退内容。
+- **事实护栏**：输出中的闸门、通道、中心和爻线必须来自当前盘面；违规文本会被重写或拦截。
+- **中文化层**：行星、变量、回路、通道类型和常见 Human Design 术语统一转成简体中文。
+- **隐私缓存**：生成缓存只保存盘面事实哈希与文本，不保存昵称、生日、出生时间、性别或出生地。
+- **阅读式界面**：BodyGraph 置顶，其后依次展示核心配置、四段式报告、主题地图与咨询对话；桌面和移动端使用同一套阅读流。
+- **深度探索与对话**：身体、财富、关系等主题可以继续展开，并把问题带入基于当前全盘的 AI 对话。
+- **污染回归保护**：模型输出若泄露提示词、编造结构或混入开发者语言会被重写或拦截，并回退到基于真实盘面的结构化解读。
 
-- **Chart facts before interpretation**: every answer starts from calculated chart data, not prompt-only guessing.
-- **LLM-native contract**: `build_llm_product()` returns system prompts, assistant instructions, focus-aware context blocks, answer citations, suggested follow-ups, delivery depth, and session state.
-- **Career reading that is not generic**: `focus="career"` adds career thesis, money engine, opportunity entry, role architecture, distortion loop, and direction filters while guarding against invented gates or channels.
-- **Talent reading that is not generic**: `focus="talent"` adds research method context, structure stacking, talent modules, non-genericity checks, consumption loops, and 30-day experiments.
-- **Source traceability**: output sections point back to local markdown reference cards under `references/`.
-- **Research-grounded deep synthesis**: `human_design.deep_synthesis` connects official/classic source digestion, YouTube/podcast practice language, Chinese terminology, and anthropological thick-description methods without copying copyrighted texts.
-- **Chinese-first reading quality**: Simplified-Chinese output uses terms such as `荐骨中心`, `荐骨权威`, `阿姬娜中心`, and `人生角色`.
-- **Template-driven BodyGraph**: SVG rendering uses a stable bodygraph template, not ad-hoc drawing from scratch.
-- **User-facing Web/App layer**: FastAPI wraps the Python product core, while `web/` provides a real chart/report/chat interface.
-- **V0.4 diagnosis maps**: `POST /api/interpretation-maps` turns chart facts into six user-readable maps and adds layered trait diagnosis: embodied expression, blind spots, stuck patterns, and stuck causes.
-- **Callable research corpus**: V0.3 adds `SourceCard`, `KnowledgeAtom`, `InterpretationRule`, and `PromptPack` so Human Design books, official references, and Chinese terminology become reusable product knowledge instead of one-off prose.
-- **Body resource and energy interpretation**: `build_body_energy_profile()` explains defined/open centers, channels, gates, consumption patterns, and practices.
-- **Evaluation-first release loop**: `pytest`, smoke tests, narrative evals, public-figure accuracy checks, empirical-readiness checks, and the legacy scorecard script protect the product from shallow or generic output.
+完整发布记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
-## Search Phrases This Repository Targets
+## 核心能力
 
-English search intent:
+| 能力 | 说明 |
+| --- | --- |
+| 人类图排盘 | 输入出生日期、准确时间和出生地，生成稳定的 `HumanDesignChart` JSON |
+| BodyGraph | 固定模板渲染九大中心、红黑激活、闸门、通道和人格/设计侧栏 |
+| 核心解读 | 类型、策略、权威、人生角色、定义、签名、非自己主题与轮回交叉 |
+| 主线阅读 | L1 高密度定位、L2 全盘叙事、L3 中心/通道/闸门/变量/使命细读 |
+| 身体与能量 | 已定义/开放中心、压力链、身体资源、消耗模式与观察练习 |
+| 天赋与职业 | 天赋结构、角色爻线、职业位置、赚钱方式、机会入口与方向筛选 |
+| 关系与合盘 | 单盘关系模式、双人盘比较和关系 LLM 产品包 |
+| 时机与不确定性 | transit/timing 对照与出生时间区间采样 |
+| AI 对话 | 基于盘面事实、地图上下文和会话历史继续追问，不只重复报告 |
+| LLM 产品包 | Prompt、上下文块、来源、引用、追问、输出深度与会话状态 |
+| 资料库 | 类型、权威、人生角色、中心、64 闸门、36 通道与研究知识卡 |
+| 评估工具 | pytest、叙事评估、公开人物盘面回归、盲测与前瞻实验基础设施 |
 
-- Human Design LLM
-- Human Design AI
-- Human Design chart calculator
-- BodyGraph Python
-- BodyGraph SVG generator
-- Human Design reading generator
-- Human Design career reading
-- Human Design talent reading
-- Human Design deep reading
-- Human Design relationship chart
-- Human Design transit analysis
-- Human Design empirical validation
-- Human Design blind test
-- Human Design holdout benchmark
-- Human Design prospective prediction
-- AI astrology toolkit
-- Codex skill for Human Design
+## 两种使用方式
 
-中文搜索意图：
-
-- 人类图
-- 人类图排盘
-- 人类图解读
-- 人类图 AI
-- 人类图职业解读
-- 人类图天赋解读
-- 人类图深度解读
-- 人类图合盘
-- 人类图关系分析
-- 人类图流年
-- 人类图 BodyGraph
-- 人类图客观准确性
-- 人类图盲测
-- 人类图前瞻预测
-- 人类图 holdout
-- 大模型命理工具
-
-## Current Release
-
-`0.4.0` / `V0.4` is the current public product release.
-
-Release scope:
-
-- Single-chart Human Design reading.
-- V0.4 diagnosis maps for body, wealth, talent, relationship, mission, and professional facts.
-- Local callable research corpus with source cards, knowledge atoms, interpretation rules, and prompt packs.
-- Career deep reading for work, money, positioning, and direction.
-- Talent deep synthesis with research method context, structure stacking, non-genericity checks, and 30-day experiments.
-- Relationship chart comparison and relationship LLM packages.
-- Timing/transit comparison and timing LLM packages.
-- Birth-time uncertainty sampling.
-- BodyGraph SVG/PNG rendering scripts.
-- Codex-compatible skill metadata and runtime prompt adapters.
-- SEO-ready bilingual README, MIT license, package metadata, and release documentation.
-- Public-figure accuracy suite with 10 Astro-Databank AA/A-rated fixtures.
-- Empirical validation protocol, blinded forced-choice statistics script, and no-proof-without-data guardrails.
-- 4834-record public-figure benchmark manifest, 1000 blinded holdout trials, frozen protocol hash, and prospective prediction registry.
-- Chinese Web/App map interface with expandable long-form user-language interpretations and grounded chat context.
-- V0.4 trait diagnosis layer for deep items, with `deep / standard / trace` depth, clickable follow-up questions, gender-aware birth profile storage, and privacy-safe anonymous demos.
-
-## Installation
+### 1. 作为完整产品运行
 
 ```bash
 git clone https://github.com/joyozhang333-lgtm/human-design-llm.git
@@ -142,220 +83,163 @@ cd human-design-llm
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -U pip
-python -m pip install -e ".[dev]"
-```
+python -m pip install -e ".[web,dev]"
 
-If editable install is not needed, the legacy requirements path also works:
-
-```bash
-python -m pip install -r requirements-dev.txt
-```
-
-## Quick Start
-
-Calculate a chart:
-
-```bash
-python scripts/calculate_chart.py '1988-10-09T20:30:00+08:00'
-```
-
-Generate a Chinese reading:
-
-```bash
-python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
-```
-
-Generate a career deep reading:
-
-```bash
-python scripts/generate_career_reading.py '1988-10-09T20:30:00+08:00'
-```
-
-Generate an LLM-ready career answer:
-
-```bash
-python scripts/generate_llm_product.py '1988-10-09T20:30:00+08:00' \
-  --focus career \
-  --question '我最适合怎么工作、赚钱、选方向？' \
-  --format markdown \
-  --depth deep
-```
-
-Render a BodyGraph SVG:
-
-```bash
-python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' \
-  --output outputs/bodygraphs/example.svg
-```
-
-Run the Web/App product locally:
-
-```bash
-python -m pip install -r requirements-web.txt
 cp .env.example .env
-uvicorn human_design.web_api:app --reload
+uvicorn human_design.web_api:app --reload --port 8000
+```
 
+另开一个终端启动前端：
+
+```bash
 cd web
 npm install
 npm run dev
 ```
 
-Then open `http://127.0.0.1:5173`.
+打开 <http://127.0.0.1:5173>。生产部署说明见 [docs/deployment.md](./docs/deployment.md)。
 
-Optional AI providers:
+可选模型配置：
 
-- `DEEPSEEK_API_KEY` enables live personalized chat through DeepSeek Chat Completions. Without it, `/api/chat` falls back to the local grounded reading engine.
-- `MINIMAX_API_KEY` enables report visual cover generation through MiniMax Image Generation. The formal BodyGraph remains template-rendered SVG for chart accuracy.
-- `.env` is ignored by git; keep real keys local and use `.env.example` only as a template.
+```dotenv
+DEEPSEEK_API_KEY=
+DEEPSEEK_MODEL=deepseek-chat
 
-Run the release checks:
+# 也可以切到 Claude
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=claude-opus-4-8
+HD_LLM_PROVIDER=deepseek
+```
+
+不要把真实 Key 写入代码、截图或 Git 提交。`.env` 已被忽略；仓库只提交空值模板 `.env.example`。
+
+### 2. 作为 AI Skill 使用
+
+仓库根目录的 [SKILL.md](./SKILL.md) 是 Skill 入口，`runtimes/` 提供不同 Agent 的运行时适配。
+
+#### Codex
+
+推荐安装到当前共享 Skill 目录：
 
 ```bash
-python -m pytest -q
-python scripts/evaluate_v2.py  # legacy scorecard name, still used for regression
+python scripts/install_skill.py --mode link --force
 ```
 
-## Python API
+默认目标为 `~/.agents/skills/human-design`。如果你的 Codex 仍使用 `CODEX_HOME`，脚本会兼容 `$CODEX_HOME/skills/human-design`。安装后可用 `$human-design` 显式调用。
+
+#### Claude Code
+
+项目级安装：
+
+```bash
+mkdir -p .claude/skills
+ln -s "$(pwd)" .claude/skills/human-design
+```
+
+个人级安装：
+
+```bash
+mkdir -p ~/.claude/skills
+ln -s "$(pwd)" ~/.claude/skills/human-design
+```
+
+#### Hermes、OpenClaw、Harness 与其他 AI
+
+- Hermes：加载 [runtimes/hermes/SYSTEM_PROMPT.md](./runtimes/hermes/SYSTEM_PROMPT.md)。
+- OpenClaw：加载 [runtimes/openclaw/SYSTEM_PROMPT.md](./runtimes/openclaw/SYSTEM_PROMPT.md)。
+- Codex：可直接安装 Skill，也可加载 [runtimes/codex/SYSTEM_PROMPT.md](./runtimes/codex/SYSTEM_PROMPT.md)。
+- Harness 或其他 Agent 框架：加载 [runtimes/generic/SYSTEM_PROMPT.md](./runtimes/generic/SYSTEM_PROMPT.md)，并把 `build_llm_product()` 生成的 JSON 作为上下文。
+
+详细配置与工作原理见 [AI Agent / Skill 安装指南](./docs/ai-agent-setup.md)。
+
+## Python 快速开始
 
 ```python
-from human_design import (
-    build_body_energy_profile,
-    build_llm_product,
-    calculate_chart,
-    normalize_birth_input,
-)
+from human_design import calculate_chart, normalize_birth_input
+from human_design.generation import generate_main_reading
 
-chart = calculate_chart(normalize_birth_input("1988-10-09T20:30:00+08:00"))
-package = build_llm_product(
-    chart,
-    focus="career",
-    question="我最适合怎么工作、赚钱、选方向？",
-    depth="deep",
-    citation_mode="sources",
-)
-body_energy = build_body_energy_profile(chart)
+birth = normalize_birth_input("1988-10-09T20:30:00+08:00")
+chart = calculate_chart(birth)
+reading = generate_main_reading(chart)
 
-print(package.answer_markdown)
-print(body_energy.headline)
+print(chart.summary.type)
+print(reading.l1)
+print(reading.l2)
 ```
 
-## Supported Input
+常用 CLI：
 
-- ISO datetime with explicit UTC offset, such as `1988-10-09T20:30:00+08:00`.
-- Naive datetime plus `--timezone`, such as `--timezone Asia/Shanghai`.
-- Naive datetime plus location fields, such as `--city Shanghai --country China`.
-- If timezone and location are missing, the system falls back to UTC and returns explicit precision warnings.
+```bash
+python scripts/calculate_chart.py '1988-10-09T20:30:00+08:00'
+python scripts/generate_reading.py '1988-10-09T20:30:00+08:00'
+python scripts/generate_career_reading.py '1988-10-09T20:30:00+08:00'
+python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' --output outputs/example.svg
+```
 
-## Product Lines
+## Web API
 
-| Product line | Main API | CLI | Output |
-| --- | --- | --- | --- |
-| Chart | `calculate_chart()` | `scripts/calculate_chart.py` | structured chart JSON |
-| Reading | `generate_reading()` | `scripts/generate_reading.py` | markdown / JSON reading |
-| Body Energy | `build_body_energy_profile()` | Web/API layer | center/channel/gate energy profile |
-| Career | `generate_career_report()` | `scripts/generate_career_reading.py` | career deep reading |
-| Interpretation Maps | `build_interpretation_map()` | Web/API layer | body/wealth/talent/relationship/mission/professional maps |
-| Research Corpus | `load_knowledge_atoms()` | Web/API layer | source cards, knowledge atoms, rules, prompt packs |
-| LLM package | `build_llm_product()` | `scripts/generate_llm_product.py` | LLM-ready context and answer |
-| Relationship | `compare_relationship()` | `scripts/compare_relationship.py` | dual-chart comparison |
-| Timing | `analyze_timing()` | `scripts/analyze_timing.py` | natal/transit comparison |
-| Uncertainty | `analyze_birth_time_range()` | `scripts/analyze_uncertainty.py` | birth-time range sampling |
-| BodyGraph | `render_bodygraph_svg()` | `scripts/render_bodygraph.py` | template-based SVG |
-| Web/App API | `human_design.web_api:app` | `uvicorn human_design.web_api:app` | chart/report/chat HTTP API |
+| Endpoint | 用途 |
+| --- | --- |
+| `POST /api/charts` | 排盘并返回 chart、中文摘要、精度提醒与 BodyGraph URL |
+| `POST /api/readings/main` | 生成 V0.5 主线综合解读 |
+| `POST /api/readings/detail` | 按需生成中心、通道、闸门、变量或人生主轴细读 |
+| `GET /api/charts/{id}/bodygraph.svg` | 获取固定模板 BodyGraph SVG |
+| `GET /api/charts/{id}/reading-book` | 获取结构化阅读本 |
+| `POST /api/interpretation-maps` | 获取身体、财富、天赋、关系、使命或专业信息地图 |
+| `POST /api/reports` | 生成总览、身体、天赋、职业或深度报告包 |
+| `POST /api/chat` | 基于当前盘面、地图上下文和会话历史继续对话 |
+| `GET /api/product/providers` | 查看模型是否已配置，不返回任何 Key |
 
-## Repository Structure
+接口契约见 [docs/contracts/web-api.md](./docs/contracts/web-api.md)。
+
+## 项目结构
 
 ```text
 human-design-llm/
-├── human_design/          # Python package: engine, schema, readings, LLM products
-├── web/                   # React/Vite user-facing Web/App
-├── references/            # Markdown knowledge cards for HD types, centers, gates, channels
-├── scripts/               # CLI tools for chart, reading, career, relationship, timing, evals
-├── tests/                 # pytest regression suite
-├── docs/                  # contracts, roadmap, release notes, SEO documentation
-├── runtimes/              # Codex / Hermes / OpenClaw prompt adapters
-├── agents/openai.yaml     # installable skill metadata
-├── SKILL.md               # Codex skill instructions
-├── pyproject.toml         # package metadata and SEO keywords
-└── CHANGELOG.md
+├── human_design/          # 排盘、schema、解读、LLM 产品与 Web API
+│   └── generation/        # V0.5 facts / prompt / LLM / validator / cache / fallback
+├── web/                   # React 19 + TypeScript + Vite 用户界面
+├── references/            # 类型、中心、闸门、通道和研究知识卡
+├── scripts/               # CLI、安装、评估和实验工具
+├── tests/                 # 177 个自动化回归测试
+├── runtimes/              # Codex / Claude-compatible / Hermes / OpenClaw / 通用适配
+├── agents/openai.yaml     # Agent 元数据
+├── SKILL.md               # Skill 入口
+└── docs/                  # API、安装、版本、研究和发布文档
 ```
 
-## Web/App Product
+## 质量与边界
 
-The Web/App layer turns the existing LLM-native toolkit into a user-facing product:
+当前发布已通过：
 
-- `POST /api/charts` creates a formal chart from precise birth data.
-- `POST /api/reports` generates overview, body-energy, career, relationship, or deep reports.
-- `POST /api/interpretation-maps` returns expandable V0.4 maps with professional basis, user-language interpretation, life scenes, diagnosis fields, common blocks, practices, and follow-up questions.
-- `POST /api/chat` answers personalized follow-up questions grounded in chart facts and citations, using DeepSeek when configured.
-- `POST /api/images/reading-visual` generates a MiniMax-powered report cover/energy visual when configured.
-- `web/` renders the birth form, professional chart facts, fixed-template BodyGraph, V0.4 diagnosis map reader, and chat dock.
+- `177` 个 pytest 测试。
+- React/TypeScript 生产构建。
+- 闸门、通道、中心和爻线防编造校验。
+- 中文术语、开发者语言污染和决定论表达回归测试。
+- 公开人物排盘结构、时区转换与 BodyGraph 渲染回归。
+- 盲测、holdout 和前瞻登记的评估基础设施检查。
 
-Product requirements are documented in [docs/v0.4-product-requirements.md](./docs/v0.4-product-requirements.md), with the V0.3 map requirements kept in [docs/v0.3-product-requirements.md](./docs/v0.3-product-requirements.md) and the earlier Web/App requirements kept in [docs/product-requirements-web-app.md](./docs/product-requirements-web-app.md).
+这些是**工程质量门槛**，不是人类图“科学准确率”的证明。人类图在本项目中被定位为自我观察与反思框架，不替代医学、心理、法律、财务或其他专业意见，也不做确定性命运承诺。
 
-## Reference Coverage
+## English Overview
 
-The local knowledge base currently includes:
+Human Design LLM is an open-source, Chinese-first Human Design AI toolkit and production-ready foundation for:
 
-- Human Design types.
-- Authorities.
-- Profiles / 人生角色.
-- Centers.
-- Definitions.
-- 64 gates.
-- 36 channels.
-- V0.3 research corpus under `references/research-corpus/v0.3/`: source cards, knowledge atoms, and interpretation rules.
+- Structured Human Design chart calculation and BodyGraph SVG rendering.
+- LLM-generated whole-chart readings with deterministic fact guardrails.
+- DeepSeek and Claude provider support with safe local fallback.
+- Human Design skills for Codex, Claude Code, Hermes, OpenClaw, Harness, and generic agents.
+- FastAPI endpoints and a responsive React reading experience.
+- Career, talent, relationship, timing, uncertainty, citation, and evaluation workflows.
 
-These files are intentionally local and source-traceable so that LLM output can cite where each interpretation block came from.
+Start with the [live demo](https://humandesign.guichu.chat), read the [AI skill setup guide](./docs/ai-agent-setup.md), or clone the repository to build your own Human Design product. Contributions in Chinese or English are welcome.
 
-## Quality Gates
+## 参与贡献
 
-Current local release validation:
+欢迎提交中文/英文术语改进、知识卡、排盘或渲染修复、无障碍优化、测试、Agent 适配和产品体验改进。请先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
-- `98` pytest cases passing.
-- Legacy scorecard product score: `100/100`.
-- `evaluate_public_figures.py` public-figure accuracy score: `100/90`.
-- `evaluate_empirical_readiness.py` scientific validation readiness score: `100/90`.
-- `evaluate_accuracy_benchmark.py` 1000+ benchmark infrastructure score: `100/90`.
-- 4834 public-figure records collected from Astro-Databank `c_sample`; holdout split contains 1073 records and 1000 blinded forced-choice trials.
-- Smoke tests for chart, reading, relationship, timing, citations, context blocks, delivery depth, and session state.
-- Narrative evals for focused answers and source rendering.
-- Public-figure evals for source rating, UTC conversion, chart structure, Chinese term quality, citation rendering, no invented gates/channels, and BodyGraph SVG rendering.
-- Empirical-readiness evals for falsifiable claims, blinded design, randomization, controls, chance baseline, p value, confidence interval, and truth-claim discipline.
-
-## Documentation
-
-- [Changelog](./CHANGELOG.md)
-- [Install guide](./docs/install.md)
-- [Versioning policy](./docs/versioning.md)
-- [Release checklist](./docs/release-checklist.md)
-- [Introduction pack](./docs/INTRODUCTION.md)
-- [Web/App product requirements](./docs/product-requirements-web-app.md)
-- [Chart contract](./docs/contracts/chart.md)
-- [Web/App API contract](./docs/contracts/web-api.md)
-- [Reading contract](./docs/contracts/reading.md)
-- [LLM package contract](./docs/contracts/llm-package.md)
-- [Relationship contracts](./docs/contracts/relationship.md)
-- [Timing contracts](./docs/contracts/timing.md)
-- [Output depth contract](./docs/contracts/output-depth.md)
-- [Session contract](./docs/contracts/session.md)
-- [Empirical validation protocol](./docs/empirical-validation-protocol.md)
-- [Empirical trial contract](./docs/contracts/empirical-trial.md)
-- [Public figure manifest contract](./docs/contracts/public-figure-manifest.md)
-- [Prospective prediction contract](./docs/contracts/prospective-prediction.md)
-- [Label prediction contract](./docs/contracts/label-predictions.md)
-- [SEO documentation](./docs/SEO.md)
-
-## Important Notes
-
-Human Design is used here as a reflective and interpretive framework. This project does not provide medical, legal, financial, psychological, or guaranteed life advice.
-
-人类图在本项目中被视为自我观察和反思工具，不应替代医学、法律、财务、心理咨询或任何现实专业建议。
-
-The empirical validation tooling is for falsifiable testing. Demo fixtures are not evidence, and the project should not claim Human Design is scientifically proven without real preregistered blinded trials and independent replication.
-
-本项目的实验评估工具用于可证伪测试。Demo fixture 不是科学证据；没有真实预注册盲测数据和独立复现前，不能宣称人类图已被科学证明。
+如果你基于本仓库做了新产品，也欢迎在 Discussion 中分享。请不要在 issue、fixture、截图或 PR 中提交真实用户的姓名、出生资料或 API Key。
 
 ## License
 
-MIT License. See [LICENSE](./LICENSE).
+[MIT License](./LICENSE) © Human Design LLM contributors.

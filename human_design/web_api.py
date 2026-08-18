@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import date, time
 from typing import Any
 from uuid import uuid4
@@ -12,6 +13,9 @@ from .body_energy import build_body_energy_profile
 from .bodygraph import render_bodygraph_svg
 from .deep_synthesis import build_deep_synthesis_profile
 from .engine import calculate_chart
+from .generation import generate_detail_reading, generate_main_reading, generate_map_reading
+from .generation.facts import extract_chart_facts
+from .generation.validator import validate_and_repair
 from .input import InputNormalizationError, normalize_birth_input
 from .interpretation_maps import build_interpretation_map, map_context_text, map_type_from_focus
 from .labels import (
@@ -29,6 +33,7 @@ from .labels import (
     normalize_center_title,
 )
 from .product import build_llm_product
+from .reading import generate_reading
 from .providers import (
     DeepSeekClient,
     MiniMaxImageClient,
@@ -117,6 +122,15 @@ class InterpretationMapRequest(BaseModel):
     chart_id: str
     map_type: str = "talent"
     depth: str = "deep"
+
+
+class MainReadingRequest(BaseModel):
+    chart_id: str
+
+
+class DetailReadingRequest(BaseModel):
+    chart_id: str
+    key: str
 
 
 class ImageGenerationRequest(BaseModel):
@@ -237,7 +251,8 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
 
         chart_id = f"chart_{uuid4().hex}"
         title = request.user_name or "我的人类图"
-        svg = render_bodygraph_svg(chart, title=title)
+        # Web BodyGraph stays graphic-only; the long reading ships via /reading-book.
+        svg = render_bodygraph_svg(chart, title=title, include_booklet=False)
         bodygraph_url = f"/api/charts/{chart_id}/bodygraph.svg"
         saved = SavedChart(
             chart_id=chart_id,
@@ -274,6 +289,11 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
     def get_bodygraph_svg(chart_id: str) -> Response:
         chart = active_store.get_chart(chart_id)
         return Response(content=chart.bodygraph_svg, media_type="image/svg+xml")
+
+    @app.get("/api/charts/{chart_id}/reading-book")
+    def get_reading_book(chart_id: str) -> dict[str, Any]:
+        saved_chart = active_store.get_chart(chart_id)
+        return _build_reading_book(saved_chart)
 
     @app.post("/api/reports")
     def create_report(request: ReportRequest) -> dict[str, Any]:
@@ -315,6 +335,38 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         active_store.save_report(report)
         return report.to_dict()
 
+    @app.post("/api/readings/main")
+    def create_main_reading(request: MainReadingRequest) -> dict[str, Any]:
+        saved_chart = active_store.get_chart(request.chart_id)
+        user_terms = tuple(term for term in (saved_chart.user_name,) if term)
+        # LLM 相关错误在 generation 层内部消化（对外只给 fallback 文案，原始错误只进脱敏日志）。
+        reading = generate_main_reading(saved_chart.chart, user_terms=user_terms)
+        return {
+            "l1": reading.l1,
+            "l2": reading.l2,
+            "signature": reading.signature,
+            "not_self": reading.not_self,
+            "detail_sections": [dict(section) for section in reading.detail_sections],
+            "explore": [dict(entry) for entry in reading.explore],
+            "generation_mode": reading.generation_mode,
+        }
+
+    @app.post("/api/readings/detail")
+    def create_detail_reading(request: DetailReadingRequest) -> dict[str, Any]:
+        saved_chart = active_store.get_chart(request.chart_id)
+        try:
+            detail = generate_detail_reading(saved_chart.chart, request.key)
+        except KeyError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "detail_key_invalid", "message": f"未知的细读入口：{request.key}"},
+            ) from exc
+        return {
+            "title": detail.title,
+            "body": detail.body,
+            "generation_mode": detail.generation_mode,
+        }
+
     @app.post("/api/interpretation-maps")
     def create_interpretation_map(request: InterpretationMapRequest) -> dict[str, Any]:
         saved_chart = active_store.get_chart(request.chart_id)
@@ -324,7 +376,17 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             depth=request.depth,
             chart_id=request.chart_id,
         )
-        return package.to_dict()
+        try:
+            overview = generate_map_reading(saved_chart.chart, package.map_type)
+        except KeyError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "map_type_invalid", "message": f"未知解读地图：{request.map_type}"},
+            ) from exc
+        payload = package.to_dict()
+        payload["overview"] = overview.body
+        payload["generation_mode"] = overview.generation_mode
+        return payload
 
     @app.post("/api/chat")
     def chat(request: ChatRequest) -> dict[str, Any]:
@@ -332,7 +394,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         focus = request.focus or _infer_focus(request.question)
         map_package = build_interpretation_map(
             saved_chart.chart,
-            map_type=request.map_type or map_type_from_focus(focus),
+            map_type=request.map_type or _infer_map_type(request.question, focus),
             depth=request.depth,
             chart_id=request.chart_id,
         )
@@ -491,6 +553,12 @@ def _infer_focus(question: str) -> str:
     return "overview"
 
 
+def _infer_map_type(question: str, focus: str) -> str:
+    if any(keyword in question for keyword in ("使命", "人生主轴", "轮回交叉", "人生主题")):
+        return "mission"
+    return map_type_from_focus(focus)
+
+
 def _generate_chat_answer(
     *,
     saved_chart: SavedChart,
@@ -504,15 +572,29 @@ def _generate_chat_answer(
     if not provider_status["configured"]:
         return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
     messages = _build_deepseek_messages(saved_chart, package, map_package, session, question, map_item_key)
+    facts = extract_chart_facts(
+        saved_chart.chart,
+        layer="CHAT",
+        focus=map_package.map_type,
+        user_terms=tuple(term for term in (saved_chart.user_name, question) if term),
+    )
+    client = DeepSeekClient()
     try:
-        answer = DeepSeekClient().chat(messages)
+        answer_text, status = validate_and_repair(
+            messages,
+            facts,
+            lambda current_messages: client.chat(current_messages).content,
+            max_repair=1,
+        )
     except ProviderConfigurationError:
         return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
     except ProviderError:
         return _normalize_chat_answer(
             _fallback_with_provider_note(_fallback_map_answer(map_package, question, map_item_key))
         ), "local-fallback", None, True
-    return _normalize_chat_answer(answer.content), answer.provider, answer.model, True
+    if status == "fallback_after_repair_fail" or not answer_text.strip():
+        return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, True
+    return _normalize_chat_answer(answer_text), "deepseek", client.model, True
 
 
 def _build_deepseek_messages(
@@ -864,6 +946,84 @@ def _display_summary(chart) -> dict[str, str]:
         "signature": display_signature(chart.summary.signature.code, chart.summary.signature.label),
         "not_self_theme": display_not_self(chart.summary.not_self_theme.code, chart.summary.not_self_theme.label),
         "incarnation_cross": display_incarnation_cross(chart.summary.incarnation_cross.code, chart.summary.incarnation_cross.label),
+    }
+
+
+def _split_paragraphs(text: str, *, max_chars: int = 118) -> list[str]:
+    """Split long Chinese prose into readable paragraphs (PRD: 每段 ≤ 120 字)."""
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return []
+    sentences = re.findall(r"[^。！？；\n]*[。！？；\n]|[^。！？；\n]+", cleaned)
+    paragraphs: list[str] = []
+    buffer = ""
+
+    def flush() -> None:
+        nonlocal buffer
+        if buffer:
+            paragraphs.append(buffer)
+            buffer = ""
+
+    for raw in sentences:
+        sentence = raw.strip()
+        if not sentence:
+            continue
+        # A single over-long sentence is hard-wrapped so no paragraph breaks the budget.
+        if len(sentence) > max_chars:
+            flush()
+            for start in range(0, len(sentence), max_chars):
+                paragraphs.append(sentence[start : start + max_chars])
+            continue
+        if buffer and len(buffer) + len(sentence) > max_chars:
+            flush()
+        buffer = f"{buffer}{sentence}" if buffer else sentence
+    flush()
+    return paragraphs
+
+
+def _build_reading_book(saved_chart: SavedChart) -> dict[str, Any]:
+    """Structured, responsive-HTML-ready reading book.
+
+    Reuses the local grounded reading engine so the text stays tied to chart facts,
+    and ships separately from the BodyGraph SVG so it can be read comfortably.
+    """
+    reading = generate_reading(saved_chart.chart)
+    sections: list[dict[str, Any]] = [
+        {
+            "title": "速览",
+            "summary": reading.headline,
+            "paragraphs": [],
+            "highlights": list(reading.quick_facts),
+        }
+    ]
+    for section in reading.sections:
+        sections.append(
+            {
+                "title": section.title,
+                "summary": (_split_paragraphs(section.summary)[:1] or [""])[0],
+                "paragraphs": _split_paragraphs(section.summary),
+                "highlights": [],
+            }
+        )
+    if reading.suggested_questions:
+        sections.append(
+            {
+                "title": "可以继续追问",
+                "summary": "带着这些问题进入对话，会比一次读完更有用。",
+                "paragraphs": [],
+                "highlights": list(reading.suggested_questions),
+            }
+        )
+    return {
+        "chart_id": saved_chart.chart_id,
+        "title": f"{saved_chart.user_name or '我的人类图'} · 人类图解读本",
+        "sections": sections,
+        "layout": {
+            "format": "responsive_html",
+            "min_font_size": 15,
+            "line_height": 1.65,
+            "max_content_width": 760,
+        },
     }
 
 

@@ -29,6 +29,9 @@ def test_install_skill_can_copy(tmp_path: Path) -> None:
     source = tmp_path / "source-skill"
     source.mkdir()
     (source / "SKILL.md").write_text("# demo", encoding="utf-8")
+    (source / ".env").write_text("SECRET=never-copy", encoding="utf-8")
+    (source / "cache.db").write_text("private-cache", encoding="utf-8")
+    (source / ".env.example").write_text("SECRET=", encoding="utf-8")
 
     result = install_skill(
         source,
@@ -40,6 +43,9 @@ def test_install_skill_can_copy(tmp_path: Path) -> None:
 
     assert target.is_dir()
     assert (target / "SKILL.md").read_text(encoding="utf-8") == "# demo"
+    assert not (target / ".env").exists()
+    assert not (target / "cache.db").exists()
+    assert (target / ".env.example").exists()
 
 
 def test_install_skill_requires_force_when_target_exists(tmp_path: Path) -> None:

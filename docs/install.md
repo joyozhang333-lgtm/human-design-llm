@@ -1,6 +1,6 @@
 # Install Guide
 
-更新时间：2026-04-24
+更新时间：2026-08-18
 
 ## 目标
 
@@ -8,7 +8,7 @@
 
 ## 安装前提
 
-- 本机已有 `~/.codex/`
+- 已安装 Python 3.11+
 - 仓库根目录包含：
   - `SKILL.md`
   - `agents/openai.yaml`
@@ -26,7 +26,7 @@ python scripts/install_skill.py --mode link --force
 默认会安装到：
 
 ```text
-~/.codex/skills/human-design
+~/.agents/skills/human-design
 ```
 
 ## 复制安装
@@ -48,6 +48,8 @@ python scripts/install_skill.py --codex-home /path/to/codex-home --mode link --f
 1. 确认目标目录存在 `SKILL.md`
 2. 确认目标目录存在 `agents/openai.yaml`
 3. 在 Codex 里用 `$human-design` 或相关触发词调用
+
+如果已设置 `CODEX_HOME`，安装器会兼容 `$CODEX_HOME/skills/human-design`。Claude Code、Hermes、OpenClaw 和通用 Agent 的安装方式见 [ai-agent-setup.md](./ai-agent-setup.md)。
 
 ## 注意事项
 

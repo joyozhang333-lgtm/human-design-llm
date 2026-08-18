@@ -4,7 +4,7 @@ import json
 import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Protocol, runtime_checkable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -12,7 +12,12 @@ from urllib.request import Request, urlopen
 JsonTransport = Callable[[str, dict[str, str], dict[str, Any], float], dict[str, Any]]
 
 DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-pro"
+# DeepSeek 官方现行对话模型；可用 DEEPSEEK_MODEL 环境变量覆盖。
+DEFAULT_DEEPSEEK_MODEL = "deepseek-chat"
+OFFICIAL_DEEPSEEK_MODELS = ("deepseek-chat", "deepseek-reasoner")
+DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
+DEFAULT_ANTHROPIC_MODEL = "claude-opus-4-8"
+ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_MINIMAX_IMAGE_ENDPOINT = "https://api.minimax.io/v1/image_generation"
 DEFAULT_MINIMAX_IMAGE_MODEL = "image-01"
 
@@ -74,10 +79,31 @@ class DeepSeekAnswer:
         return asdict(self)
 
 
+@runtime_checkable
+class LLMProvider(Protocol):
+    """统一 LLM 提供方接口：DeepSeekClient / ClaudeClient 均满足。"""
+
+    @property
+    def configured(self) -> bool: ...
+
+    @property
+    def model(self) -> str: ...
+
+    def chat(self, messages: list[dict[str, str]]) -> DeepSeekAnswer: ...
+
+
 class DeepSeekClient:
     def __init__(self, config: DeepSeekConfig | None = None, transport: JsonTransport | None = None) -> None:
         self.config = config or DeepSeekConfig.from_env()
         self._transport = transport or _post_json
+
+    @property
+    def configured(self) -> bool:
+        return self.config.configured
+
+    @property
+    def model(self) -> str:
+        return self.config.model
 
     def chat(self, messages: list[dict[str, str]]) -> DeepSeekAnswer:
         if not self.config.configured or not self.config.api_key:
@@ -107,6 +133,86 @@ class DeepSeekClient:
             model=self.config.model,
             raw_usage=data.get("usage") if isinstance(data.get("usage"), dict) else None,
         )
+
+
+@dataclass(frozen=True)
+class ClaudeConfig:
+    api_key: str | None
+    base_url: str = DEFAULT_ANTHROPIC_BASE_URL
+    model: str = DEFAULT_ANTHROPIC_MODEL
+    timeout_seconds: float = 120.0
+    max_tokens: int = 1800
+
+    @classmethod
+    def from_env(cls) -> "ClaudeConfig":
+        env = _env_with_dotenv()
+        return cls(
+            api_key=_clean_secret(env.get("ANTHROPIC_API_KEY")),
+            base_url=(env.get("ANTHROPIC_BASE_URL") or DEFAULT_ANTHROPIC_BASE_URL).rstrip("/"),
+            model=env.get("ANTHROPIC_MODEL") or env.get("CLAUDE_MODEL") or DEFAULT_ANTHROPIC_MODEL,
+            timeout_seconds=_env_float(env, "ANTHROPIC_TIMEOUT_SECONDS", 120.0),
+            max_tokens=_env_int(env, "ANTHROPIC_MAX_TOKENS", 1800),
+        )
+
+    @property
+    def configured(self) -> bool:
+        return bool(self.api_key)
+
+
+class ClaudeClient:
+    """Anthropic Messages API（api.anthropic.com/v1/messages），复用手写 _post_json，同步非流式。"""
+
+    def __init__(self, config: ClaudeConfig | None = None, transport: JsonTransport | None = None) -> None:
+        self.config = config or ClaudeConfig.from_env()
+        self._transport = transport or _post_json
+
+    @property
+    def configured(self) -> bool:
+        return self.config.configured
+
+    @property
+    def model(self) -> str:
+        return self.config.model
+
+    def chat(self, messages: list[dict[str, str]]) -> DeepSeekAnswer:
+        if not self.config.configured or not self.config.api_key:
+            raise ProviderConfigurationError("Anthropic API key is not configured.")
+        system_parts = [m["content"] for m in messages if m.get("role") == "system"]
+        chat_messages = [m for m in messages if m.get("role") != "system"]
+        payload: dict[str, Any] = {
+            "model": self.config.model,
+            "max_tokens": self.config.max_tokens,
+            "messages": chat_messages,
+        }
+        if system_parts:
+            payload["system"] = "\n\n".join(system_parts)
+        headers = {
+            "x-api-key": self.config.api_key,
+            "anthropic-version": ANTHROPIC_VERSION,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        data = self._transport(
+            f"{self.config.base_url}/v1/messages",
+            headers,
+            payload,
+            self.config.timeout_seconds,
+        )
+        content = _extract_claude_content(data)
+        return DeepSeekAnswer(
+            content=content,
+            provider="claude",
+            model=self.config.model,
+            raw_usage=data.get("usage") if isinstance(data.get("usage"), dict) else None,
+        )
+
+
+def resolve_provider(name: str | None = None) -> LLMProvider:
+    """provider 优先级：显式参数 > 环境变量 HD_LLM_PROVIDER > 默认 deepseek。"""
+    choice = (name or os.environ.get("HD_LLM_PROVIDER") or "deepseek").strip().lower()
+    if choice == "claude":
+        return ClaudeClient()
+    return DeepSeekClient()
 
 
 @dataclass(frozen=True)
@@ -173,13 +279,20 @@ class MiniMaxImageClient:
 
 
 def external_provider_status() -> dict[str, Any]:
+    # 死线：这里的输出绝不回显任何 key 或 key 子串（有单测断言守着）。
     deepseek = DeepSeekConfig.from_env()
+    claude = ClaudeConfig.from_env()
     minimax = MiniMaxImageConfig.from_env()
     return {
         "deepseek": {
             "configured": deepseek.configured,
             "model": deepseek.model,
             "base_url": deepseek.base_url,
+        },
+        "claude": {
+            "configured": claude.configured,
+            "model": claude.model,
+            "base_url": claude.base_url,
         },
         "minimax": {
             "configured": minimax.configured,
@@ -241,6 +354,20 @@ def _extract_chat_content(data: dict[str, Any]) -> str:
     raise ProviderResponseError("DeepSeek response did not include answer content.")
 
 
+def _extract_claude_content(data: dict[str, Any]) -> str:
+    blocks = data.get("content")
+    if not isinstance(blocks, list) or not blocks:
+        raise ProviderResponseError("Claude response did not include content.")
+    text = "".join(
+        block.get("text", "")
+        for block in blocks
+        if isinstance(block, dict) and block.get("type") == "text" and isinstance(block.get("text"), str)
+    ).strip()
+    if not text:
+        raise ProviderResponseError("Claude response did not include answer text.")
+    return text
+
+
 def _extract_minimax_image(data: dict[str, Any]) -> str:
     base_resp = data.get("base_resp")
     if isinstance(base_resp, dict) and base_resp.get("status_code") not in (None, 0, "0"):
@@ -296,6 +423,11 @@ def _env_with_dotenv() -> dict[str, str]:
         for key, value in _parse_dotenv(path).items():
             env.setdefault(key, value)
     return env
+
+
+def runtime_environment() -> dict[str, str]:
+    """Return process environment merged with local `.env`, with process values taking precedence."""
+    return _env_with_dotenv()
 
 
 def _dotenv_candidates() -> tuple[Path, ...]:
