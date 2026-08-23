@@ -383,9 +383,9 @@ def _style_meta(
     if include_booklet:
         expanded_height = height + 1820
     else:
-        # Web chart: keep the graphic, activation panels and 盘面摘要 (bottom ≈ 1460),
-        # but drop the long in-SVG booklet — it ships as a separate reading-book area.
-        expanded_height = (1460 + 48) - expanded_min_y
+        # The web result only needs the chart and activation panels. Long factual lists
+        # belong in reports, not inside the graphic.
+        expanded_height = (height + 24) - expanded_min_y
     root.set("viewBox", f"{expanded_min_x} {expanded_min_y} {expanded_width} {expanded_height}")
 
     _append_background(root, expanded_min_x, expanded_min_y, expanded_width, expanded_height)
@@ -455,16 +455,16 @@ def _style_meta(
         align="right",
         activations=chart.personality.activations,
     )
-    _append_summary_panel(
-        root,
-        x=120,
-        y=1328,
-        width=610,
-        defined_centers=defined_centers,
-        channels=channels,
-        undefined_centers=undefined_centers,
-    )
     if include_booklet:
+        _append_summary_panel(
+            root,
+            x=120,
+            y=1328,
+            width=610,
+            defined_centers=defined_centers,
+            channels=channels,
+            undefined_centers=undefined_centers,
+        )
         _append_reading_booklet(
             root,
             reading=reading,

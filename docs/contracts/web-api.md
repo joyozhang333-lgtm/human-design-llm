@@ -172,7 +172,7 @@
 
 ```json
 {
-  "product_version": "0.5.2",
+  "product_version": "0.5.3",
   "map_type": "wealth",
   "title": "财富报告",
   "description": "...",
@@ -186,7 +186,7 @@
       "items": [
         {
           "key": "wealth.02-14-main-track",
-          "title": "02-14「方向与资源通道」能怎样形成价值",
+          "title": "02-14 等能力怎样共同形成价值",
           "diagnosis_depth": "deep",
           "chart_basis": ["通道：02-14"],
           "professional_basis": "...",

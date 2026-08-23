@@ -37,10 +37,11 @@ def test_render_bodygraph_svg_without_booklet_is_graphic_only() -> None:
 
     assert "<svg" in svg
     assert "测试人类图" in svg
-    # Chart graphic, activation panels and 盘面摘要 stay.
+    # The web chart keeps only the graphic and activation panels.
     assert "Sacral Authority" in svg
-    assert "阿姬娜中心" in svg
-    assert "盘面摘要" in svg
+    assert "盘面摘要" not in svg
+    assert "已定义中心" not in svg
+    assert "开放中心" not in svg
     assert "设计面" in svg
     assert "人格面" in svg
     # The long in-SVG booklet is dropped (ships via the reading-book endpoint instead).

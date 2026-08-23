@@ -61,33 +61,28 @@ def build_report_sections(map_type: str, chart: HumanDesignChart) -> tuple[Inter
 
 def build_report_overview(map_type: str, chart: HumanDesignChart) -> str:
     summary = _summary(chart)
-    defined = _center_names(chart, True)
     channels = _channel_names(chart)
     profile = summary["profile"]
     overview = {
         "body": (
-            f"你的身体报告要先抓住两件事：用「{summary['strategy']}」进入事情，"
-            f"再用 {summary['authority_professional']} 确认是否继续。"
-            f"你较稳定的资源来自{'、'.join(defined) or '当下环境'}；报告后半段会逐一指出压力从哪些开放中心进入。"
+            f"你的身体先用「{summary['strategy']}」进入事情，再用 {summary['authority_professional']} 确认是否继续。"
+            "真正要练的不是更会分析，而是在压力出现时仍能认出自己的节奏。"
         ),
         "wealth": (
-            f"你的财富不是由一个行业标签决定，而是由机会入口、稳定能力和承诺边界共同决定。"
-            f"这张盘可长期使用的能力线路是{'、'.join(channels) or '随场域被点亮的流动能力'}；"
-            "真正要看的，是哪些能力能做成可重复交付，哪些承诺会让收入和精力失衡。"
+            "你的财富不由一个行业标签决定，而取决于三件事：机会是不是对的、能力能不能重复交付、承诺有没有吞掉利润。"
+            f"你可以长期使用的能力组合来自{'、'.join(channels) or '合适的人与环境'}。"
         ),
         "talent": (
-            f"你的天赋要用「{profile}的人生角色 + 已定义通道 + 稳定中心」一起看。"
-            f"报告会先说明天赋怎样被你发现，再把{'、'.join(channels) or '被环境点亮的能力'}逐条翻译成现实能力，"
-            "最后给出从“天然会”练成“别人愿意持续选择你”的路径。"
+            f"你的天赋不能只看一个标签。{profile}说明能力怎样成熟，"
+            f"{'、'.join(channels) or '合适的环境'}说明哪些能力会自然连在一起。重点不是证明你会什么，而是找到那项已经反复有效、值得练成代表作的能力。"
         ),
         "relationship": (
-            f"你在关系里的核心不是寻找一个抽象的“最配类型”，而是看对方能否尊重你的决定节奏、"
-            f"{profile}的连接方式，以及你在开放中心里最容易替别人承担什么。"
+            f"关系合不合适，不看一个抽象的“最配类型”，而看对方是否尊重你的决定节奏和{profile}的连接方式，"
+            "以及你能否在靠近一个人时仍然保留自己的感受和边界。"
         ),
         "mission": (
-            f"你的人生使命主题叫「{summary['cross']}」。它要通过{profile}的成长方式、"
-            f"「{summary['strategy']}」的机会入口和{'、'.join(channels) or '正确场域中的能力'}落到日常，"
-            "不是靠一句宏大口号完成。"
+            f"你的人生使命主题叫「{summary['cross']}」。它不是职业答案，而是一个会在不同阶段反复出现的人生问题。"
+            "使命是否真实，要看你长期投入后有没有更有生命力、能力有没有积累、别人有没有因此真正受益。"
         ),
     }
     return overview.get(map_type, "")
@@ -195,7 +190,7 @@ def _wealth_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
         stuck=("很忙、项目不少、回款也有，但每个项目都从零开始，半年后仍说不清自己积累了什么。",),
         practices=("把现有收入逐项标记为现金流、案例、方法、关系、可复用资产；只有现金流的一项必须重新评估。",),
     )
-    channel_items = tuple(_wealth_channel_item(chart, channel) for channel in channels) or (
+    channel_items = (_wealth_channels_item(channels),) if channels else (
         _item(
             key="wealth.environmental-value",
             title="你的价值更依赖场域被接通",
@@ -233,7 +228,7 @@ def _talent_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
     profile_code = chart.summary.profile.code
     profile = _profile_item(chart)
     channels = tuple(chart.channels)
-    channel_items = tuple(_talent_channel_item(channel) for channel in channels) or (
+    channel_items = (_talent_channels_item(channels),) if channels else (
         _item(
             key="talent.environmental-combination",
             title="你的天赋在关系和环境里组合",
@@ -387,9 +382,10 @@ def _mission_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, 
         embodied=("你不再追问“我最终应该成为什么”，而是越来越清楚“什么事情值得我用这种方式持续承担”。",),
         stuck=(f"一旦跳过身体和角色路径，使命感会变成焦虑，日常则反复出现「{summary['not_self']}」。",),
         causes=("盘面机制：轮回交叉只能通过类型、决定方式和人生角色被活出来；现实场景：先定宏大身份再逼身体配合，会让意义感和生命力分离。",),
+        practices=("回看最近一个重要选择：它是否按你的行动方式进入、经过你的决定方式确认，并允许你用自己的人生角色逐步成熟？",),
     )
     channels = tuple(chart.channels)
-    channel_items = tuple(_mission_channel_item(channel) for channel in channels) or (
+    channel_items = (_mission_channels_item(channels),) if channels else (
         _item(
             key="mission.environmental-path",
             title="使命通过正确环境和关系显现",
@@ -459,47 +455,58 @@ def _profile_item(chart: HumanDesignChart) -> InterpretationMapItem:
     )
 
 
-def _talent_channel_item(channel) -> InterpretationMapItem:
-    name = _channel_name(channel)
-    line = CHANNEL_LINES.get(channel.code, "这条线路会把两个中心的资源合成一种可重复使用的能力。")
+def _talent_channels_item(channels) -> InterpretationMapItem:
+    names = tuple(_channel_name(channel) for channel in channels)
+    expressions = tuple(
+        f"{_channel_name(channel)}：{CHANNEL_LINES.get(channel.code, '这条线路会把两种资源合成一种可重复使用的能力。')}"
+        for channel in channels
+    )
     return _item(
-        key=f"talent.channel-{channel.code}",
-        title=name,
-        subtitle="一条已经接通、可以反复调用的能力",
-        basis=(f"已定义通道：{name}", f"连接中心：{_center_name(channel.centers[0])}—{_center_name(channel.centers[1])}"),
-        user=f"{line}。这不是说你每次都必须这样做，而是当事情对路时，这种能力比普通兴趣更容易稳定出现。",
-        scenes=(f"在工作、表达或关系里，观察你什么时候不需要预热就自然用出「{display_channel_label(channel.code, channel.label)}」的能力。",),
-        embodied=("活出来时，它会形成别人能指认的结果，而不只是你对自己的抽象评价。",),
-        blind=("因为这条能力太自然，你可能只看到它带来的麻烦，却没看到它能解决的问题。",),
-        stuck=("在不对的事情上强行调用它，会把天赋用成控制、过度承担或反复内耗。",),
-        practices=("找一个这条能力曾真正帮到别人的案例，写清问题、你的动作和结果。",),
-        followups=(f"结合我的其他中心和人生角色，{name}最适合被用在哪类真实问题上？",),
+        key="talent.channel-combination",
+        title="这些能力怎样在你身上连成一体",
+        subtitle="通道不是分散标签，而是一组会共同出现的能力",
+        basis=tuple(f"已定义通道：{name}" for name in names),
+        user=(
+            f"你有{'、'.join(names)}。现实里它们不会一条一条排队出现，而会在同一件事里彼此配合。"
+            "真正值得发展的天赋，是你在处理某类问题时自然形成的一整套动作：你先看见什么、怎样判断、怎样推进，最后留下什么结果。"
+        ),
+        scenes=expressions,
+        embodied=("活出来时，别人会因为一类明确的问题持续找到你，而不是只笼统地说你很有天赋。",),
+        blind=("把每条通道拆成一个新方向，会让精力越来越散；它们更可能共同服务同一种核心问题。",),
+        stuck=("学了很多能力名称，却没有回到真实案例里判断：哪几种能力总是一起出现、共同产生结果。",),
+        practices=("找出三个你真正解决过的问题，逐个写下自己看见了什么、做了什么、结果是什么，再圈出重复动作。",),
+        followups=("结合我的经历，帮我判断这些通道最可能共同解决哪一类问题。",),
     )
 
 
-def _wealth_channel_item(chart: HumanDesignChart, channel) -> InterpretationMapItem:
-    name = _channel_name(channel)
-    line = CHANNEL_LINES.get(channel.code, "这是一条你可以反复调用的完整能力线路")
-    projected = "project" in channel.channel_type.code.lower()
-    value_path = (
-        "这类能力更适合通过判断、引导、方法或被看见的专业价值变现，不是单纯靠增加工时。"
-        if projected
-        else "这类能力更适合做成持续交付、稳定产出或可以走完周期的产品与服务。"
-    )
-    key = "wealth.02-14-main-track" if channel.code == "02-14" else f"wealth.channel-{channel.code}"
+def _wealth_channels_item(channels) -> InterpretationMapItem:
+    names = tuple(_channel_name(channel) for channel in channels)
+    has_0214 = any(channel.code == "02-14" for channel in channels)
+    value_lines = []
+    for channel in channels:
+        projected = "project" in channel.channel_type.code.lower()
+        value_path = "适合用判断、引导和方法形成价值" if projected else "适合做成持续交付或可重复产出"
+        value_lines.append(
+            f"{_channel_name(channel)}：{CHANNEL_LINES.get(channel.code, '这是一条可以反复调用的能力线路')}；{value_path}。"
+        )
+    key = "wealth.02-14-main-track" if has_0214 else "wealth.channel-combination"
+    title = "02-14 等能力怎样共同形成价值" if has_0214 else "你的能力组合怎样形成价值"
     return _item(
         key=key,
-        title=f"{name}能怎样形成价值",
-        subtitle=value_path,
-        basis=(f"已定义通道：{name}", f"通道类型：{channel.channel_type.label}", f"回路：{channel.circuit.label}"),
-        user=f"{line}。{value_path}",
-        scenes=("先找真实问题和结果，再设计服务形式；不要只把通道名称包装成一个卖点。",),
-        embodied=("客户能清楚说出你解决了什么问题，而你也能用相似方法再次交付。",),
-        blind=("只把天然能力免费用来救场，没有把过程、边界和结果沉淀成可定价的交付。",),
-        stuck=("别人经常来找你帮忙，但这些帮助既没有形成案例，也没有形成稳定收入。",),
-        causes=("盘面机制：已定义通道会稳定重复，却不会自动变成收入；现实场景：如果每次只临时帮忙、不记录过程，市场就无法理解和购买这项能力。",),
-        practices=("把一次最有效的帮助写成三步流程，并确认下一次是否可以在边界清楚的情况下收费交付。",),
-        followups=(f"{name}适合做成什么样的产品、服务或工作职责？",),
+        title=title,
+        subtitle="把完整能力组合变成一项清楚、可重复、能定价的交付",
+        basis=tuple(f"已定义通道：{name}" for name in names),
+        user=(
+            f"你的收入能力不是把{'、'.join(names)}分别卖一次，而是让它们共同解决一个客户真正愿意付费的问题。"
+            "一部分能力负责看见方向或判断问题，另一部分负责推进、保护质量或走完过程。组合后的结果，比单卖一个技巧更有价值。"
+        ),
+        scenes=tuple(value_lines),
+        embodied=("客户能说清你解决了什么问题，你也能用相似步骤再次交付，而不是每次靠临场救火。",),
+        blind=("天然能力常被免费用来帮忙；如果不记录过程和结果，别人只能觉得你人很好，却不知道该购买什么。",),
+        stuck=("事情做了很多，口碑也不差，但每次都从零开始，收入无法随着经验积累而提高。",),
+        causes=("盘面机制：稳定通道会重复出现，却不会自动变成产品；现实场景：只临时救场、不提炼共同问题，市场就看不见这套能力组合。",),
+        practices=("选一次最有效的帮助，写清客户原来的问题、你的三个关键动作和最后结果，再用同一结构验证第二次。",),
+        followups=("结合我的现实工作，这组能力最适合形成哪一种产品、服务或职责？",),
     )
 
 
@@ -565,18 +572,26 @@ def _relationship_emotion_item(chart: HumanDesignChart) -> InterpretationMapItem
     )
 
 
-def _mission_channel_item(channel) -> InterpretationMapItem:
-    name = _channel_name(channel)
-    line = CHANNEL_LINES.get(channel.code, "这条能力线路会反复参与到你的长期贡献中")
+def _mission_channels_item(channels) -> InterpretationMapItem:
+    names = tuple(_channel_name(channel) for channel in channels)
+    expressions = tuple(
+        f"{_channel_name(channel)}：{CHANNEL_LINES.get(channel.code, '这条能力线路会反复参与到你的长期贡献中')}。"
+        for channel in channels
+    )
     return _item(
-        key=f"mission.channel-{channel.code}",
-        title=f"用{name}落地使命",
-        subtitle="使命需要借助真实能力，而不是只停留在意义感里",
-        basis=(f"已定义通道：{name}",),
-        user=f"{line}。当这条能力长期服务于同一类真实问题时，它就不只是天赋，也会成为你承担使命的工具。",
-        scenes=("观察过去哪些项目曾让你反复使用这条能力，并且确实改变了别人或一个系统。",),
-        blind=("只追求使命主题听起来正确，却没有让任何一项稳定能力持续服务现实。",),
-        practices=("为这条通道找一个可以连续服务 90 天的真实问题，不要先设计宏大身份。",),
+        key="mission.channel-combination",
+        title="使命靠哪些真实能力落地",
+        subtitle="使命不是意义感，而是能力长期服务于同一类真实问题",
+        basis=tuple(f"已定义通道：{name}" for name in names),
+        user=(
+            f"你的{'、'.join(names)}是使命落地时可以反复使用的能力。它们不是几个平行方向，"
+            "而是同一条人生主线上的不同工具：有的负责看见问题，有的负责推进，有的负责守住价值或完成转化。"
+        ),
+        scenes=expressions,
+        embodied=("当这些能力长期服务同一类人和问题时，使命会从抽象感觉变成别人能感受到的真实贡献。",),
+        blind=("只追求使命主题听起来正确，却没有让能力持续服务现实；或者每项能力都另开一个方向，主线始终无法积累。",),
+        stuck=("总在寻找更准确的身份说明，却很少把一项已经有效的贡献连续做完一个周期。",),
+        practices=("从过去有效的项目里选一个真实问题，让这组能力连续服务 90 天，不先扩大身份，只记录结果。",),
     )
 
 

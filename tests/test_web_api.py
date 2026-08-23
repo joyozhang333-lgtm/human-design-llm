@@ -66,7 +66,8 @@ def test_create_chart_returns_chart_and_bodygraph_svg() -> None:
     assert payload["bodygraph_svg_url"].endswith("/bodygraph.svg")
     assert "<svg" in payload["bodygraph_svg"]
     assert "Sacral Authority" in payload["bodygraph_svg"]
-    assert "阿姬娜中心" in payload["bodygraph_svg"]
+    assert "已定义中心" not in payload["bodygraph_svg"]
+    assert "开放中心" not in payload["bodygraph_svg"]
     # The web BodyGraph is graphic-only; the long booklet ships via /reading-book.
     assert "人类图解读本" not in payload["bodygraph_svg"]
 
@@ -168,7 +169,7 @@ def test_interpretation_map_endpoint_returns_instant_structured_report() -> None
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.5.2"
+    assert payload["product_version"] == "0.5.3"
     assert payload["map_type"] == "wealth"
     assert payload["title"] == "财富报告"
     assert payload["overview"]

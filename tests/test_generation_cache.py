@@ -8,10 +8,10 @@ from human_design.generation.cache import GenerationCache, cache_key, normalize_
 
 def test_cache_roundtrip_and_idempotent_set(tmp_path) -> None:
     cache = GenerationCache(tmp_path / "cache.db")
-    key = cache_key("hash", "L2", "", "", "deepseek-chat", "v0.5.2")
+    key = cache_key("hash", "L2", "", "", "deepseek-chat", "v0.5.3")
     assert cache.get(key) is None
-    cache.set(key, "hash", "L2", "第一版", model="deepseek-chat", prompt_version="v0.5.2")
-    cache.set(key, "hash", "L2", "第二版不应覆盖", model="deepseek-chat", prompt_version="v0.5.2")
+    cache.set(key, "hash", "L2", "第一版", model="deepseek-chat", prompt_version="v0.5.3")
+    cache.set(key, "hash", "L2", "第二版不应覆盖", model="deepseek-chat", prompt_version="v0.5.3")
     assert cache.get(key) == "第一版"  # INSERT OR IGNORE 幂等
 
 

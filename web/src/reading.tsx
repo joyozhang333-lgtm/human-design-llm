@@ -2,7 +2,6 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   askQuestion,
   createInterpretationMap,
-  fetchReadingDetail,
   InterpretationMapItem,
   InterpretationMapResponse,
   MainReadingResponse,
@@ -10,59 +9,6 @@ import {
   SavedChartResponse
 } from "./api";
 import { PUBLIC_VERSION } from "./version";
-
-/* ---------- 中文标注表（沿用既有词表，仅用于抽屉佐证区） ---------- */
-
-const centerLabels: Record<string, string> = {
-  head: "头顶中心",
-  ajna: "阿姬娜中心",
-  throat: "喉咙中心",
-  g: "G中心",
-  heart: "意志力中心",
-  spleen: "脾中心",
-  "solar-plexus": "情绪中心",
-  sacral: "荐骨中心",
-  root: "根部中心"
-};
-
-const channelLabels: Record<string, string> = {
-  "01-08": "创造贡献通道",
-  "02-14": "方向与资源通道",
-  "03-60": "突变通道",
-  "04-63": "逻辑通道",
-  "05-15": "节律通道",
-  "06-59": "亲密通道",
-  "07-31": "引导通道",
-  "09-52": "专注通道",
-  "10-20": "觉醒通道",
-  "10-34": "探索通道",
-  "10-57": "身体直觉通道",
-  "11-56": "好奇与故事通道",
-  "12-22": "开放表达通道",
-  "13-33": "记忆与退隐通道",
-  "16-48": "才华通道",
-  "17-62": "组织表达通道",
-  "18-58": "修正通道",
-  "19-49": "敏感与原则通道",
-  "20-34": "魅力通道",
-  "20-57": "直觉表达通道",
-  "21-45": "资源管理通道",
-  "23-43": "洞见表达通道",
-  "24-61": "内在真理通道",
-  "25-51": "唤醒通道",
-  "26-44": "说服与传递通道",
-  "27-50": "照顾与价值通道",
-  "28-38": "意义抗争通道",
-  "29-46": "发现通道",
-  "30-41": "情感经验通道",
-  "32-54": "转化通道",
-  "34-57": "力量与直觉通道",
-  "35-36": "经验变化通道",
-  "37-40": "社群契约通道",
-  "39-55": "情绪丰盛通道",
-  "42-53": "成熟周期通道",
-  "47-64": "抽象整合通道"
-};
 
 /* ---------- 渲染前白名单守卫（与后端校验双保险） ---------- */
 
@@ -109,16 +55,19 @@ export function guardText(text: string): string {
     .trim();
 }
 
-/** 体感卡自带「活对了的感觉/活拧了的感觉」标签，正文若以同义前缀开头则剥掉，避免字面重复。 */
-function stripFeelPrefix(text: string): string {
-  return text.replace(/^活[对拧]了的体感[：:]\s*/, "");
-}
-
 export function splitParagraphs(text: string): string[] {
   return guardText(text)
     .split(/\n{2,}|\n/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+}
+
+function simplifyMainParagraph(text: string): string {
+  return (text.match(/[^。！？!?]+[。！？!?]?/g) ?? [text])
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => !/(已定义.{0,8}中心|开放.{0,8}中心|闸门)/.test(sentence))
+    .join("")
+    .trim();
 }
 
 /* ---------- 后端主线接口不可用时，用既有解读本拼一份可用主线 ---------- */
@@ -191,14 +140,12 @@ type ChatLine = {
 
 export function ReadingFlow({
   chart,
-  reading,
-  localDetailBodies
+  reading
 }: {
   chart: SavedChartResponse;
   reading: MainReadingResponse;
   localDetailBodies: LocalDetailBodies | null;
 }) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [exploreKey, setExploreKey] = useState<string | null>(null);
   const [exploreMap, setExploreMap] = useState<InterpretationMapResponse | null>(null);
   const [exploreLoading, setExploreLoading] = useState(false);
@@ -209,15 +156,17 @@ export function ReadingFlow({
   const [chatLines, setChatLines] = useState<ChatLine[]>([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
-  const narrativeRef = useRef<HTMLElement | null>(null);
   const chatZoneRef = useRef<HTMLElement | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const mapCacheRef = useRef<Record<string, InterpretationMapResponse>>({});
 
-  const summary = chart.display_summary;
-  const l1Text = useMemo(() => guardText(reading.l1), [reading.l1]);
+  const l1Text = useMemo(() => simplifyMainParagraph(guardText(reading.l1)), [reading.l1]);
   const l2Paragraphs = useMemo(() => splitParagraphs(reading.l2), [reading.l2]);
-  const reportSections = useMemo(() => buildReportSections(l2Paragraphs), [l2Paragraphs]);
+  const mainParagraphs = l2Paragraphs
+    .map(simplifyMainParagraph)
+    .filter(Boolean)
+    .slice(0, 3);
+  const visibleReports = reading.explore.filter((entry) => entry.key !== "professional");
 
   useEffect(() => {
     if (chatLines.length > 0) {
@@ -325,60 +274,27 @@ export function ReadingFlow({
             <div className="bodygraph-cover-svg" dangerouslySetInnerHTML={{ __html: chart.bodygraph_svg }} />
           </section>
 
-          <CoreFacts chart={chart} onOpenDetails={() => setDrawerOpen(true)} />
+          <CoreFacts chart={chart} />
 
-          <section className="report-hero">
-            <span className="report-kicker">人类图解读报告</span>
+          <section className="minimal-reading">
+            <span>你的解读</span>
             <h2>{l1Text}</h2>
-            <div className="feel-pair">
-              <div className="feel-card good">
-                <span>活对了的感觉</span>
-                <strong>{stripFeelPrefix(guardText(reading.signature))}</strong>
-              </div>
-              <div className="feel-card off">
-                <span>活拧了的感觉</span>
-                <strong>{stripFeelPrefix(guardText(reading.not_self))}</strong>
-              </div>
+            <div className="minimal-reading-copy">
+              {mainParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>
-            <button
-              type="button"
-              className="scroll-hint"
-              aria-label="继续往下读"
-              onClick={() => narrativeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            >
-              <span className="scroll-arrow" />
-            </button>
           </section>
 
-          <section className="report-sections" ref={narrativeRef}>
-            {reportSections.map((section, index) => (
-              <article key={section.title} className="report-section" style={{ animationDelay: `${Math.min(index * 90, 360)}ms` }}>
-                <span>0{index + 1}</span>
-                <div>
-                  <h2>{section.title}</h2>
-                  {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-                </div>
-              </article>
-            ))}
-          </section>
-
-          <CenterGuide chart={chart} />
-          <ChannelGuide chart={chart} />
-          <TalentGuide chart={chart} />
-
-          {reading.detail_sections.length > 0 && (
-            <DetailDirectory chartId={chart.chart_id} sections={reading.detail_sections} localBodies={localDetailBodies} />
-          )}
-
-          {reading.explore.length > 0 && (
-            <section className="explore-row">
-              <h2 className="section-title">六份个人报告</h2>
-              <p className="section-hint">身体、天赋、财富、关系和使命分别成篇；专业信息用于核对盘面。</p>
-              <div className="explore-cards">
-                {reading.explore.map((entry) => (
-                  <button key={entry.key} type="button" className="explore-card" onClick={() => void openExplore(entry.key)}>
-                    <strong>{entry.title}</strong>
-                    <span>{entry.hint}</span>
+          {visibleReports.length > 0 && (
+            <section className="minimal-reports">
+              <header>
+                <h2>进一步了解自己</h2>
+                <p>每份报告只回答一个主题，点开后直接阅读。</p>
+              </header>
+              <div>
+                {visibleReports.map((entry) => (
+                  <button key={entry.key} type="button" onClick={() => void openExplore(entry.key)}>
+                    <span><strong>{entry.title}</strong><small>{entry.hint}</small></span>
+                    <b aria-hidden="true">→</b>
                   </button>
                 ))}
               </div>
@@ -387,7 +303,7 @@ export function ReadingFlow({
         </main>
       ) : (
         <main className="flow explore-view">
-          <button type="button" className="back-link" onClick={closeExplore}>← 回到完整报告</button>
+          <button type="button" className="back-link" onClick={closeExplore}>← 回到人类图</button>
           {!exploreMap && <h1 className="explore-title">{exploreEntry?.title ?? ""}</h1>}
           {!exploreMap && exploreEntry?.hint && <p className="explore-hint">{exploreEntry.hint}</p>}
           {exploreLoading && <p className="soft-note">正在打开报告……</p>}
@@ -453,42 +369,24 @@ export function ReadingFlow({
         问
       </button>
 
-      {drawerOpen && (
-        <div className="drawer-scrim" onClick={() => setDrawerOpen(false)}>
-          <aside className="drawer" onClick={(event) => event.stopPropagation()}>
-            <div className="drawer-head">
-              <strong>完整专业配置</strong>
-              <button type="button" onClick={() => setDrawerOpen(false)}>关闭</button>
-            </div>
-            <p className="drawer-note">这里列出报告使用的专业配置，方便你继续查阅。</p>
-            <ProfessionalFold chart={chart} />
-          </aside>
-        </div>
-      )}
     </div>
   );
 }
 
-function CoreFacts({
-  chart,
-  onOpenDetails
-}: {
-  chart: SavedChartResponse;
-  onOpenDetails: () => void;
-}) {
+function CoreFacts({ chart }: { chart: SavedChartResponse }) {
   const summary = chart.display_summary;
   const facts = [
     { label: "类型", value: summary.type, explanation: typeExplanation(chart.chart.summary.type.code) },
-    { label: "Strategy", value: summary.strategy, explanation: strategyExplanation(chart.chart.summary.strategy.code) },
+    { label: "行动方式", value: summary.strategy, explanation: strategyExplanation(chart.chart.summary.strategy.code) },
     {
-      label: "Authority",
+      label: "决策方式",
       value: summary.authority_professional,
       explanation: authorityExplanation(chart.chart.summary.authority.code)
     },
     { label: "人生角色", value: summary.profile, explanation: profileExplanation(chart.chart.summary.profile.code) },
-    { label: "定义", value: summary.definition, explanation: definitionExplanation(chart.chart.summary.definition.code) },
+    { label: "内在连接", value: summary.definition, explanation: definitionExplanation(chart.chart.summary.definition.code) },
     {
-      label: "轮回交叉",
+      label: "人生主题",
       value: summary.incarnation_cross,
       explanation: "这是你的人生使命主题名称。它不是指定职业，而是会在选择、关系和长期贡献中反复出现的主线。"
     }
@@ -496,21 +394,16 @@ function CoreFacts({
   return (
     <section className="core-facts">
       <div className="core-facts-heading">
-        <div>
-          <span>个人人类图简要</span>
-          <h2>{chart.user_name ? `${chart.user_name}的核心配置` : "你的核心配置"}</h2>
-        </div>
-        <button type="button" onClick={onOpenDetails}>查看专业配置</button>
+        <h2>{chart.user_name ? `${chart.user_name}的人类图` : "你的人类图"}</h2>
       </div>
-      <div className="core-facts-grid">
+      <dl className="core-facts-grid">
         {facts.map((fact) => (
-          <article key={fact.label}>
-            <span>{fact.label}</span>
-            <strong>{guardText(fact.value)}</strong>
-            <p>{fact.explanation}</p>
-          </article>
+          <div key={fact.label}>
+            <dt>{fact.label}</dt>
+            <dd><strong>{guardText(fact.value)}</strong><p>{fact.explanation}</p></dd>
+          </div>
         ))}
-      </div>
+      </dl>
     </section>
   );
 }
@@ -575,176 +468,7 @@ function definitionExplanation(code: string): string {
     "triple-split": "三分人需要不同的人和流动场域帮助内部信息流转，长期困在单一环境里容易卡住。",
     "quadruple-split": "四分人的内部结构需要丰富场域慢慢接通，给自己更多时间与空间，不必催促整合。",
     no: "无定义并不代表没有自己，而是对环境极其敏感；选择什么地方和人，会深刻影响你的状态。"
-  }[code] ?? "定义说明已定义中心怎样彼此连通，以及你在独处和关系中处理信息的方式。";
-}
-
-function CenterGuide({ chart }: { chart: SavedChartResponse }) {
-  const defined = chart.guidance.center_notes.filter((center) => center.defined);
-  const open = chart.guidance.center_notes.filter((center) => !center.defined);
-  return (
-    <section className="guidance-section center-guide">
-      <div className="guidance-heading">
-        <span>你的九大中心</span>
-        <h2>稳定资源与开放学习区</h2>
-        <p>已定义中心是你较稳定的资源；开放中心会放大环境，也最需要边界和观察。</p>
-      </div>
-      <CenterGroup title="已定义中心" description="这些能力更容易稳定重复出现" items={defined} />
-      <CenterGroup title="开放中心" description="这些位置更容易受人和环境影响" items={open} />
-    </section>
-  );
-}
-
-function CenterGroup({
-  title,
-  description,
-  items
-}: {
-  title: string;
-  description: string;
-  items: SavedChartResponse["guidance"]["center_notes"];
-}) {
-  return (
-    <div className="center-group">
-      <div className="center-group-title"><h3>{title}</h3><span>{description}</span></div>
-      <div className="center-card-grid">
-        {items.map((center) => (
-          <article key={center.code} className={center.defined ? "center-card defined" : "center-card open"}>
-            <span>{center.state_label}</span>
-            <h3>{center.label}</h3>
-            <p>{center.body_resource}</p>
-            {!center.defined && <small>留意：{center.consumption_pattern}</small>}
-          </article>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ChannelGuide({ chart }: { chart: SavedChartResponse }) {
-  const channels = chart.guidance.channel_notes;
-  return (
-    <section className="guidance-section channel-guide">
-      <div className="guidance-heading">
-        <span>你的已定义通道</span>
-        <h2>这些是你能反复调用的能力线路</h2>
-        <p>通道连接两个中心。它比单独看一个闸门更能说明一种稳定能力怎样在你身上运作。</p>
-      </div>
-      <div className="channel-list">
-        {channels.length > 0 ? channels.map((channel) => (
-          <article key={channel.code} className="channel-card">
-            <div><span>{channel.code}</span><h3>{channel.label}</h3></div>
-            <strong>{channel.centers.join(" → ")}</strong>
-            <p>{channel.expression}</p>
-            <small>{channel.practice}</small>
-          </article>
-        )) : <p className="section-hint">你的图里没有固定接通的通道，能力更容易在对的人和环境中被点亮。</p>}
-      </div>
-    </section>
-  );
-}
-
-function TalentGuide({ chart }: { chart: SavedChartResponse }) {
-  return (
-    <section className="guidance-section talent-guide">
-      <div className="guidance-heading">
-        <span>你的天赋</span>
-        <h2>不是单个标签，而是一组能力怎样配合</h2>
-        <p>这里把人生角色、稳定中心和通道放在一起，看天赋是什么、怎样被看见、又怎样练成熟。</p>
-      </div>
-      <div className="talent-section-list">
-        {chart.guidance.talent_sections.map((section) => (
-          <article key={section.key} className="talent-section-card">
-            <h3>{guardText(section.title)}</h3>
-            <p>{guardText(section.summary)}</p>
-            <div>
-              {section.bullets.map((bullet) => <p key={bullet}>{guardText(bullet)}</p>)}
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function buildReportSections(paragraphs: string[]) {
-  const titles = ["核心身份", "决策与行动", "天赋与角色路径", "人生使命"];
-  return titles.map((title, index) => ({
-    title,
-    paragraphs: index === titles.length - 1 ? paragraphs.slice(index) : paragraphs.slice(index, index + 1)
-  })).filter((section) => section.paragraphs.length > 0);
-}
-
-/* ---------- 「想看更细」目录：惰性加载 body ---------- */
-
-function DetailDirectory({
-  chartId,
-  sections,
-  localBodies
-}: {
-  chartId: string;
-  sections: MainReadingResponse["detail_sections"];
-  localBodies: LocalDetailBodies | null;
-}) {
-  const [openKey, setOpenKey] = useState<string | null>(null);
-  const [bodies, setBodies] = useState<Record<string, string>>({});
-  const [loadingKey, setLoadingKey] = useState<string | null>(null);
-  const [errorKey, setErrorKey] = useState<string | null>(null);
-
-  async function toggle(key: string) {
-    if (openKey === key) {
-      setOpenKey(null);
-      return;
-    }
-    setOpenKey(key);
-    setErrorKey(null);
-    if (bodies[key]) {
-      return;
-    }
-    if (localBodies) {
-      setBodies((prev) => ({ ...prev, [key]: localBodies[key] ?? "" }));
-      return;
-    }
-    setLoadingKey(key);
-    try {
-      const detail = await fetchReadingDetail(chartId, key);
-      setBodies((prev) => ({ ...prev, [key]: guardText(detail.body) }));
-    } catch {
-      setErrorKey(key);
-    } finally {
-      setLoadingKey(null);
-    }
-  }
-
-  return (
-    <section className="detail-directory">
-      <h2 className="section-title">想看更细</h2>
-      <p className="section-hint">主线读完还想深究的话，可以从这里一条条看。</p>
-      <div className="detail-list">
-        {sections.map((section) => {
-          const open = openKey === section.key;
-          return (
-            <article key={section.key} className={open ? "detail-item open" : "detail-item"}>
-              <button type="button" onClick={() => void toggle(section.key)}>
-                <span className="detail-titles">
-                  <strong>{guardText(section.title)}</strong>
-                  <span>{guardText(section.summary)}</span>
-                </span>
-                <b>{open ? "收起" : "展开"}</b>
-              </button>
-              {open && (
-                <div className="detail-body">
-                  {loadingKey === section.key && <p className="soft-note">正在展开这部分……</p>}
-                  {errorKey === section.key && <p className="error-text">这部分暂时打不开，可以稍后再试。</p>}
-                  {bodies[section.key] &&
-                    splitParagraphs(bodies[section.key]).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-                </div>
-              )}
-            </article>
-          );
-        })}
-      </div>
-    </section>
-  );
+  }[code] ?? "内在连接说明你在独处和关系中处理信息、形成完整感的方式。";
 }
 
 /* ---------- 主题报告：结论、章节、现实场景与行动建议 ---------- */
@@ -757,44 +481,26 @@ function ExplorePanel({
   onFollowup: (question: string, itemKey?: string) => void;
 }) {
   const visibleSections = mapPackage.sections.filter((section) => section.items.length > 0);
-  const quickFacts = mapPackage.professional_facts.slice(0, 5).map(guardText).filter(Boolean);
   return (
     <article className="map-report">
       <header className="map-report-cover">
-        <span>个人人类图主题报告</span>
+        <span>个人报告</span>
         <h1>{guardText(mapPackage.title)}</h1>
         <p>{guardText(mapPackage.description)}</p>
-        {quickFacts.length > 0 && (
-          <div className="map-report-facts">
-            {quickFacts.map((fact) => <b key={fact}>{fact}</b>)}
-          </div>
-        )}
       </header>
 
       {guardText(mapPackage.overview) && (
         <section className="map-report-lead">
-          <span>先看结论</span>
+          <span>先说结论</span>
           {splitParagraphs(mapPackage.overview).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         </section>
       )}
 
-      {visibleSections.length > 1 && (
-        <nav className="map-report-toc" aria-label="报告目录">
-          <span>报告目录</span>
-          {visibleSections.map((section) => (
-            <a key={section.key} href={`#${section.key}`}>{guardText(section.title)}</a>
-          ))}
-        </nav>
-      )}
-
-      {visibleSections.map((section, sectionIndex) => (
+      {visibleSections.map((section) => (
         <section key={section.key} id={section.key} className="map-report-chapter">
           <header className="map-report-chapter-heading">
-            <span>{String(sectionIndex + 1).padStart(2, "0")}</span>
-            <div>
-              {guardText(section.title) && <h2>{guardText(section.title)}</h2>}
-              {guardText(section.intro) && <p>{guardText(section.intro)}</p>}
-            </div>
+            {guardText(section.title) && <h2>{guardText(section.title)}</h2>}
+            {guardText(section.intro) && <p>{guardText(section.intro)}</p>}
           </header>
           {section.items.map((item) => (
             <ReportArticle key={item.key} item={item} onFollowup={(next) => onFollowup(next, item.key)} />
@@ -803,9 +509,8 @@ function ExplorePanel({
       ))}
       {mapPackage.suggested_questions.length > 0 && (
         <section className="map-report-followups">
-          <span>这份报告不是结论的终点</span>
-          <h2>带一个真实问题继续聊</h2>
-          <p>点击后会进入咨询对话，并结合整张盘继续分析，不会复述这份报告。</p>
+          <span>继续咨询</span>
+          <h2>从你的真实经历继续聊</h2>
           <div className="chip-row">
             {mapPackage.suggested_questions.map((item) => (
               <button key={item} type="button" onClick={() => onFollowup(item)}>
@@ -824,7 +529,10 @@ function ReportArticle({ item, onFollowup }: { item: InterpretationMapItem; onFo
   if (!mainSentence) {
     return null;
   }
-  const basisLines = [...item.chart_basis.map(guardText), guardText(item.professional_basis)].filter(Boolean);
+  const livedLines = [...item.life_scenes, ...item.embodied_expression].map(cleanReportLine).filter(Boolean);
+  const frictionLines = [...item.blind_spots, ...item.stuck_patterns, ...item.stuck_causes]
+    .map(cleanReportLine)
+    .filter(Boolean);
 
   return (
     <article className="map-report-article">
@@ -837,28 +545,16 @@ function ReportArticle({ item, onFollowup }: { item: InterpretationMapItem; onFo
       </div>
       {item.diagnosis_depth !== "trace" && (
         <>
-          <ReportList title="你可能会在这些场景里认出它" lines={item.life_scenes} />
-          <ReportCallout title="顺着使用时" lines={item.embodied_expression} tone="positive" />
-          <div className="map-report-risk-grid">
-            <ReportCallout title="容易忽略的地方" lines={item.blind_spots} tone="warning" />
-            <ReportCallout title="卡住时会怎样" lines={item.stuck_patterns} tone="warning" />
-          </div>
-          <ReportList title="为什么会这样" lines={item.stuck_causes} />
-          <ReportSteps title="现在可以做" lines={item.practices} />
+          <ReportList title="现实里的样子" lines={livedLines} />
+          <ReportList title="需要留意" lines={frictionLines} />
+          <ReportList title="可以怎么试" lines={item.practices} />
         </>
-      )}
-      {basisLines.length > 0 && (
-        <details className="map-report-basis">
-          <summary>这段解读用了哪些盘面信息</summary>
-          <div>{basisLines.map((line, index) => <p key={index}>{line}</p>)}</div>
-        </details>
       )}
       {item.followup_questions.length > 0 && (
         <div className="map-report-item-followup">
-          <span>和咨询师继续聊</span>
-          {item.followup_questions.map((next) => (
+          {item.followup_questions.slice(0, 1).map((next) => (
             <button key={next} type="button" onClick={() => onFollowup(next)}>
-              {next}
+              继续聊：{next}
             </button>
           ))}
         </div>
@@ -868,100 +564,24 @@ function ReportArticle({ item, onFollowup }: { item: InterpretationMapItem; onFo
 }
 
 function ReportList({ title, lines }: { title: string; lines: string[] }) {
-  const cleaned = lines.map(guardText).filter(Boolean);
+  const cleaned = lines.map(cleanReportLine).filter(Boolean);
   if (cleaned.length === 0) {
     return null;
   }
   return (
     <section className="map-report-list">
       <h3>{title}</h3>
-      {cleaned.map((line, index) => <p key={index}><span>{String(index + 1).padStart(2, "0")}</span>{line}</p>)}
-    </section>
-  );
-}
-
-function ReportCallout({
-  title,
-  lines,
-  tone
-}: {
-  title: string;
-  lines: string[];
-  tone: "positive" | "warning";
-}) {
-  const cleaned = lines.map(guardText).filter(Boolean);
-  if (cleaned.length === 0) {
-    return null;
-  }
-  return (
-    <aside className={`map-report-callout ${tone}`}>
-      <h3>{title}</h3>
       {cleaned.map((line, index) => <p key={index}>{line}</p>)}
-    </aside>
-  );
-}
-
-function ReportSteps({ title, lines }: { title: string; lines: string[] }) {
-  const cleaned = lines.map(guardText).filter(Boolean);
-  if (cleaned.length === 0) {
-    return null;
-  }
-  return (
-    <section className="map-report-steps">
-      <h3>{title}</h3>
-      {cleaned.map((line, index) => (
-        <p key={index}><b>{index + 1}</b>{line}</p>
-      ))}
     </section>
   );
 }
 
-/* ---------- 抽屉里的专业信息折叠区 ---------- */
-
-function ProfessionalFold({ chart }: { chart: SavedChartResponse }) {
-  const summary = chart.display_summary;
-  const definedCenters = chart.chart.centers
-    .filter((center) => center.defined)
-    .map((center) => centerLabels[center.code] ?? center.label);
-  const openCenters = chart.chart.centers
-    .filter((center) => !center.defined)
-    .map((center) => centerLabels[center.code] ?? center.label);
-  const channels = chart.chart.channels.map(
-    (channel) => `${channel.code} ${channelLabels[channel.code] ?? channel.label}`
-  );
-  const coreFacts: Array<[string, string]> = [
-    ["类型", summary.type],
-    ["Strategy", summary.strategy],
-    ["Authority", summary.authority_professional],
-    ["人生角色", summary.profile],
-    ["定义", summary.definition],
-    ["轮回交叉与人生使命", summary.incarnation_cross]
-  ];
-  return (
-    <details className="professional-fold">
-      <summary>专业配置一览</summary>
-      <div className="professional-grid">
-        {coreFacts.map(([label, value]) => (
-          <div key={label}>
-            <span>{label}</span>
-            <strong>{guardText(value)}</strong>
-          </div>
-        ))}
-      </div>
-      <FactRail title="已定义中心" items={definedCenters} />
-      <FactRail title="开放中心" items={openCenters} />
-      <FactRail title="已定义通道" items={channels} />
-    </details>
-  );
-}
-
-function FactRail({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="fact-rail">
-      <span>{title}</span>
-      <p>{items.length > 0 ? items.join("、") : "无"}</p>
-    </div>
-  );
+function cleanReportLine(text: string): string {
+  return guardText(text)
+    .replace(/^盘面机制[：:]\s*/, "")
+    .replace(/[；;]\s*现实场景[：:]\s*/, "。")
+    .replace(/^现实场景[：:]\s*/, "")
+    .trim();
 }
 
 /* ---------- 受控 Markdown 渲染（不用 innerHTML） ---------- */

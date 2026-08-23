@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from .facts import ChartFacts
 
-PROMPT_VERSION = "v0.5.2"
+PROMPT_VERSION = "v0.5.3"
 
 SYSTEM_PROMPT = """你是「人类图」的解读引擎，母品牌是「引人心性觉醒的教育」。
 你面向的不是初学者，而是有自我觉察意愿的成熟读者。

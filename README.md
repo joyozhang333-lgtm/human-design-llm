@@ -3,9 +3,9 @@
 > 把 Human Design（人类图）从昂贵、封闭的一次性报告，变成人人可以运行、验证、扩展和自托管的开源产品。
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-humandesign.guichu.chat-c46f55)](https://humandesign.guichu.chat)
-[![Version](https://img.shields.io/badge/version-0.5.2-222222)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.3-222222)](./CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-179_passing-2E8B57)](./tests)
+[![Tests](https://img.shields.io/badge/tests-185_passing-2E8B57)](./tests)
 [![License](https://img.shields.io/badge/license-MIT-2E8B57)](./LICENSE)
 
 **在线体验 / Live Demo：<https://humandesign.guichu.chat>**
@@ -45,14 +45,15 @@ V0.5 的关键词是 **从术语墙到完整阅读体验**。本版本不再只�
 
 - **BodyGraph 优先**：结果页先展示完整人类图，再给出类型、Strategy、Authority、人生角色、定义与轮回交叉。
 - **术语解释**：不只显示专业名称；`等待回应`、`先告知再行动`、`Sacral Authority`、一分人/二分人等配置都有个人化说明。
-- **中心与通道专章**：明确列出已定义中心和开放中心对个人的意义；通道在独立区域逐条解释，基础配置不再堆叠闸门释义。
-- **天赋组合**：把人生角色、稳定中心、通道和关键激活放在一起，说明每项天赋是什么、怎样被看见、怎样练成熟。
-- **六张完整地图**：身体、财富、天赋、关系、使命与专业信息地图都有独立的全盘报告，不再因知识规则未命中而显示空白。
+- **极简主阅读**：主页面只保留 BodyGraph、六项必要配置、全盘解读和五份主题报告入口，不再罗列中心与闸门。
+- **综合天赋**：把人生角色与多条通道合成一组现实能力来讲，避免把每个结构拆成互相重复的标签。
+- **五份完整报告**：身体、财富、天赋、关系与使命各自回答四个核心问题，并保持即时打开。
 - **真实 AI 生成**：主阅读与细读可以调用 DeepSeek 或 Claude；没有 API Key 时自动使用结构化中文回退内容。
 - **事实护栏**：输出中的闸门、通道、中心和爻线必须来自当前盘面；违规文本会被重写或拦截。
 - **中文化层**：行星、变量、回路、通道类型和常见 Human Design 术语统一转成简体中文。
 - **隐私缓存**：生成缓存只保存盘面事实哈希与文本，不保存昵称、生日、出生时间、性别或出生地。
-- **阅读式界面**：BodyGraph 置顶，其后依次展示核心配置、四段式报告、中心、通道、天赋、主题地图与咨询对话；桌面和移动端使用同一套阅读流。
+- **单栏阅读界面**：BodyGraph 置顶，核心配置采用紧凑清单，主题报告采用无封面卡、无目录墙的单栏文章；桌面和移动端使用同一套阅读流。
+- **内容审核**：自动检查主题报告的盘面可追溯、通道覆盖、文本区分度、可读性、行动性和内部语言污染。
 - **深度探索与对话**：身体、财富、关系等主题可以继续展开，并把问题带入基于当前全盘的 AI 对话。
 - **污染回归保护**：模型输出若泄露提示词、编造结构或混入开发者语言会被重写或拦截，并回退到基于真实盘面的结构化解读。
 

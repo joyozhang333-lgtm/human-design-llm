@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from human_design.engine import calculate_chart
+from human_design.content_audit import audit_report_content
 from human_design.input import normalize_birth_input
 from human_design.interpretation_maps import build_interpretation_map, map_context_text
 from human_design.research_corpus import load_interpretation_rules, load_knowledge_atoms, load_source_cards
@@ -30,7 +31,7 @@ def test_talent_map_uses_profile_channel_cross_and_user_language() -> None:
     package = build_interpretation_map(_anonymous_0214_chart(), map_type="talent", chart_id="chart_test")
     text = map_context_text(package)
 
-    assert package.product_version == "0.5.2"
+    assert package.product_version == "0.5.3"
     assert package.map_type == "talent"
     assert package.title == "天赋报告"
     assert "人生角色：2/4" in package.professional_facts
@@ -84,6 +85,18 @@ def test_every_user_map_is_a_complete_four_chapter_report() -> None:
         assert any(item.stuck_patterns for item in items)
         assert any(item.stuck_causes for item in items)
         assert any(item.practices for item in items)
+
+
+def test_user_reports_are_compact_distinct_and_auditable() -> None:
+    chart = _anonymous_0214_chart()
+    for map_type in ("body", "wealth", "talent", "relationship", "mission"):
+        package = build_interpretation_map(chart, map_type=map_type)
+        assert len(package.sections) == 4
+        assert all(len(section.items) == 1 for section in package.sections)
+
+    audit = audit_report_content(chart)
+    assert audit.score >= 90, audit.issues
+    assert all(audit.checks.values()), audit.issues
 
 
 def test_talent_wealth_and_mission_cover_every_defined_channel() -> None:
