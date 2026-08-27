@@ -38,3 +38,44 @@ jobs:
       - name: Build
         working-directory: web
         run: npx vite build
+
+  agent-skill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: python -m pip install -e '.[dev]'
+      - name: Validate host adapters
+        run: |
+          python -m pytest -q tests/test_installer.py
+          python scripts/install_skill.py --target all --scope project --project-dir "$RUNNER_TEMP/hd-agent-check" --force
+          python scripts/install_skill.py --target workbuddy --package "$RUNNER_TEMP/human-design-workbuddy.zip" --package-only
+      - name: Verify wheel research data
+        run: |
+          python -m pip wheel --no-deps --wheel-dir "$RUNNER_TEMP/wheels" .
+          python - "$RUNNER_TEMP/wheels" <<'PY'
+          from pathlib import Path
+          import sys
+          import zipfile
+
+          wheel = next(Path(sys.argv[1]).glob("*.whl"))
+          required = {
+              "human_design/assets/research-corpus/v0.3/sources.json",
+              "human_design/assets/research-corpus/v0.3/knowledge_atoms.json",
+              "human_design/assets/research-corpus/v0.3/interpretation_rules.json",
+          }
+          with zipfile.ZipFile(wheel) as archive:
+              missing = required.difference(archive.namelist())
+          if missing:
+              raise SystemExit(f"wheel is missing research data: {sorted(missing)}")
+          PY
+      - name: Execute canonical skill
+        run: |
+          python skills/human-design/scripts/human_design_agent.py report \
+            '1988-10-09T20:30:00+08:00' \
+            --map-type talent \
+            --output "$RUNNER_TEMP/talent-report.json"
+          test -s "$RUNNER_TEMP/talent-report.json"

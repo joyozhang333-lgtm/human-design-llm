@@ -223,6 +223,7 @@ export type ChatResponse = {
   provider_configured?: boolean;
   entry_source?: string | null;
   synthesis_mode?: string | null;
+  external_ai_consent?: boolean;
   map_context?: {
     map_type: string;
     title: string;
@@ -234,6 +235,8 @@ export type ChatResponse = {
     messages: Array<{ role: "user" | "assistant"; content: string }>;
   };
 };
+
+export type ChatEntrySource = "chat_input" | "followup_button";
 
 export type ReadingVisualResponse = {
   image_id: string;
@@ -288,6 +291,13 @@ export type MainReadingResponse = {
   generation_mode: "llm" | "fallback";
 };
 
+export type ProductConfig = {
+  product_version: string;
+  api_version: string;
+  report_types: string[];
+  map_types: string[];
+};
+
 export type ReadingDetailResponse = {
   title: string;
   body: string;
@@ -296,6 +306,10 @@ export type ReadingDetailResponse = {
 
 export async function createChart(input: ChartCreateInput): Promise<SavedChartResponse> {
   return postJson("/api/charts", input);
+}
+
+export async function fetchProductConfig(): Promise<ProductConfig> {
+  return getJson("/api/product/config");
 }
 
 export async function fetchMainReading(chartId: string): Promise<MainReadingResponse> {
@@ -340,7 +354,8 @@ export async function askQuestion(
   sessionId?: string,
   mapType?: string,
   mapItemKey?: string,
-  entrySource?: string
+  entrySource?: ChatEntrySource,
+  externalAiConsent = false
 ): Promise<ChatResponse> {
   return postJson("/api/chat", {
     chart_id: chartId,
@@ -349,6 +364,7 @@ export async function askQuestion(
     map_type: mapType,
     map_item_key: mapItemKey,
     entry_source: entrySource,
+    external_ai_consent: externalAiConsent,
     synthesis_mode: entrySource === "followup_button" ? "full_chart" : undefined
   });
 }

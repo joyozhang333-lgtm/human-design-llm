@@ -6,10 +6,11 @@ from pathlib import Path
 
 from .schema import InterpretationRule, KnowledgeAtom, PromptPack, SourceCard
 
-CORPUS_ROOT = Path(__file__).resolve().parents[1] / "references" / "research-corpus" / "v0.3"
+CORPUS_ROOT = Path(__file__).resolve().parent / "assets" / "research-corpus" / "v0.3"
 
 MAP_RETRIEVAL_TOPICS = {
     "body": ("荐骨回应", "身体资源", "开放中心压力", "能量卡点"),
+    "channels": ("已定义通道", "能力线路", "通道组合", "天赋成熟"),
     "wealth": ("财富来源", "资源配置", "承诺边界", "主航道"),
     "talent": ("2/4", "02-14", "意识交叉", "关键闸门"),
     "relationship": ("关系边界", "情绪放大", "信任网络", "方向感"),
@@ -19,6 +20,7 @@ MAP_RETRIEVAL_TOPICS = {
 
 MAP_SYSTEM_PROMPTS = {
     "body": "你是人类图身体资源解读器。只基于 chart facts 和知识原子，把中心、通道、权威翻译成身体可观察的节奏、压力和练习。",
+    "channels": "你是人类图通道综合解读器。只解释当前盘面真实存在的通道，并把多条通道联动成现实能力、误用模式和成熟路径。",
     "wealth": "你是人类图财富地图解读器。只基于 chart facts 和知识原子，解释财富来源、赚钱方式、承诺风险和资源配置。",
     "talent": "你是人类图天赋地图解读器。只基于 chart facts 和知识原子，解释爻位、通道、闸门与天赋误用。",
     "relationship": "你是人类图关系地图解读器。只基于 chart facts 和知识原子，解释连接方式、边界、情绪和适配关系。",

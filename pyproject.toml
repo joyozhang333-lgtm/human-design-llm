@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "human-design-llm"
-version = "0.5.3"
+version = "0.6.0"
 description = "Open-source Human Design AI product, BodyGraph engine, grounded reading generator, Web API, and installable agent skill."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -96,7 +96,10 @@ Changelog = "https://github.com/joyozhang333-lgtm/human-design-llm/blob/main/CHA
 include = ["human_design*"]
 
 [tool.setuptools.package-data]
-human_design = ["assets/*.svg"]
+human_design = [
+  "assets/*.svg",
+  "assets/research-corpus/v0.3/*.json"
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

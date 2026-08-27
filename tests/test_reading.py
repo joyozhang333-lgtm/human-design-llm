@@ -26,7 +26,7 @@ def test_generate_reading_produces_complete_sections() -> None:
     assert any(source.code == "25-51" for source in channels_section.sources)
     assert any(source.code == "57" for source in gates_section.sources)
     assert any(fact.startswith("输入精度：") for fact in reading.quick_facts)
-    # V0.5：关键闸门只取 top-6，其余收进完整清单折叠。
+    # V0.6：关键闸门只取 top-6，其余只保留在按需专业数据中。
     assert len(gates_section.bullets) <= 6
     assert gates_full_section.key == "gates-full"
     assert len(gates_full_section.bullets) == len(chart.activated_gates)
@@ -54,14 +54,19 @@ def test_generate_reading_surfaces_precision_warnings() -> None:
 
 
 def test_reading_markdown_has_no_english_symbols_or_developer_voice() -> None:
-    """V0.5 硬红线：用户可见文本零英文、零行星符号、零开发者口吻、零模板套话。"""
+    """V0.6 硬红线：除精确 Authority 名称外，零英文、符号、开发者口吻和模板套话。"""
     import re
+
+    from human_design.labels import AUTHORITY_PROFESSIONAL_LABELS
 
     chart = calculate_chart(normalize_birth_input("1988-10-09T20:30:00+08:00"))
     reading = generate_reading(chart)
     markdown = render_reading_markdown(reading)
 
-    assert not re.search(r"[A-Za-z]{3,}", markdown), re.search(r"[A-Za-z]{3,}", markdown).group()
+    english_check = markdown
+    for term in set(AUTHORITY_PROFESSIONAL_LABELS.values()):
+        english_check = english_check.replace(term, "")
+    assert not re.search(r"[A-Za-z]{3,}", english_check), re.search(r"[A-Za-z]{3,}", english_check).group()
     assert not re.search(r"[♃♄⛢♅⊕☊☋☉☽☿♀♂♆♇]", markdown)
     for banned in ("方便后续", "门线解读", "产品价值", "chart facts", "回到图表事实", "系统有没有编造"):
         assert banned not in markdown

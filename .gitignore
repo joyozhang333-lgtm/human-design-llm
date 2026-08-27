@@ -7,6 +7,8 @@ __pycache__/
 .env.*
 !.env.example
 *.pyc
+/build/
+/dist/
 outputs/
 *.egg-info/
 web/node_modules/

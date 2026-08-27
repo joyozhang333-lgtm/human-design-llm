@@ -4,7 +4,7 @@
 
 ## `POST /api/readings/main`
 
-生成 V0.5 主报告，响应包括一句核心定位、四段式全盘叙事、活对/活拧体感、可展开专业目录和主题地图入口。配置模型后走 LLM；无 Key、调用失败或护栏不通过时使用结构化回退。
+生成 V0.6 主报告，响应包括全盘主线、活对/活拧体感、通道入口和主题报告入口。配置模型后走 LLM；无 Key、调用失败或护栏不通过时使用结构化回退。
 
 ## `POST /api/readings/detail`
 
@@ -108,7 +108,8 @@
   "map_type": "body",
   "map_item_key": "可选",
   "entry_source": "followup_button",
-  "synthesis_mode": "full_chart"
+  "synthesis_mode": "full_chart",
+  "external_ai_consent": true
 }
 ```
 
@@ -124,6 +125,7 @@
   "provider_configured": true,
   "entry_source": "followup_button",
   "synthesis_mode": "full_chart",
+  "external_ai_consent": true,
   "citations": [],
   "map_context": {
     "map_type": "body",
@@ -140,14 +142,16 @@
 
 说明：
 
-- 配置 `DEEPSEEK_API_KEY` 后使用 DeepSeek 生成回答。
+- 只有同时配置 `DEEPSEEK_API_KEY` 且请求显式传入 `external_ai_consent: true` 时才使用 DeepSeek。
+- 未提供同意时，即使服务端已配置模型，也只使用本地结构化解读引擎。
+- 远程上下文包含用户输入的问题、本轮会话与脱敏盘面摘要，不额外包含昵称、出生日期、出生时间或出生地。
 - 未配置或外部服务不可用时，接口回退到本地结构化解读引擎。
 - 无论使用哪个 provider，回答都必须基于当前 `chart`、`context_blocks`、`map_context` 和引用，不允许编造图表事实。
 - 当问题包含“天赋、优势、潜能、使命、主航道、深挖”等意图时，默认进入 `focus: talent`，回答必须引用真实结构并输出具体天赋模块、误用方式和可观察练习。
 
 ## `POST /api/interpretation-maps`
 
-即时生成 V0.5 主题报告。该接口不等待外部模型；前端先展示完整结构化报告，DeepSeek 只在用户主动追问时通过 `/api/chat` 参与。
+即时生成 V0.6 主题报告。支持 `body`、`channels`、`wealth`、`talent`、`relationship`、`mission` 与兼容用的 `professional`。该接口不等待外部模型；前端先展示完整结构化报告，DeepSeek 只在用户主动追问时通过 `/api/chat` 参与。
 
 请求：
 
@@ -172,7 +176,7 @@
 
 ```json
 {
-  "product_version": "0.5.3",
+  "product_version": "0.6.0",
   "map_type": "wealth",
   "title": "财富报告",
   "description": "...",
@@ -214,7 +218,7 @@
 
 - 地图条目必须能追溯到真实图表事实：类型、策略、权威、中心、通道、闸门或行星激活。
 - `overview` 必须是给用户看的全盘综合解读，不得包含提示词、模型要求、思考过程或开发者语言。
-- V0.5 延续 `diagnosis_depth`：`deep` 输出完整特质诊断层；`standard` 输出简版盲区和卡住状态；`trace` 只做事实核验和防误读。
+- V0.6 延续 `diagnosis_depth`：`deep` 输出完整特质诊断层；`standard` 输出简版盲区和卡住状态；`trace` 只做事实核验和防误读。
 - `deep` 条目必须返回 `embodied_expression`、`blind_spots`、`stuck_patterns`、`stuck_causes`，并且 `stuck_causes` 同时说明盘面机制和现实场景。
 - `retrieved_knowledge` 来自 `references/research-corpus/v0.3/knowledge_atoms.json`。
 - `sources` 来自 `references/research-corpus/v0.3/sources.json`，只暴露来源元信息，不复制版权正文。

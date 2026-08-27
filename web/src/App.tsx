@@ -2,13 +2,13 @@ import { FormEvent, useEffect, useReducer, useState } from "react";
 import {
   ChartCreateInput,
   createChart,
+  fetchProductConfig,
   fetchMainReading,
-  getReadingBook,
   MainReadingResponse,
   SavedChartResponse
 } from "./api";
 import { cityOptionsForProvince, provinceGroups } from "./chinaLocations";
-import { buildLocalMainReading, LocalDetailBodies, ReadingFlow } from "./reading";
+import { buildLocalMainReading, ReadingFlow } from "./reading";
 import { PUBLIC_VERSION } from "./version";
 import "./styles.css";
 
@@ -27,17 +27,16 @@ type AppState = {
   generating: boolean;
   chart: SavedChartResponse | null;
   reading: MainReadingResponse | null;
-  localDetailBodies: LocalDetailBodies | null;
   error: string | null;
 };
 
 type AppAction =
+  | { type: "RESET" }
   | { type: "GENERATE_START" }
   | {
       type: "GENERATE_SUCCESS";
       chart: SavedChartResponse;
       reading: MainReadingResponse;
-      localDetailBodies: LocalDetailBodies | null;
     }
   | { type: "GENERATE_FAIL"; message: string };
 
@@ -46,12 +45,13 @@ const initialState: AppState = {
   generating: false,
   chart: null,
   reading: null,
-  localDetailBodies: null,
   error: null
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
+    case "RESET":
+      return initialState;
     case "GENERATE_START":
       return { ...state, generating: true, error: null };
     case "GENERATE_SUCCESS":
@@ -60,7 +60,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         generating: false,
         chart: action.chart,
         reading: action.reading,
-        localDetailBodies: action.localDetailBodies,
         error: null
       };
     case "GENERATE_FAIL":
@@ -71,9 +70,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 }
 
 const transitionLines = [
-  "正在根据你的出生时刻排盘……",
-  "正在把你的配置翻译成一段人话……",
-  "快好了，为你整理主线叙事……"
+  "正在校准你的出生时刻……",
+  "正在生成人类图……",
+  "正在整理你的个人解读……"
 ];
 
 export default function App() {
@@ -81,6 +80,40 @@ export default function App() {
   const [form, setForm] = useState<ChartCreateInput>(initialForm);
   const [birthRegion, setBirthRegion] = useState("");
   const [birthCity, setBirthCity] = useState("");
+  const [availableVersion, setAvailableVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkVersion() {
+      try {
+        const config = await fetchProductConfig();
+        if (cancelled || config.product_version === PUBLIC_VERSION) return;
+        const refreshKey = `human-design-refreshed:${config.api_version}`;
+        if (!window.sessionStorage.getItem(refreshKey)) {
+          window.sessionStorage.setItem(refreshKey, "1");
+          window.location.reload();
+          return;
+        }
+        setAvailableVersion(config.product_version);
+      } catch {
+        // Version checks must never block chart creation.
+      }
+    }
+
+    void checkVersion();
+    const handleFocus = () => void checkVersion();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") void checkVersion();
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
 
   async function handleCreateChart(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -94,12 +127,9 @@ export default function App() {
       });
       try {
         const reading = await fetchMainReading(chart.chart_id);
-        dispatch({ type: "GENERATE_SUCCESS", chart, reading, localDetailBodies: null });
+        dispatch({ type: "GENERATE_SUCCESS", chart, reading });
       } catch {
-        // 主线接口未就绪（404/500）时，用既有解读本拼一份可用的主线视图
-        const book = await getReadingBook(chart.chart_id).catch(() => null);
-        const { reading, detailBodies } = buildLocalMainReading(chart, book);
-        dispatch({ type: "GENERATE_SUCCESS", chart, reading, localDetailBodies: detailBodies });
+        dispatch({ type: "GENERATE_SUCCESS", chart, reading: buildLocalMainReading(chart) });
       }
     } catch (err) {
       dispatch({
@@ -112,22 +142,37 @@ export default function App() {
   function handleBirthRegionChange(nextRegion: string) {
     setBirthRegion(nextRegion);
     setBirthCity("");
-    setForm({ ...form, region: nextRegion, city: "" });
+    setForm((current) => ({ ...current, region: nextRegion, city: "" }));
   }
 
   function handleBirthCityChange(nextCity: string) {
     setBirthCity(nextCity);
-    setForm({ ...form, region: birthRegion, city: nextCity });
+    setForm((current) => ({ ...current, region: birthRegion, city: nextCity }));
   }
 
   if (state.phase === "reading" && state.chart && state.reading) {
     return (
-      <ReadingFlow chart={state.chart} reading={state.reading} localDetailBodies={state.localDetailBodies} />
+      <ReadingFlow
+        chart={state.chart}
+        reading={state.reading}
+        onReset={() => {
+          dispatch({ type: "RESET" });
+          setForm(initialForm);
+          setBirthRegion("");
+          setBirthCity("");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
     );
   }
 
   return (
     <div className="intake-stage">
+      {availableVersion && (
+        <button type="button" className="update-notice" onClick={() => window.location.reload()}>
+          新版本 {availableVersion} 已上线，点击刷新
+        </button>
+      )}
       <section className="intake-card">
         <div className="product-title-row">
           <h1 className="intake-title">人类图</h1>
@@ -140,7 +185,10 @@ export default function App() {
             <input
               id="user-name"
               value={form.user_name}
-              onChange={(event) => setForm({ ...form, user_name: event.target.value })}
+              onChange={(event) => {
+                const userName = event.currentTarget.value;
+                setForm((current) => ({ ...current, user_name: userName }));
+              }}
             />
           </label>
           <label htmlFor="gender">
@@ -149,7 +197,10 @@ export default function App() {
               id="gender"
               required
               value={form.gender ?? ""}
-              onChange={(event) => setForm({ ...form, gender: event.target.value as ChartCreateInput["gender"] })}
+              onChange={(event) => {
+                const gender = event.currentTarget.value as ChartCreateInput["gender"];
+                setForm((current) => ({ ...current, gender }));
+              }}
             >
               <option value="">请选择</option>
               <option value="female">女</option>
@@ -164,7 +215,10 @@ export default function App() {
                 required
                 type="date"
                 value={form.birth_date}
-                onChange={(event) => setForm({ ...form, birth_date: event.target.value })}
+                onInput={(event) => {
+                  const birthDate = event.currentTarget.value;
+                  setForm((current) => ({ ...current, birth_date: birthDate }));
+                }}
               />
             </label>
             <label htmlFor="birth-time">
@@ -174,7 +228,10 @@ export default function App() {
                 required
                 type="time"
                 value={form.birth_time}
-                onChange={(event) => setForm({ ...form, birth_time: event.target.value })}
+                onInput={(event) => {
+                  const birthTime = event.currentTarget.value;
+                  setForm((current) => ({ ...current, birth_time: birthTime }));
+                }}
               />
             </label>
           </div>

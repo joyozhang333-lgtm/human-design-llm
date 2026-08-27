@@ -126,6 +126,42 @@ def test_validate_rejects_generator_strategy_and_sacral_authority_conflicts(gene
     assert "authority_conflict" in kinds
 
 
+def test_validate_rejects_invented_gate_composites_and_channel_activation(projector_facts) -> None:
+    result = validate(
+        "由57、51、53、54组成的直觉与启动轴，需要得到邀请之后才会激活这条通道。",
+        projector_facts,
+    )
+    kinds = {kind for kind, _ in result.violations}
+    assert "invented_composite" in kinds
+    assert "defined_channel_activation_conflict" in kinds
+
+    instruction = build_repair_instruction(result.violations)
+    assert "多个独立闸门" in instruction
+    assert "本来就稳定存在" in instruction
+
+
+def test_validate_allows_invitation_to_start_work_without_claiming_it_activates_a_channel(
+    projector_facts,
+) -> None:
+    result = validate(
+        "你更适合在收到邀请后启动合作。这条通道本来就稳定存在，只是表达时机不同。",
+        projector_facts,
+    )
+    assert "defined_channel_activation_conflict" not in {
+        kind for kind, _ in result.violations
+    }
+
+
+def test_validate_rejects_shortened_or_wrong_authority_name(projector_facts) -> None:
+    result = validate("这次请用 Ego Authority 判断是否投入。", projector_facts)
+    assert ("authority_name_conflict", "Ego Authority -> Ego Projected Authority") in result.violations
+    instruction = build_repair_instruction(result.violations)
+    assert "Ego Projected Authority" in instruction
+
+    exact = validate("这次请用 Ego Projected Authority 判断是否投入。", projector_facts)
+    assert exact.ok, exact.violations
+
+
 def test_english_leak_is_soft_and_user_terms_are_stripped_first(projector_chart) -> None:
     facts = extract_chart_facts(projector_chart, layer="L2", user_terms=("Leo",))
     ok = validate("Leo，你的能量来自回应。", facts)

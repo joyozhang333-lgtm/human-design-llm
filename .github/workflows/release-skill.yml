@@ -1,0 +1,41 @@
+name: release-agent-skill
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: python -m pip install -e '.[dev]'
+      - name: Build and verify release packages
+        run: |
+          mkdir -p dist
+          python -m pip wheel --no-deps --wheel-dir dist .
+          python scripts/install_skill.py \
+            --target workbuddy \
+            --package dist/human-design-workbuddy.zip \
+            --package-only
+          sha256sum dist/human-design-workbuddy.zip dist/*.whl > dist/SHA256SUMS
+          python -m pytest -q tests/test_installer.py
+      - name: Publish release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --generate-notes --title "Human Design LLM $GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" \
+            dist/human-design-workbuddy.zip \
+            dist/*.whl \
+            dist/SHA256SUMS \
+            --clobber

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from .body_energy import CENTER_ENERGY_GUIDES
-from .generation.fallback import CHANNEL_LINES
+from .channel_guides import CHANNEL_LINES
 from .knowledge import AUTHORITY_GUIDES, DEFINITION_GUIDES, PROFILE_GUIDES
 from .labels import (
     CENTER_LABELS,
@@ -32,6 +32,52 @@ LINE_TALENTS = {
     6: "用时间把经历沉淀成示范，不靠说服，而靠自己怎样活",
 }
 
+CHANNEL_MISUSES = {
+    "01-08": "为了显得独特而刻意反常，作品还没成熟就急着要求别人理解。",
+    "02-14": "方向没有确认就持续加码，把能吃苦误认为路走对了。",
+    "03-60": "讨厌限制和混乱，频繁推翻刚开始形成的新秩序。",
+    "04-63": "用怀疑攻击自己或别人，却没有把怀疑整理成一个可验证的问题。",
+    "05-15": "为了配合外界节奏不断打乱自己的作息，最后靠意志硬撑。",
+    "06-59": "为了建立亲密过早穿越边界，或者害怕受伤而把门彻底关上。",
+    "07-31": "没有得到群体认可就抢着带方向，正确判断也因此难以被接住。",
+    "09-52": "把专注投在不重要的细节上，越钻越深却离真正问题越来越远。",
+    "10-20": "为了维持人设而表演真实，话语和当下行为开始彼此矛盾。",
+    "10-34": "把独立活成拒绝合作，任何建议都被听成对自主性的干涉。",
+    "10-57": "第一秒已经知道不对，后来却被合理化和别人的意见覆盖。",
+    "11-56": "把每个有趣想法都当成必须完成的项目，注意力被故事不断带走。",
+    "12-22": "在情绪和时机不对时强行表达，事后又因没有被理解而封闭自己。",
+    "13-33": "替别人保管太多故事却没有退隐消化，最后被过去和秘密压住。",
+    "16-48": "总觉得还不够好而迟迟不上场，练习变成逃避真实检验。",
+    "17-62": "用细节证明自己正确，却忘了先确认对方是否真的需要这套观点。",
+    "18-58": "把改善事情变成纠正别人，眼里只剩缺点而失去生命力。",
+    "19-49": "需要和原则没有提前说清，忍到越界后才用决裂保护自己。",
+    "20-34": "回应还没出现就凭速度开工，忙得很快，也错得很快。",
+    "20-57": "为了让直觉显得合理而不断解释，反而错过第一秒最清楚的信号。",
+    "21-45": "把负责变成事事掌控，别人没有空间，你也被所有资源问题绑住。",
+    "23-43": "洞见刚出现就急着讲给没有准备的人，最后把听不懂误认为自己有问题。",
+    "24-61": "逼自己马上想通，同一个问题在头脑里反复打转却没有新的输入。",
+    "25-51": "用冲击证明自己勇敢，或者把每一次危机都当成必须独自跨越的考验。",
+    "26-44": "为了成交夸大价值，短期说服成功，长期信任却被透支。",
+    "27-50": "把照顾和负责当成身份，不分对象地付出，最后用委屈索取回报。",
+    "28-38": "为了证明事情有意义而持续战斗，忘了检查这场仗是否还值得。",
+    "29-46": "承诺太快，靠走到底维持自我形象，即使身体早已没有回应。",
+    "30-41": "沉浸在渴望和想象里，把体验前的期待误当成已经发生的现实。",
+    "32-54": "急着向上走而忽略基础、时机和可靠联盟，野心变成持续焦虑。",
+    "34-57": "力量先冲出去，直觉却被落在后面，事后才发现是在证明而不是保护生命。",
+    "35-36": "为了摆脱无聊不断追求新经历，还没消化上一段就进入下一段。",
+    "37-40": "默认彼此应该懂得付出与回报，约定没说清，亲近慢慢变成欠账。",
+    "39-55": "用挑动情绪确认自己有影响力，或把暂时低潮误认成生命失去意义。",
+    "42-53": "不断开始却不愿完成，旧周期没有收尾，新机会也无法真正展开。",
+    "47-64": "要求碎片立刻拼成答案，把还在形成中的领悟当成自己的混乱。",
+}
+
+CHANNEL_PRACTICES = {
+    "02-14": "选一个正在投入的方向，连续记录四周：身体是否更有力、资源是否形成积累；两项都没有，就先停止加码。",
+    "16-48": "选一项已经有基础的技能，连续四周每周公开一次作品；用真实反馈替代“我还没准备好”。",
+    "21-45": "列出你必须掌控、可以授权、需要共同决定的资源，停止把三类责任混在一起。",
+    "35-36": "每段新经历结束后写下一个可复用的判断，不让经历只留下刺激。",
+}
+
 AUTHORITY_PRACTICES = {
     "sacral": "把问题改成可以回答“想不想、要不要”的小问题，记录身体第一秒是有劲还是没劲。",
     "solar-plexus": "重要决定至少隔一晚，情绪高点和低点都不签下最终答案。",
@@ -50,6 +96,7 @@ AUTHORITY_PRACTICES = {
 def build_report_sections(map_type: str, chart: HumanDesignChart) -> tuple[InterpretationMapSection, ...]:
     builders = {
         "body": _body_report,
+        "channels": _channels_report,
         "wealth": _wealth_report,
         "talent": _talent_report,
         "relationship": _relationship_report,
@@ -68,6 +115,7 @@ def build_report_overview(map_type: str, chart: HumanDesignChart) -> str:
             f"你的身体先用「{summary['strategy']}」进入事情，再用 {summary['authority_professional']} 确认是否继续。"
             "真正要练的不是更会分析，而是在压力出现时仍能认出自己的节奏。"
         ),
+        "channels": _channel_report_overview(channels),
         "wealth": (
             "你的财富不由一个行业标签决定，而取决于三件事：机会是不是对的、能力能不能重复交付、承诺有没有吞掉利润。"
             f"你可以长期使用的能力组合来自{'、'.join(channels) or '合适的人与环境'}。"
@@ -86,6 +134,158 @@ def build_report_overview(map_type: str, chart: HumanDesignChart) -> str:
         ),
     }
     return overview.get(map_type, "")
+
+
+def _channel_report_overview(channels: tuple[str, ...]) -> str:
+    if not channels:
+        return "你的图里没有固定接通的完整通道。重点不是强迫自己维持一种固定输出，而是认出哪些人和环境会让正确能力自然出现。"
+    if len(channels) == 1:
+        return (
+            f"你有一条稳定通道：{channels[0]}。先把这条能力本身看清，再看它怎样经过人生角色成熟、由 Authority 判断使用时机；"
+            "通道说明你能怎样运作，不替你决定眼前这件事值不值得做。"
+        )
+    return (
+        f"你有{len(channels)}条稳定通道：{'、'.join(channels)}。"
+        "先逐条看清能力，再看它们在同一件事里怎样形成完整动作，以及哪一种误用正在让强项变成消耗。"
+    )
+
+
+def _single_channel_integration(chart: HumanDesignChart, channel) -> InterpretationMapItem:
+    summary = _summary(chart)
+    name = _channel_name(channel)
+    expression = CHANNEL_LINES.get(channel.code, "这条线路会把两个中心的资源接成一种可重复使用的能力")
+    return _item(
+        key="channels.integration",
+        title=f"{name}怎样进入你的完整盘面",
+        subtitle=f"{summary['profile']}决定成熟路径，{summary['authority_professional']}决定是否投入",
+        basis=(f"已定义通道：{name}", f"人生角色：{summary['profile']}", f"Authority：{summary['authority_professional']}"),
+        user=(
+            f"{name}是你唯一固定接通的完整能力线路，因此它在工作和关系里可能特别显眼：{expression}。"
+            f"但这条通道不是你的全部，也不替你作决定。它要沿着{summary['profile']}的角色路径被看见，"
+            f"并在 {summary['authority_professional']} 真正确认投入后，才适合用在眼前的人和问题上。"
+        ),
+        scenes=("当别人反复因为你在这类问题上创造的结果来找你，这条通道才从个人反应变成可识别的能力。",),
+        embodied=("你既能承认这项能力属于自己，也不会因为它很强就把每个问题都变成自己的任务。",),
+        blind=("因为这条能力反复出现，就把所有机会都理解成它的用武之地，忽略对象和时机。",),
+        stuck=("能力偶尔很有冲击力，但没有稳定案例；或者一出手就过量，事后只剩消耗。",),
+        causes=("盘面机制：已定义通道会稳定存在，但 Strategy 与 Authority 决定怎样进入具体事情；现实场景：别人一有需要就立刻出手，会把能力和正确时机混为一谈。",),
+        practices=("找出三次这条能力真正产生结果的经历，同时记录谁邀请或触发了你、你怎样确认投入、最后改变了什么。",),
+        followups=(f"结合我的完整盘面，{name}在什么人和问题上最容易被正确使用？",),
+    )
+
+
+def _multi_channel_integration(chart: HumanDesignChart, channels) -> InterpretationMapItem:
+    summary = _summary(chart)
+    names = tuple(_channel_name(channel) for channel in channels)
+    return _item(
+        key="channels.combination",
+        title="这些通道怎样在同一件事里接力",
+        subtitle=f"{summary['profile']}让能力成熟，{summary['authority_professional']}筛选使用时机",
+        basis=(
+            *tuple(f"已定义通道：{name}" for name in names),
+            f"人生角色：{summary['profile']}",
+            f"Authority：{summary['authority_professional']}",
+        ),
+        user=(
+            f"你的{'、'.join(names)}会同时存在于同一个人身上。真实工作时，它们可能先后出现，也可能由不同场景触发；"
+            "关键不是给每条通道另找一个身份，而是认出你解决一个问题时反复出现的完整过程。"
+            f"这套过程要沿着{summary['profile']}的角色路径成熟，并由 {summary['authority_professional']} 筛掉不值得投入的事情。"
+        ),
+        scenes=tuple(
+            f"{_channel_name(channel)}带来的具体动作：{CHANNEL_LINES.get(channel.code, '把两种资源接成稳定能力')}。"
+            for channel in channels
+        ),
+        embodied=("你能用真实案例说明每条能力在过程里做了什么，也能说清最终解决的是哪一类问题。",),
+        blind=("把每条通道都发展成一个新方向，结果每项都只停留在概念层。",),
+        stuck=("能力不少、兴趣不少，但别人仍不知道遇到什么问题应该来找你。",),
+        causes=("盘面机制：多条通道会在同一个人身上同时运作；现实场景：如果按术语拆成多个身份，原本完整的解决问题方式反而被切碎。",),
+        practices=("选三个结果最好的案例，标出每条通道实际承担了哪一步；最后用一句话概括这套过程共同解决的问题。",),
+    )
+
+
+def _channels_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, ...]:
+    channels = tuple(chart.channels)
+    if not channels:
+        item = _item(
+            key="channels.environmental-activation",
+            title="你的能力更依赖人与环境被接通",
+            subtitle="没有固定通道，不等于没有天赋",
+            basis=("已定义通道：无",),
+            user=(
+                "这张图没有固定接通的完整通道。你更像一套高度响应环境的系统：不同的人、团队和关系会接通不同能力。"
+                "因此，真正重要的不是逼自己永远保持同一种输出，而是辨认哪些场域会让你更清楚、更有力、更像自己。"
+            ),
+            scenes=("同一件事在某个团队里做得自然，换一个环境却完全提不起力，往往不是能力消失，而是接通条件改变。",),
+            embodied=("能力成熟以后，你不再把流动当成不稳定，而会主动选择能让正确能力出现的人和场，并能说清这些场域共有的条件。",),
+            blind=("把某个关系里被点亮的能力，当成离开那段关系后也必须独自维持。",),
+            stuck=("不断要求自己稳定，却很少检查环境是否适合，最后把场域问题解释成个人缺陷。",),
+            causes=("盘面机制：没有固定通道时，不同能力会被不同的人与环境接通；现实场景：离开适合的团队后仍要求自己复制原来的输出，会把场域变化误判成能力退步。",),
+            practices=("列出三个你发挥最好和三个最消耗的场景，比较空间、关系、任务和节奏的共同差异。",),
+        )
+        return (_section("channels-environment", "能力怎样被环境点亮", "先找接通条件，不用制造固定人设。", item),)
+
+    details = tuple(_channel_detail_item(channel) for channel in channels)
+    integration = _single_channel_integration(chart, channels[0]) if len(channels) == 1 else _multi_channel_integration(chart, channels)
+    maturation_followup = (
+        "结合我的现实经历，帮我判断这条通道最适合怎样练成代表能力。"
+        if len(channels) == 1
+        else "结合我的现实经历，帮我判断哪条通道最值得先练成代表能力。"
+    )
+    maturation = _item(
+        key="channels.maturation",
+        title="把通道从天然反应练成可靠能力",
+        subtitle="真实案例比术语更能证明天赋",
+        basis=tuple(f"已定义通道：{_channel_name(channel)}" for channel in channels),
+        user=(
+            "一条通道被定义，只说明这套能量线路会反复出现，不代表它已经成熟。成熟要经过三步：先认出它什么时候自然启动，"
+            "再看它给别人带来什么具体结果，最后学会在不适合的场景里不滥用它。"
+        ),
+        scenes=("当别人能稳定说出“遇到这类问题会想到你”，通道才开始从个人反应变成社会可识别的能力。",),
+        embodied=("你知道什么时候该使用强项，也知道什么时候停手，不再把持续输出当成证明。",),
+        blind=("只记通道名称，却没有收集任何现实案例；或者因为天然会做，就从未系统练习。",),
+        stuck=("能力偶尔很亮，但无法重复交付，也说不清它解决了什么问题。",),
+        practices=("未来四周只记录三件事：触发场景、你的关键动作、对方得到的结果。月底只保留重复出现的模式。",),
+        followups=(maturation_followup,),
+    )
+    return (
+        _section("channels-details", "逐条看懂你的通道", "每条通道先讲清能力，再讲误用和成熟。", *details),
+        _section(
+            "channels-combination",
+            "这条能力怎样进入全盘" if len(channels) == 1 else "这些能力怎样一起工作",
+            "把通道放回人生角色、决定方式和真实场景。" if len(channels) == 1 else "现实中的你不是几条通道的相加，而是一套完整动作。",
+            integration,
+        ),
+        _section("channels-maturation", "从天然反应到可靠能力", "用案例、反馈和边界让天赋真正成熟。", maturation),
+    )
+
+
+def _channel_detail_item(channel) -> InterpretationMapItem:
+    name = _channel_name(channel)
+    expression = CHANNEL_LINES.get(channel.code, "这条线路会把两个中心的资源合成一种可重复使用的能力")
+    misuse = CHANNEL_MISUSES.get(channel.code, "在不对的时机强行使用这项能力，会让天赋变成证明和消耗。")
+    practice = CHANNEL_PRACTICES.get(
+        channel.code,
+        "回看三次这项能力自然出现的场景，写下触发条件、你的关键动作和最后结果，找出可重复部分。",
+    )
+    centers = "与".join(_center_name(code) for code in channel.centers)
+    return _item(
+        key=f"channels.{channel.code}",
+        title=name,
+        subtitle=f"{centers}之间的稳定能力线路",
+        basis=(f"已定义通道：{name}", f"连接中心：{centers}"),
+        user=(
+            f"这条通道在你身上的核心不是一个抽象词，而是：{expression}。"
+            f"对{name}来说，这项能力常先以自然反应出现，你自己甚至觉得没什么；"
+            "当它被放进正确问题里，别人会从你的处理方式和结果里感到明显差异。"
+        ),
+        scenes=(f"在工作、关系或选择中，留意你什么时候会自然做出这套动作：{expression}。",),
+        embodied=("成熟时，你能稳定使用这项能力，也能说明它在什么问题上真正有效，不需要到处证明。",),
+        blind=(misuse,),
+        stuck=(f"这条能力被卡住时，常见状态是：{misuse}",),
+        causes=(f"盘面机制：{name}会稳定存在并反复参与；现实场景：如果对象、时机或问题不对，天然反应就容易被误用成过度用力。",),
+        practices=(practice,),
+        followups=(f"结合我的完整盘面，{name}最适合在哪类现实问题里发挥？",),
+    )
 
 
 def _body_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, ...]:
@@ -112,52 +312,97 @@ def _body_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, ...
         practices=(AUTHORITY_PRACTICES.get(authority_code, "给重要选择留出空间，记录第一反应和事后体感。"),),
         followups=("拿我最近一个真实选择，带我做一次身体判断。",),
     )
+    stable_basis = tuple(f"{_center_name(center.code)}：已定义" for center in defined)
+    if not stable_basis:
+        stable_basis = ("已定义中心：无，九个中心均开放",)
     stable = _item(
         key="body.stable-resources",
         title="你身体里相对稳定的资源",
         subtitle="这些中心不需要从别人那里借来",
-        basis=tuple(f"{_center_name(center.code)}：已定义" for center in defined),
+        basis=stable_basis,
         user=(
-            f"你的{'、'.join(_center_name(center.code) for center in defined) or '中心定义会随环境呈现'}是较稳定的资源。"
+            f"你的{'、'.join(_center_name(center.code) for center in defined)}是较稳定的资源。"
             "稳定不等于每时每刻都强，而是状态合适时，你更容易重复调用这些能力。"
+            if defined
+            else "你的九个中心都保持开放，没有一块能量需要被你固定成永远相同的样子。你会细致地感受并放大现场，因此身体资源首先来自对环境的辨认，而不是强迫自己稳定输出。"
         ),
         scenes=tuple(
             f"{_center_name(center.code)}：{CENTER_ENERGY_GUIDES[center.code]['body']}"
             for center in defined
         ) or ("你的稳定感更依赖正确环境，因此选地方和人比逼自己固定更重要。",),
-        embodied=("真正用对这些资源时，你不需要向别人证明；它们会自然进入做事、表达和关系。",),
-        blind=("稳定资源也会被过度使用：会做不等于每次都该由你做。",),
-        stuck=("长期把稳定能力拿去救火，会出现“别人越来越依赖你，你却越来越没有自己的主线”。",),
-        practices=("圈出最近一周最耗能的三件事，分辨哪一件只是因为你能做，而不是因为它值得你做。",),
-    )
-    pressure = _item(
-        key="body.open-pressure-chain",
-        title="压力最容易从哪里进入",
-        subtitle="开放中心不是缺陷，是最容易受环境影响的位置",
-        basis=tuple(f"{_center_name(center.code)}：开放" for center in open_centers),
-        user=(
-            f"你开放的是{'、'.join(_center_name(center.code) for center in open_centers) or '没有明显开放中心'}。"
-            "压力通常不是一下子把你压垮，而是先在其中一个位置出现，再带着你加速、证明、安抚或硬撑。"
+        embodied=(
+            "真正用对这些资源时，你不需要向别人证明；它们会自然进入做事、表达和关系。"
+            if defined
+            else "活对时，你允许每天的状态有所不同，却能稳定辨认什么环境让自己清明、什么环境让自己浑浊。",
         ),
-        scenes=tuple(
-            f"{_center_name(center.code)}：{CENTER_ENERGY_GUIDES[center.code]['open_body']}"
-            for center in open_centers
-        ) or ("你的中心大多稳定，仍要留意自己是否把稳定误用成必须一直扛。",),
-        blind=tuple(CENTER_ENERGY_GUIDES[center.code]["consumption"] for center in open_centers),
-        stuck=tuple(
-            f"{_center_name(center.code)}被带走时：{CENTER_ENERGY_GUIDES[center.code]['consumption']}"
-            for center in open_centers
+        blind=(
+            "稳定资源也会被过度使用：会做不等于每次都该由你做。"
+            if defined
+            else "把别人暂时带给你的能量、确定感或方向感认成自己的固定身份，离开现场后仍勉强维持。",
         ),
-        causes=("盘面机制：开放中心会放大现场信号；现实场景：催促、冲突或比较一出现，你会暂时把别人的状态当成自己的任务。",),
-        practices=tuple(CENTER_ENERGY_GUIDES[center.code]["practice"] for center in open_centers[:3]),
-        followups=("按我最常见的生活场景，判断压力链通常从哪个中心开始。",),
+        stuck=(
+            "长期把稳定能力拿去救火，会出现“别人越来越依赖你，你却越来越没有自己的主线”。"
+            if defined
+            else "在不同人面前像不同的自己，回到独处却说不清真正想要什么，于是靠承诺和人设制造虚假的稳定。",
+        ),
+        causes=(
+            "盘面机制：已定义中心会反复提供相对稳定的资源；现实场景：因为自己能扛就长期替别人救火，会把强项用成义务。"
+            if defined
+            else "盘面机制：九个开放中心会持续采样并放大环境信号；现实场景：长期留在高压关系或团队里，会把现场状态误认为自己的本性。",
+        ),
+        practices=(
+            "圈出最近一周最耗能的三件事，分辨哪一件只是因为你能做，而不是因为它值得你做。"
+            if defined
+            else "连续两周记录每天所在的环境、接触的人和离开后的身体感受，找出让你清明与让你浑浊的重复条件。",
+        ),
     )
+    if open_centers:
+        pressure = _item(
+            key="body.open-pressure-chain",
+            title="压力最容易从哪里进入",
+            subtitle="开放中心不是缺陷，是最容易受环境影响的位置",
+            basis=tuple(f"{_center_name(center.code)}：开放" for center in open_centers),
+            user=(
+                f"你开放的是{'、'.join(_center_name(center.code) for center in open_centers)}。"
+                "压力通常不是一下子把你压垮，而是先在其中一个位置出现，再带着你加速、证明、安抚或硬撑。"
+            ),
+            scenes=tuple(
+                f"{_center_name(center.code)}：{CENTER_ENERGY_GUIDES[center.code]['open_body']}"
+                for center in open_centers
+            ),
+            blind=tuple(CENTER_ENERGY_GUIDES[center.code]["consumption"] for center in open_centers),
+            stuck=tuple(
+                f"{_center_name(center.code)}被带走时：{CENTER_ENERGY_GUIDES[center.code]['consumption']}"
+                for center in open_centers
+            ),
+            causes=("盘面机制：开放中心会放大现场信号；现实场景：催促、冲突或比较一出现，你会暂时把别人的状态当成自己的任务。",),
+            practices=tuple(CENTER_ENERGY_GUIDES[center.code]["practice"] for center in open_centers[:3]),
+            followups=("按我最常见的生活场景，判断压力链通常从哪个中心开始。",),
+        )
+    else:
+        pressure = _item(
+            key="body.open-pressure-chain",
+            title="当所有中心都稳定，压力会怎样出现",
+            subtitle="重点不是被别人放大，而是把稳定资源一直开到最大",
+            basis=("九个中心均已定义",),
+            user=(
+                "你的九个中心都有定义，外界不容易从某个开放中心把你整个人带跑。你的主要风险反而是过度依赖自己的稳定："
+                "一直思考、一直表达、一直负责、一直工作，直到身体只能用疲惫或冲突逼你停下来。"
+            ),
+            scenes=("事情越多时，你越容易觉得自己每一部分都能顶上，于是同时承担判断、推进、安抚、交付和收尾。",),
+            embodied=("成熟时，你能使用全部稳定资源，也能主动关掉暂时不需要的部分，不把全天候有能力等同于全天候有责任。",),
+            blind=("别人确实很难替代你，于是你也越来越难授权、求助或承认今天不想做。",),
+            stuck=("表面仍能运转，内在却持续烦躁、紧绷，对任何新增需求都带着被侵犯的感觉。",),
+            causes=("盘面机制：九个中心持续提供相对稳定的资源；现实场景：团队习惯把复杂问题都交给你时，能做会逐渐变成必须做。",),
+            practices=("把本周任务分成必须由我完成、可以授权、可以停止三栏，至少真实移出一项。",),
+            followups=("我没有开放中心，最需要防止哪一种稳定能力被用过头？",),
+        )
     recovery = _item(
         key="body.recovery-order",
         title="能量乱掉以后，按什么顺序回来",
         subtitle="先退出放大场，再做决定",
         basis=(f"Strategy：{summary['strategy']}", f"Authority：{summary['authority_professional']}", f"开放中心数量：{len(open_centers)}"),
-        user="恢复不是再逼自己做一套正确方法，而是先停止继续接收现场压力，让身体重新听得见自己。",
+        user="能量乱掉时，恢复不是再逼自己做一套正确方法，而是先停止继续接收现场压力。等身体重新听得见自己，再决定下一步，不要在放大场里寻找答案。",
         scenes=("第一步离开高压现场；第二步把问题缩小；第三步按自己的决定方式确认；第四步只处理下一件事。",),
         embodied=("恢复之后，你会重新知道什么值得做、什么可以晚一点、什么根本不是你的责任。",),
         stuck=("如果休息时还在反复想怎样让所有人满意，身体虽然停了，压力链并没有停。",),
@@ -190,7 +435,7 @@ def _wealth_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
         stuck=("很忙、项目不少、回款也有，但每个项目都从零开始，半年后仍说不清自己积累了什么。",),
         practices=("把现有收入逐项标记为现金流、案例、方法、关系、可复用资产；只有现金流的一项必须重新评估。",),
     )
-    channel_items = (_wealth_channels_item(channels),) if channels else (
+    channel_items = (_wealth_channels_item(chart, channels),) if channels else (
         _item(
             key="wealth.environmental-value",
             title="你的价值更依赖场域被接通",
@@ -228,7 +473,7 @@ def _talent_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
     profile_code = chart.summary.profile.code
     profile = _profile_item(chart)
     channels = tuple(chart.channels)
-    channel_items = (_talent_channels_item(channels),) if channels else (
+    channel_items = tuple(_talent_channel_item(chart, channel) for channel in channels) if channels else (
         _item(
             key="talent.environmental-combination",
             title="你的天赋在关系和环境里组合",
@@ -241,18 +486,42 @@ def _talent_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
         ),
     )
     defined = _centers(chart, True)
+    center_basis = tuple(f"{_center_name(center.code)}：已定义" for center in defined)
+    if not center_basis:
+        center_basis = ("已定义中心：无，九个中心均开放",)
     combination = _item(
         key="talent.center-combination",
         title="这些能力为什么能连在一起",
         subtitle="稳定中心是天赋的供能系统",
-        basis=tuple(f"{_center_name(center.code)}：已定义" for center in defined),
+        basis=center_basis,
         user=(
-            f"你的{'、'.join(_center_name(center.code) for center in defined) or '能力'}不是几个孤立标签。"
+            f"你的{'、'.join(_center_name(center.code) for center in defined)}不是几个孤立标签。"
             "中心提供资源，通道把资源接成能力线路，人生角色决定能力怎样成熟和被别人看见。"
+            if defined
+            else "你的天赋不靠某几个中心持续供能，而靠对人与环境的高分辨率感受完成组合。人生角色决定你怎样学习和被看见，反复出现的适配条件才是你最值得发展的能力线索。"
         ),
-        scenes=tuple(f"{_center_name(center.code)}提供：{CENTER_ENERGY_GUIDES[center.code]['body']}" for center in defined),
-        embodied=("真正成熟时，你不会只展示一个技巧，而会把判断、节奏、表达和交付连成别人可以依赖的整体能力。",),
-        blind=("容易把最自然的那一段当成“谁都会”，转而追逐别人看起来更厉害的能力。",),
+        scenes=tuple(f"{_center_name(center.code)}提供：{CENTER_ENERGY_GUIDES[center.code]['body']}" for center in defined)
+        or ("比较你在不同团队、关系和空间里的表现，观察哪些条件会反复让判断、表达和行动同时变清楚。",),
+        embodied=(
+            "真正成熟时，你不会只展示一个技巧，而会把判断、节奏、表达和交付连成别人可以依赖的整体能力。"
+            if defined
+            else "真正成熟时，你能快速读懂一个场域，也能在离开后分清哪些能力值得留下练习、哪些只是现场借来的状态。",
+        ),
+        blind=(
+            "容易把最自然的那一段当成“谁都会”，转而追逐别人看起来更厉害的能力。"
+            if defined
+            else "因为自己在不同环境里表现不同，就认定没有真正天赋，转而复制一个看起来更稳定的人设。",
+        ),
+        stuck=(
+            "学会了很多单项技巧，却没有把它们连成一套可以重复解决问题的整体能力。"
+            if defined
+            else "环境一换就怀疑自己，频繁更换方向，却从未整理哪些场域条件能让能力反复出现。",
+        ),
+        causes=(
+            "盘面机制：稳定中心与通道共同构成可重复调用的供能系统；现实场景：只追逐单项技巧，会看不见强项之间已经形成的完整动作。"
+            if defined
+            else "盘面机制：九个开放中心会随环境接收并放大不同信号；现实场景：如果只比较每次输出是否相同，就会错过适配条件本身才是稳定线索。",
+        ),
         practices=("问三位长期认识你的人：我处理哪类问题时最自然、最有效、最像我自己？只记录重复出现的答案。",),
     )
     maturation = _item(
@@ -262,7 +531,7 @@ def _talent_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
         basis=(f"人生角色：{summary['profile']}", f"Strategy：{summary['strategy']}", *tuple(f"通道：{_channel_name(channel)}" for channel in channels)),
         user=(
             "天赋成熟不是再学更多，而是对一个已经反复出现的强项进行刻意练习、真实交付和证据积累。"
-            f"对{summary['profile']}来说，正确的成熟路径是：{PROFILE_GUIDES.get(profile_code, '按自己的角色节奏在真实关系和实践中成熟。')}"
+            f"对{summary['profile']}来说，可以沿着这条路径成熟：{_profile_maturation_path(profile_code)}"
         ),
         scenes=("一项能力至少走完“自然会做—持续练习—真实交付—得到反馈—形成方法—被稳定选择”六步。",),
         embodied=("别人不只会说你“有感觉、有天赋”，而会清楚知道在什么问题上应该找你。",),
@@ -288,7 +557,7 @@ def _relationship_report(chart: HumanDesignChart) -> tuple[InterpretationMapSect
         subtitle=f"{summary['profile']} · {summary['definition']}",
         basis=(f"人生角色：{summary['profile']}", f"定义：{summary['definition']}", f"Strategy：{summary['strategy']}"),
         user=(
-            f"{PROFILE_GUIDES.get(profile_code, '你需要按自己的人生角色节奏建立连接。')}"
+            f"{_relationship_profile_guide(profile_code)}"
             f"{DEFINITION_GUIDES.get(definition_code, '')} 对你来说，强烈吸引不等于适合；"
             f"关系仍要经过「{summary['strategy']}」和 {summary['authority_professional']} 的确认。"
         ),
@@ -300,21 +569,39 @@ def _relationship_report(chart: HumanDesignChart) -> tuple[InterpretationMapSect
     )
     emotional = _relationship_emotion_item(chart)
     open_centers = _centers(chart, False)
-    attraction = _item(
-        key="relationship.attraction-traps",
-        title="你最容易把什么误认为爱",
-        subtitle="开放中心会放大吸引，也会放大代价",
-        basis=tuple(f"{_center_name(center.code)}：开放" for center in open_centers),
-        user=(
-            f"你开放的{'、'.join(_center_name(center.code) for center in open_centers) or '中心较少'}会让某些人显得格外有吸引力。"
-            "这种吸引是真实体验，但不能代替你的决定方式。"
-        ),
-        scenes=tuple(_relationship_open_center_line(center.code) for center in open_centers),
-        blind=("最容易被吸引的地方，往往也是最容易失去边界的地方。",),
-        stuck=("一开始觉得对方补足了自己，后来却发现自己越来越依赖对方的情绪、方向、肯定或节奏。",),
-        causes=("盘面机制：开放中心会放大对方的稳定信号；现实场景：在关系热度最高时，你容易把放大后的感觉当成永久答案。",),
-        practices=("关系中的重大承诺不要只在见面现场决定；离开对方的能量场后，再看答案是否还在。",),
-    )
+    if open_centers:
+        attraction = _item(
+            key="relationship.attraction-traps",
+            title="你最容易把什么误认为爱",
+            subtitle="开放中心会放大吸引，也会放大代价",
+            basis=tuple(f"{_center_name(center.code)}：开放" for center in open_centers),
+            user=(
+                f"你开放的{'、'.join(_center_name(center.code) for center in open_centers)}会让某些人显得格外有吸引力。"
+                "这种吸引是真实体验，但不能代替你的决定方式。先分辨你是真的想靠近，还是只是不想失去对方带来的完整感、确定感或轻松感。"
+            ),
+            scenes=tuple(_relationship_open_center_line(center.code) for center in open_centers),
+            blind=("最容易被吸引的地方，往往也是最容易失去边界的地方。",),
+            stuck=("一开始觉得对方补足了自己，后来却发现自己越来越依赖对方的情绪、方向、肯定或节奏。",),
+            causes=("盘面机制：开放中心会放大对方的稳定信号；现实场景：在关系热度最高时，你容易把放大后的感觉当成永久答案。",),
+            practices=("关系中的重大承诺不要只在见面现场决定；离开对方的能量场后，再看答案是否还在。",),
+        )
+    else:
+        attraction = _item(
+            key="relationship.attraction-traps",
+            title="你不缺完整感，更要看彼此能不能并肩",
+            subtitle="九个中心都有定义时，吸引不一定来自互补",
+            basis=("九个中心均已定义", f"Authority：{summary['authority_professional']}"),
+            user=(
+                "你的九个中心都有定义，关系并不主要靠对方补足某块能量。更需要观察的是：两个都很有自己节奏的人，"
+                "能否协商空间、责任和决定方式，而不是谁用更强的稳定性压过谁。"
+            ),
+            scenes=("两个人都很确定时，关系的考验不是有没有感觉，而是分歧出现后能否保留彼此的节奏和主权。",),
+            embodied=("成熟的关系不会要求一方变弱；你们可以各自完整，也能在共同决定上留出真正协商。",),
+            blind=("因为自己很确定，就把对方的不同节奏理解成拖延、软弱或不够投入。",),
+            stuck=("关系变成两套稳定系统互相顶住，谁都能讲清理由，却越来越听不见对方。",),
+            causes=("盘面机制：九个中心都有稳定运作方式；现实场景：冲突中双方都坚持自己的节奏时，能力容易变成控制而不是合作。",),
+            practices=("下一次分歧先分别说清自己的需要和不能承受的代价，再讨论共同方案，不用理由数量决定谁正确。",),
+        )
     fit = _item(
         key="relationship.fit-conditions",
         title="什么样的关系更适合你",
@@ -385,13 +672,18 @@ def _mission_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, 
         practices=("回看最近一个重要选择：它是否按你的行动方式进入、经过你的决定方式确认，并允许你用自己的人生角色逐步成熟？",),
     )
     channels = tuple(chart.channels)
-    channel_items = (_mission_channels_item(channels),) if channels else (
+    channel_items = (_mission_channels_item(chart, channels),) if channels else (
         _item(
             key="mission.environmental-path",
             title="使命通过正确环境和关系显现",
             subtitle="能力流动时，场域选择就是主线选择",
             basis=("已定义通道：无",),
-            user="你的使命落地方式不是固定输出同一种能力，而是在正确的人和环境里映照、连接和整合。先选场域，再谈长期角色。",
+            user="你的使命不会靠固定输出同一种能力落地，而会在不同的人和环境里显出不同侧面。真正稳定的不是人设，而是你对场域的辨认：哪些地方让你清楚、能看见整体，也让别人因为你的存在更看清自己。先选对场域，再谈长期角色。",
+            scenes=("同样一项工作，在让你清明的团队里，你能迅速看见整体状态；在持续混乱的环境里，你只会放大压力并开始怀疑自己。",),
+            embodied=("使命活出来时，你不需要维持固定人格，而能稳定选择让自己清明、也让他人获得真实反馈的环境。",),
+            blind=("把适应力当成必须适合所有地方，或者把某个环境里借来的能力认成永远不变的身份。",),
+            stuck=("不断更换身份和方向，希望找到一个永远确定的自己，却没有认真筛选长期相处的人与环境。",),
+            causes=("盘面机制：没有固定通道时，能力会由关系与环境接通；现实场景：如果先承诺角色再检查场域，长期放大的可能是压力而不是使命。",),
             practices=("比较过去三个让你明显有生命力的环境，找出它们允许你成为什么样的人。",),
         ),
     )
@@ -421,11 +713,23 @@ def _profile_item(chart: HumanDesignChart) -> InterpretationMapItem:
     code = chart.summary.profile.code
     lines = [int(value) for value in code.split("-") if value.isdigit()]
     line_text = tuple(f"{line}爻：{LINE_TALENTS.get(line, '通过自己的角色路径让能力成熟')}。" for line in lines)
+    channel_names = tuple(_channel_name(channel) for channel in chart.channels[:2])
+    if channel_names:
+        full_chart_context = (
+            f"放回你的全盘，这条角色路径会先在{'、'.join(channel_names)}这些稳定能力上被看见；"
+            f"是否把它用于眼前的人和事，仍由 {summary['authority_professional']} 确认。"
+        )
+    else:
+        full_chart_context = (
+            "放回你的全盘，你的能力更依赖正确的人和环境来组合；人生角色决定你怎样学习和被看见，"
+            f"具体投入仍由 {summary['authority_professional']} 确认。"
+        )
     if code == "2-4":
         user = (
             "2/4 的天赋常有一个反常点：你本来已经能做到八十分，因为做起来太容易，反而最容易忽视。"
             "身边人越说你在某件事上有天赋，你越可能觉得“这有什么”，然后去学习别人擅长的东西。"
             "真正的成长不是再找一个新天赋，而是把这个天然八十分的能力放回独处中精进，再通过信任关系、作品和小范围验证推到一百分。"
+            f"{full_chart_context}"
         )
         embodied = ("你允许天赋先在独处中熟成，不急着把半熟能力推到所有人面前；被正确的人看见后，再用作品和案例形成口碑。",)
         blind = ("把别人反复认可的能力当成“太普通”，把主要时间用来追赶别人已经擅长的事。",)
@@ -433,7 +737,11 @@ def _profile_item(chart: HumanDesignChart) -> InterpretationMapItem:
         causes = ("盘面机制：2爻会低估天然能力，4爻通过信任网络获得机会；现实场景：陌生市场的噪音很大时，你容易离开自己的强项去模仿热门能力。",)
         key = "talent.profile-24"
     else:
-        user = PROFILE_GUIDES.get(code, f"{summary['profile']}说明天赋怎样成熟、怎样被看见，也说明你需要怎样的学习和关系节奏。")
+        guide = PROFILE_GUIDES.get(code, f"{summary['profile']}说明天赋怎样成熟、怎样被看见，也说明你需要怎样的学习和关系节奏。")
+        user = (
+            f"{guide} 具体到天赋发展，你需要走完两步：{_profile_maturation_path(code)}"
+            f"{full_chart_context}"
+        )
         embodied = ("你按自己的角色节奏积累能力，不再用别人的成长路径催促自己。",)
         blind = ("只看到人生角色的优点，却没有接受它必须经历的学习方式。",)
         stuck = ("模仿别人的曝光、学习或获客方式，越努力越觉得自己不自然。",)
@@ -455,31 +763,42 @@ def _profile_item(chart: HumanDesignChart) -> InterpretationMapItem:
     )
 
 
-def _talent_channels_item(channels) -> InterpretationMapItem:
-    names = tuple(_channel_name(channel) for channel in channels)
-    expressions = tuple(
-        f"{_channel_name(channel)}：{CHANNEL_LINES.get(channel.code, '这条线路会把两种资源合成一种可重复使用的能力。')}"
-        for channel in channels
-    )
+def _profile_maturation_path(code: str) -> str:
+    lines = [int(value) for value in code.split("-") if value.isdigit()]
+    if len(lines) != 2:
+        return "按自己的角色节奏，在真实交付和关系反馈里把能力练稳。"
+    first = LINE_TALENTS.get(lines[0], "先按自己的方式建立能力")
+    second = LINE_TALENTS.get(lines[1], "再让真实关系和实践检验它")
+    return f"{first}；接着{second}。"
+
+
+def _talent_channel_item(chart: HumanDesignChart, channel) -> InterpretationMapItem:
+    summary = _summary(chart)
+    name = _channel_name(channel)
+    expression = CHANNEL_LINES.get(channel.code, "这条线路会把两种资源合成一种可重复使用的能力")
+    misuse = CHANNEL_MISUSES.get(channel.code, "在对象或时机不对时强行使用，会让天然能力变成证明和消耗。")
     return _item(
-        key="talent.channel-combination",
-        title="这些能力怎样在你身上连成一体",
-        subtitle="通道不是分散标签，而是一组会共同出现的能力",
-        basis=tuple(f"已定义通道：{name}" for name in names),
+        key=f"talent.channel-{channel.code}",
+        title=f"{name}：你可以反复调用的天赋",
+        subtitle=f"和{summary['profile']}、{summary['authority_professional']}放在一起理解",
+        basis=(f"已定义通道：{name}", f"人生角色：{summary['profile']}", f"Authority：{summary['authority_professional']}"),
         user=(
-            f"你有{'、'.join(names)}。现实里它们不会一条一条排队出现，而会在同一件事里彼此配合。"
-            "真正值得发展的天赋，是你在处理某类问题时自然形成的一整套动作：你先看见什么、怎样判断、怎样推进，最后留下什么结果。"
+            f"{name}给你的稳定能力是：{expression}。"
+            f"放进{summary['profile']}的人生角色里看，{name}不是一个等着你证明的标签，而是一项要经过真实关系、作品和反馈才会被认出的本领。"
+            f"对于{name}，{summary['authority_professional']}只回答眼前这件事是否值得投入；它是否成熟，则要看你能否用这项能力反复解决同一类问题，同时没有把自己耗空。"
         ),
-        scenes=expressions,
-        embodied=("活出来时，别人会因为一类明确的问题持续找到你，而不是只笼统地说你很有天赋。",),
-        blind=("把每条通道拆成一个新方向，会让精力越来越散；它们更可能共同服务同一种核心问题。",),
-        stuck=("学了很多能力名称，却没有回到真实案例里判断：哪几种能力总是一起出现、共同产生结果。",),
-        practices=("找出三个你真正解决过的问题，逐个写下自己看见了什么、做了什么、结果是什么，再圈出重复动作。",),
-        followups=("结合我的经历，帮我判断这些通道最可能共同解决哪一类问题。",),
+        scenes=(f"现实里留意：{expression}。再看这种动作最后帮助谁改变了什么。",),
+        embodied=("活出来时，别人会因为一类明确的问题持续找到你；你也知道何时使用、何时停手。",),
+        blind=(misuse,),
+        stuck=(f"{name}被卡住时，不是能力消失，而是它只剩下天然反应，没有形成可重复、可说明的结果。",),
+        causes=(f"盘面机制：{name}会稳定存在；现实场景：如果跳过{summary['strategy']}和 {summary['authority_professional']}，强项容易被用在错误对象上。",),
+        practices=(CHANNEL_PRACTICES.get(channel.code, "回看三次这项能力自然出现的场景，写下触发条件、关键动作和结果，找出可重复部分。"),),
+        followups=(f"结合我的完整盘面，{name}最可能怎样被练成一项代表能力？",),
     )
 
 
-def _wealth_channels_item(channels) -> InterpretationMapItem:
+def _wealth_channels_item(chart: HumanDesignChart, channels) -> InterpretationMapItem:
+    summary = _summary(chart)
     names = tuple(_channel_name(channel) for channel in channels)
     has_0214 = any(channel.code == "02-14" for channel in channels)
     value_lines = []
@@ -490,27 +809,39 @@ def _wealth_channels_item(channels) -> InterpretationMapItem:
             f"{_channel_name(channel)}：{CHANNEL_LINES.get(channel.code, '这是一条可以反复调用的能力线路')}；{value_path}。"
         )
     key = "wealth.02-14-main-track" if has_0214 else "wealth.channel-combination"
-    title = "02-14 等能力怎样共同形成价值" if has_0214 else "你的能力组合怎样形成价值"
+    if len(channels) == 1:
+        title = f"{names[0]}怎样形成价值"
+        user = (
+            f"{names[0]}在财富上的价值，不是把通道名称拿去售卖，而是把这种能力用于一个结果清楚的问题："
+            f"{CHANNEL_LINES.get(channels[0].code, '把两种资源接成稳定能力')}。"
+            f"当{summary['profile']}让别人以合适方式认识你，并且 {summary['authority_professional']} 确认这份承诺值得投入，你才更容易把天然能力做成可定价的服务、职责或产品。"
+        )
+        followup = f"结合我的现实工作，{names[0]}最适合形成哪一种产品、服务或职责？"
+    else:
+        title = "02-14 等能力怎样共同形成价值" if has_0214 else "你的能力组合怎样形成价值"
+        user = (
+            f"你的{'、'.join(names)}可以进入同一项交付，但商业价值不来自通道数量，而来自它们最终解决了什么问题。"
+            "先用真实案例排出过程：你最先看见什么、接着做了什么、最后替客户减少了什么代价或增加了什么结果；可重复的部分才有资格被定价。"
+        )
+        followup = "结合我的现实工作，这组能力最适合形成哪一种产品、服务或职责？"
     return _item(
         key=key,
         title=title,
         subtitle="把完整能力组合变成一项清楚、可重复、能定价的交付",
         basis=tuple(f"已定义通道：{name}" for name in names),
-        user=(
-            f"你的收入能力不是把{'、'.join(names)}分别卖一次，而是让它们共同解决一个客户真正愿意付费的问题。"
-            "一部分能力负责看见方向或判断问题，另一部分负责推进、保护质量或走完过程。组合后的结果，比单卖一个技巧更有价值。"
-        ),
+        user=user,
         scenes=tuple(value_lines),
         embodied=("客户能说清你解决了什么问题，你也能用相似步骤再次交付，而不是每次靠临场救火。",),
         blind=("天然能力常被免费用来帮忙；如果不记录过程和结果，别人只能觉得你人很好，却不知道该购买什么。",),
         stuck=("事情做了很多，口碑也不差，但每次都从零开始，收入无法随着经验积累而提高。",),
         causes=("盘面机制：稳定通道会重复出现，却不会自动变成产品；现实场景：只临时救场、不提炼共同问题，市场就看不见这套能力组合。",),
         practices=("选一次最有效的帮助，写清客户原来的问题、你的三个关键动作和最后结果，再用同一结构验证第二次。",),
-        followups=("结合我的现实工作，这组能力最适合形成哪一种产品、服务或职责？",),
+        followups=(followup,),
     )
 
 
 def _wealth_boundary_item(chart: HumanDesignChart) -> InterpretationMapItem:
+    summary = _summary(chart)
     open_centers = _centers(chart, False)
     open_codes = {center.code for center in open_centers}
     risks = []
@@ -530,16 +861,24 @@ def _wealth_boundary_item(chart: HumanDesignChart) -> InterpretationMapItem:
     if not risks:
         risks.append("你的中心较稳定，主要风险不是借到别人的压力，而是因为能扛就把所有责任都留在自己身上。")
         practices.append("每个新承诺都先检查资源容量，不用“我能做”替代“这值得我做”。")
+    basis = tuple(f"开放中心：{_center_name(center.code)}" for center in open_centers)
+    if not basis:
+        basis = ("九个中心均已定义", f"Authority：{summary['authority_professional']}")
+    cause = (
+        "盘面机制：开放中心会放大证明、赶快和避免冲突的压力；现实场景：报价或合作谈判里，你可能先照顾对方感受，最后才计算自己的成本。"
+        if open_centers
+        else "盘面机制：九个中心都能稳定供能，但稳定不等于容量无限；现实场景：因为你确实能负责、能推进，合作方会持续把额外任务留给你。"
+    )
     return _item(
         key="wealth.promise-boundary",
         title="什么最容易让你赚得多、剩得少",
         subtitle="财富损耗常发生在承诺时，而不是花钱时",
-        basis=tuple(f"开放中心：{_center_name(center.code)}" for center in open_centers),
+        basis=basis,
         user="保财首先是保护时间、注意力、交付边界和议价权。真正危险的不是一次消费，而是一个会持续吞噬资源的错误承诺。",
         scenes=tuple(risks),
         blind=("把客户满意等同于无限配合，把负责等同于所有问题都自己兜底。",),
         stuck=("收入看起来不低，但修改、沟通、救火和情绪劳动不断增加，实际时薪越来越低。",),
-        causes=("盘面机制：开放中心会放大证明、赶快和避免冲突的压力；现实场景：报价或合作谈判里，你可能先照顾对方感受，最后才计算自己的成本。",),
+        causes=(cause,),
         practices=tuple(practices),
         followups=("结合我现在的工作，帮我写一套更适合我的报价和承诺边界。",),
     )
@@ -572,26 +911,41 @@ def _relationship_emotion_item(chart: HumanDesignChart) -> InterpretationMapItem
     )
 
 
-def _mission_channels_item(channels) -> InterpretationMapItem:
+def _mission_channels_item(chart: HumanDesignChart, channels) -> InterpretationMapItem:
+    summary = _summary(chart)
     names = tuple(_channel_name(channel) for channel in channels)
     expressions = tuple(
         f"{_channel_name(channel)}：{CHANNEL_LINES.get(channel.code, '这条能力线路会反复参与到你的长期贡献中')}。"
         for channel in channels
     )
+    if len(channels) == 1:
+        user = (
+            f"{names[0]}不是你的使命本身，而是让「{summary['cross']}」落进现实的一条稳定能力线路。"
+            f"它具体会带来：{CHANNEL_LINES.get(channels[0].code, '这条能力线路会反复参与到你的长期贡献中')}。"
+            f"这项能力要通过{summary['profile']}的人生路径成熟，并由 {summary['authority_professional']} 判断眼前的人和事情是否值得投入。"
+        )
+        embodied = "当这条能力长期服务同一类真实问题时，使命会从抽象感觉变成别人能感受到的贡献。"
+        blind = "把最强的一条能力直接等同于使命，结果不分对象地重复使用，主线反而只剩惯性。"
+        practice = "从过去有效的项目里选一个真实问题，让这条能力连续服务 90 天；每两周记录一次具体结果和自己的生命力。"
+    else:
+        user = (
+            f"你的{'、'.join(names)}是「{summary['cross']}」落地时可以反复使用的能力。"
+            "这些能力不必各自发展成一份身份；先看它们在同一项贡献里实际承担了哪些步骤，再用结果判断哪条组合值得长期积累。"
+        )
+        embodied = "当这些能力长期服务同一类人和问题时，使命会从抽象感觉变成别人能感受到的真实贡献。"
+        blind = "只追求使命主题听起来正确，却没有让能力持续服务现实；或者每项能力都另开一个方向，主线始终无法积累。"
+        practice = "从过去有效的项目里选一个真实问题，让这些能力连续服务 90 天，不先扩大身份，只记录结果。"
     return _item(
         key="mission.channel-combination",
         title="使命靠哪些真实能力落地",
         subtitle="使命不是意义感，而是能力长期服务于同一类真实问题",
         basis=tuple(f"已定义通道：{name}" for name in names),
-        user=(
-            f"你的{'、'.join(names)}是使命落地时可以反复使用的能力。它们不是几个平行方向，"
-            "而是同一条人生主线上的不同工具：有的负责看见问题，有的负责推进，有的负责守住价值或完成转化。"
-        ),
+        user=user,
         scenes=expressions,
-        embodied=("当这些能力长期服务同一类人和问题时，使命会从抽象感觉变成别人能感受到的真实贡献。",),
-        blind=("只追求使命主题听起来正确，却没有让能力持续服务现实；或者每项能力都另开一个方向，主线始终无法积累。",),
+        embodied=(embodied,),
+        blind=(blind,),
         stuck=("总在寻找更准确的身份说明，却很少把一项已经有效的贡献连续做完一个周期。",),
-        practices=("从过去有效的项目里选一个真实问题，让这组能力连续服务 90 天，不先扩大身份，只记录结果。",),
+        practices=(practice,),
     )
 
 
@@ -608,6 +962,18 @@ def _relationship_open_center_line(code: str) -> str:
         "root": "根部中心开放：容易在对方催促时赶快承诺，把紧迫感误认成关系需要。",
     }
     return lines.get(code, f"{_center_name(code)}开放：关系现场会放大这里的感受，需要离开现场再判断。")
+
+
+def _relationship_profile_guide(code: str) -> str:
+    if code == "2-4":
+        return "你既需要不被打扰的独处，也需要从信任网络中自然进入关系；越被催着社交或立刻靠近，越难分辨真实意愿。"
+    lines = [int(value) for value in code.split("-") if value.isdigit()]
+    if len(lines) == 2:
+        return (
+            f"你以{lines[0]}爻的学习方式进入亲密，也会在关系中呈现{lines[1]}爻的社会角色。"
+            "适合你的关系需要允许这两种节奏同时存在。"
+        )
+    return "你需要按自己的人生角色节奏建立连接，而不是复制别人靠近和承诺的速度。"
 
 
 def _activation(chart: HumanDesignChart, imprint: str, planet: str):
@@ -701,21 +1067,32 @@ def _item(
     practices: Iterable[str] = (),
     followups: Iterable[str] = (),
 ) -> InterpretationMapItem:
+    scene_values = tuple(scenes)
+    embodied_values = tuple(embodied)
+    blind_values = tuple(blind)
+    stuck_values = tuple(stuck)
+    cause_values = tuple(causes)
+    practice_values = tuple(practices)
+    diagnosis_depth = (
+        "deep"
+        if all((embodied_values, blind_values, stuck_values, cause_values))
+        else "standard"
+    )
     return InterpretationMapItem(
         key=key,
         title=title,
         subtitle=subtitle,
-        diagnosis_depth="deep",
+        diagnosis_depth=diagnosis_depth,
         chart_basis=tuple(basis),
         professional_basis="",
         user_language=user,
-        life_scenes=tuple(scenes),
-        embodied_expression=tuple(embodied),
-        blind_spots=tuple(blind),
-        stuck_patterns=tuple(stuck),
-        stuck_causes=tuple(causes),
+        life_scenes=scene_values,
+        embodied_expression=embodied_values,
+        blind_spots=blind_values,
+        stuck_patterns=stuck_values,
+        stuck_causes=cause_values,
         common_blocks=(),
-        practices=tuple(practices),
+        practices=practice_values,
         followup_questions=tuple(followups),
         source_atom_ids=(),
         sources=(),

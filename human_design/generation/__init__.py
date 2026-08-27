@@ -1,4 +1,4 @@
-"""V0.5 内容生成引擎：ChartFacts → prompt → LLM → 护栏校验 → 缓存，无 key 走结构化精准回退。"""
+"""V0.6 内容生成引擎：ChartFacts -> prompt -> LLM -> 护栏校验 -> 缓存，无 key 走结构化精准回退。"""
 from __future__ import annotations
 
 from .facts import ChartFacts, extract_chart_facts
