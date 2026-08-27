@@ -176,7 +176,7 @@
 
 ```json
 {
-  "product_version": "0.6.1",
+  "product_version": "0.6.2",
   "map_type": "wealth",
   "title": "财富报告",
   "description": "...",

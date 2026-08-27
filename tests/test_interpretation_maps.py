@@ -50,7 +50,7 @@ def test_talent_map_uses_profile_channel_cross_and_user_language() -> None:
     package = build_interpretation_map(_anonymous_0214_chart(), map_type="talent", chart_id="chart_test")
     text = map_context_text(package)
 
-    assert package.product_version == "0.6.1"
+    assert package.product_version == "0.6.2"
     assert package.map_type == "talent"
     assert package.title == "天赋报告"
     assert "人生角色：2/4" in package.professional_facts
