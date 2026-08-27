@@ -192,7 +192,7 @@ def test_interpretation_map_endpoint_returns_instant_structured_report() -> None
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.6.1"
+    assert payload["product_version"] == "0.6.2"
     assert payload["map_type"] == "wealth"
     assert payload["title"] == "财富报告"
     assert payload["overview"]

@@ -26,7 +26,8 @@ jobs:
             --target workbuddy \
             --package dist/human-design-workbuddy.zip \
             --package-only
-          sha256sum dist/human-design-workbuddy.zip dist/*.whl > dist/SHA256SUMS
+          (cd dist && sha256sum human-design-workbuddy.zip *.whl > SHA256SUMS)
+          (cd dist && sha256sum --check SHA256SUMS)
           python -m pytest -q tests/test_installer.py
       - name: Publish release asset
         env:
