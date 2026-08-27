@@ -176,7 +176,7 @@
 
 ```json
 {
-  "product_version": "0.6.0",
+  "product_version": "0.6.1",
   "map_type": "wealth",
   "title": "财富报告",
   "description": "...",
@@ -207,7 +207,6 @@
       ]
     }
   ],
-  "prompt_pack": {},
   "retrieved_knowledge": [],
   "sources": [],
   "suggested_questions": []
@@ -222,6 +221,7 @@
 - `deep` 条目必须返回 `embodied_expression`、`blind_spots`、`stuck_patterns`、`stuck_causes`，并且 `stuck_causes` 同时说明盘面机制和现实场景。
 - `retrieved_knowledge` 来自 `references/research-corpus/v0.3/knowledge_atoms.json`。
 - `sources` 来自 `references/research-corpus/v0.3/sources.json`，只暴露来源元信息，不复制版权正文。
+- 服务端 `prompt_pack` 与 `system_prompt` 不属于公共响应，前端或第三方调用不会获得内部提示词。
 
 ## `POST /api/images/reading-visual`
 

@@ -390,6 +390,9 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
                 detail={"code": "map_type_invalid", "message": f"未知解读地图：{request.map_type}"},
             ) from exc
         payload = package.to_dict()
+        # Prompt instructions are server-side implementation details. Public callers
+        # receive the retrieved knowledge and sources, but never the system prompt.
+        payload.pop("prompt_pack", None)
         payload["overview"] = build_report_overview(package.map_type, saved_chart.chart)
         payload["generation_mode"] = "instant"
         return payload
