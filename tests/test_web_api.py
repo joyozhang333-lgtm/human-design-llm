@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from time import perf_counter
 
 from fastapi.testclient import TestClient
@@ -70,6 +71,28 @@ def test_create_chart_returns_chart_and_bodygraph_svg() -> None:
     assert "开放中心" not in payload["bodygraph_svg"]
     # The web BodyGraph is graphic-only; the long booklet ships via /reading-book.
     assert "人类图解读本" not in payload["bodygraph_svg"]
+
+
+def test_reflector_strategy_is_displayed_in_chinese() -> None:
+    client = _client()
+    response = client.post(
+        "/api/charts",
+        json={
+            "gender": "female",
+            "birth_date": "1980-11-18",
+            "birth_time": "00:00",
+            "timezone_name": "Asia/Shanghai",
+            "city": "杭州",
+            "region": "浙江",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["chart"]["summary"]["type"]["code"] == "reflector"
+    assert payload["chart"]["summary"]["strategy"]["code"] == "lunar-cycle"
+    assert payload["display_summary"]["strategy"] == "等待完整月亮周期"
+    assert "Wait a Lunar Cycle" not in payload["display_summary"]["strategy"]
 
 
 def test_reading_book_endpoint_returns_structured_readable_sections() -> None:
@@ -169,7 +192,7 @@ def test_interpretation_map_endpoint_returns_instant_structured_report() -> None
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.5.3"
+    assert payload["product_version"] == "0.6.0"
     assert payload["map_type"] == "wealth"
     assert payload["title"] == "财富报告"
     assert payload["overview"]
@@ -206,8 +229,6 @@ def test_interpretation_map_endpoint_opens_without_model_latency() -> None:
 
 
 def test_readings_main_returns_contract_fields() -> None:
-    import re
-
     client = _client()
     chart = _create_chart(client)
     response = client.post("/api/readings/main", json={"chart_id": chart["chart_id"]})
@@ -233,22 +254,15 @@ def test_readings_main_returns_contract_fields() -> None:
     assert not re.search(r"[♃♄⛢♅⊕☊☋☉☽☿♀♂♆♇]", full_text)
 
 
-def test_readings_main_uses_deepseek_when_dotenv_provider_is_configured(
+def test_readings_main_stays_local_when_provider_is_configured(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
     monkeypatch.setenv("DEEPSEEK_API_KEY", "configured-for-test")
     monkeypatch.setenv("HD_GENERATION_MODE", "llm")
     monkeypatch.setenv("HD_CACHE_PATH", str(tmp_path / "generation.db"))
-    responses = iter(
-        (
-            "你的生命力来自回应，做决定先听身体的有劲没劲；天赋先在独处里养熟，再让信任关系把你带到合适的位置。",
-            "你的核心不是持续证明自己，而是等现实给出具体选项，再看身体有没有力量继续。02-14方向与资源通道让你在方向正确时更能集中资源。\n\n做决定时先回到荐骨权威。开放的头顶中心容易接住别人的问题，所以别在焦虑里替所有人找答案。\n\n你的人生角色是2/4，天然顺手的能力常被自己低估。先独处养熟，再让信任关系和作品把能力叫出来。\n\n人生主轴要从一次次正确回应里长出来。接近满足时继续做深，反复挫败时检查方向，答案不在图里，在你接下来怎么观察自己。",
-        )
-    )
-
     def fake_chat(self, messages):
-        return DeepSeekAnswer(content=next(responses), provider="deepseek", model=self.model)
+        raise AssertionError("main reading must not call an external model")
 
     monkeypatch.setattr("human_design.providers.DeepSeekClient.chat", fake_chat)
     client = _client()
@@ -256,7 +270,7 @@ def test_readings_main_uses_deepseek_when_dotenv_provider_is_configured(
     response = client.post("/api/readings/main", json={"chart_id": chart["chart_id"]})
 
     assert response.status_code == 200, response.text
-    assert response.json()["generation_mode"] == "llm"
+    assert response.json()["generation_mode"] == "fallback"
 
 
 def test_readings_detail_returns_lazy_body() -> None:
@@ -381,7 +395,11 @@ def test_chat_uses_deepseek_and_repairs_invalid_chart_facts(monkeypatch: pytest.
     chart = _create_chart(client)
     response = client.post(
         "/api/chat",
-        json={"chart_id": chart["chart_id"], "question": "这个机会我该不该接？"},
+        json={
+            "chart_id": chart["chart_id"],
+            "question": "这个机会我该不该接？",
+            "external_ai_consent": True,
+        },
     )
 
     assert response.status_code == 200, response.text
@@ -390,8 +408,172 @@ def test_chat_uses_deepseek_and_repairs_invalid_chart_facts(monkeypatch: pytest.
     assert payload["answer_model"] == "deepseek-chat"
     assert payload["provider_configured"] is True
     assert "99号闸门" not in payload["answer_markdown"]
-    assert "荐骨权威" in payload["answer_markdown"]
+    assert "Sacral Authority" in payload["answer_markdown"]
     assert len(calls) == 2
+    remote_messages = "\n".join(
+        message["content"]
+        for request_messages in calls
+        for message in request_messages
+    )
+    for private_value in ("测试用户", "1970-02-04", "12:00", "杭州", "浙江"):
+        assert private_value not in remote_messages
+
+
+def test_chat_does_not_call_deepseek_without_explicit_consent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "configured-for-test")
+
+    def fake_chat(self, messages):
+        raise AssertionError("DeepSeek must not be called without explicit consent")
+
+    monkeypatch.setattr("human_design.web_api.DeepSeekClient.chat", fake_chat)
+    client = _client()
+    chart = _create_chart(client)
+    response = client.post(
+        "/api/chat",
+        json={"chart_id": chart["chart_id"], "question": "这个机会我该不该接？"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["answer_provider"] == "local-fallback"
+    assert payload["provider_configured"] is True
+    assert payload["external_ai_consent"] is False
+
+
+def test_chat_normalizes_chinese_authority_to_exact_professional_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "configured-for-test")
+
+    def fake_chat(self, messages):
+        return DeepSeekAnswer(
+            content="你的意志力权威会先确认自己是否真想承诺，再决定是否接住这次邀请。",
+            provider="deepseek",
+            model=self.model,
+        )
+
+    monkeypatch.setattr("human_design.web_api.DeepSeekClient.chat", fake_chat)
+    client = _client()
+    chart_response = client.post(
+        "/api/charts",
+        json={
+            "gender": "female",
+            "birth_date": "1988-10-09",
+            "birth_time": "20:30",
+            "timezone_name": "Asia/Shanghai",
+            "city": "杭州",
+            "region": "浙江",
+        },
+    )
+    assert chart_response.status_code == 200
+    chart = chart_response.json()
+    assert chart["chart"]["summary"]["authority"]["code"] == "ego-projected"
+
+    response = client.post(
+        "/api/chat",
+        json={
+            "chart_id": chart["chart_id"],
+            "question": "这个邀请值得我承诺吗？",
+            "external_ai_consent": True,
+        },
+    )
+    assert response.status_code == 200
+    answer = response.json()["answer_markdown"]
+    assert "Ego Projected Authority" in answer
+    assert "意志力权威" not in answer
+    assert not re.search(r"(^|[^A-Za-z-])Ego Authority([^A-Za-z-]|$)", answer)
+
+
+def test_chat_collapses_duplicate_professional_authority_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "configured-for-test")
+
+    def fake_chat(self, messages):
+        return DeepSeekAnswer(
+            content="Ego Projected Authority是意志力权威，它先确认自己是否真想承诺。",
+            provider="deepseek",
+            model=self.model,
+        )
+
+    monkeypatch.setattr("human_design.web_api.DeepSeekClient.chat", fake_chat)
+    client = _client()
+    chart_response = client.post(
+        "/api/charts",
+        json={
+            "gender": "female",
+            "birth_date": "1988-10-09",
+            "birth_time": "20:30",
+            "timezone_name": "Asia/Shanghai",
+            "city": "杭州",
+            "region": "浙江",
+        },
+    )
+    chart = chart_response.json()
+
+    response = client.post(
+        "/api/chat",
+        json={
+            "chart_id": chart["chart_id"],
+            "question": "这个邀请值得我承诺吗？",
+            "external_ai_consent": True,
+        },
+    )
+
+    assert response.status_code == 200
+    answer = response.json()["answer_markdown"]
+    assert answer.count("Ego Projected Authority") == 1
+    assert "意志力权威" not in answer
+
+
+def test_chat_replaces_a_question_the_user_already_answered(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "configured-for-test")
+    repeated = "你更常因为怕说错而沉默，还是因为忍不住而提前出手？"
+    responses = iter(
+        (
+            f"先看你在表达时怎样判断对象和时机。{repeated}",
+            f"你已经说清楚自己会提前出手，这一轮应该继续检查对方是否真的在邀请你的判断。{repeated}",
+        )
+    )
+    calls: list[list[dict[str, str]]] = []
+
+    def fake_chat(self, messages):
+        calls.append(messages)
+        return DeepSeekAnswer(content=next(responses), provider="deepseek", model=self.model)
+
+    monkeypatch.setattr("human_design.web_api.DeepSeekClient.chat", fake_chat)
+    client = _client()
+    chart = _create_chart(client)
+    first = client.post(
+        "/api/chat",
+        json={
+            "chart_id": chart["chart_id"],
+            "question": "我的表达为什么总是被误解？",
+            "external_ai_consent": True,
+        },
+    )
+    assert first.status_code == 200
+
+    second = client.post(
+        "/api/chat",
+        json={
+            "chart_id": chart["chart_id"],
+            "session_id": first.json()["session_id"],
+            "question": "我更容易忍不住提前出手，别人常常觉得被冒犯。",
+            "map_type": "channels",
+            "external_ai_consent": True,
+        },
+    )
+
+    assert second.status_code == 200
+    answer = second.json()["answer_markdown"]
+    assert repeated not in answer
+    assert "对方是否正在邀请我的判断" in answer
+    assert "咨询师:" in calls[-1][1]["content"]
 
 
 def test_chat_session_does_not_cross_charts() -> None:

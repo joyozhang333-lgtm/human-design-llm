@@ -1,6 +1,6 @@
 # Install Guide
 
-更新时间：2026-08-18
+更新时间：2026-08-27
 
 ## 目标
 
@@ -15,18 +15,23 @@
 
 ## 推荐安装方式
 
-开发期建议用软链接，更新仓库后不需要重复复制。
+本仓库已经包含 `.agents/skills/human-design` 入口，在仓库内开发时不需要再次安装。要把 Skill 接入另一个项目，可从仓库执行安装器，并把目标明确指向消费项目：
 
 ```bash
-cd human-design-llm
+cd /path/to/human-design-llm
 . .venv/bin/activate
-python scripts/install_skill.py --mode link --force
+python scripts/install_skill.py \
+  --target codex \
+  --scope project \
+  --project-dir /path/to/consumer-project \
+  --mode link \
+  --force
 ```
 
-默认会安装到：
+Codex 项目级入口会安装到消费项目的：
 
 ```text
-~/.agents/skills/human-design
+.agents/skills/human-design
 ```
 
 ## 复制安装
@@ -34,13 +39,16 @@ python scripts/install_skill.py --mode link --force
 如果不想保留软链接，可以复制一份：
 
 ```bash
-python scripts/install_skill.py --mode copy --force
+python scripts/install_skill.py --target codex --scope user --mode copy --force
 ```
 
-## 自定义安装目录
+用户级 Codex Skill 默认安装到 `~/.codex/skills/human-design`。
+
+## 自定义项目或用户目录
 
 ```bash
-python scripts/install_skill.py --codex-home /path/to/codex-home --mode link --force
+python scripts/install_skill.py --target codex --scope project --project-dir /path/to/project --force
+python scripts/install_skill.py --target codex --scope user --home-dir /path/to/home --force
 ```
 
 ## 安装后验证
@@ -49,7 +57,7 @@ python scripts/install_skill.py --codex-home /path/to/codex-home --mode link --f
 2. 确认目标目录存在 `agents/openai.yaml`
 3. 在 Codex 里用 `$human-design` 或相关触发词调用
 
-如果已设置 `CODEX_HOME`，安装器会兼容 `$CODEX_HOME/skills/human-design`。Claude Code、Hermes、OpenClaw 和通用 Agent 的安装方式见 [ai-agent-setup.md](./ai-agent-setup.md)。
+Claude Code、DeepSeek Harness、Hugging Face / OpenClaw 和腾讯 WorkBuddy 的目标路径与安装命令见 [ai-agent-setup.md](./ai-agent-setup.md)。
 
 ## 注意事项
 

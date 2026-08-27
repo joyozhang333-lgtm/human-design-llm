@@ -1,7 +1,7 @@
 # ego-projected Ego Projected
 
 ## 核心主题
-自我投射的意志权威更适合在被看见的关系里说出来，通过表达愿望来确认自己是否真的想要。
+Ego Projected Authority 需要在被看见的关系里说出来：听见自己是否真的想为这件事投入意志与承诺。它不同于 Self-Projected Authority，不是用身份方向感作决定。
 
 ## 礼物
 - 尊重这种权威时，你更容易做出贴身、稳定而可持续的决定。

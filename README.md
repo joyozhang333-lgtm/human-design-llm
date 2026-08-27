@@ -3,14 +3,14 @@
 > 把 Human Design（人类图）从昂贵、封闭的一次性报告，变成人人可以运行、验证、扩展和自托管的开源产品。
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-humandesign.guichu.chat-c46f55)](https://humandesign.guichu.chat)
-[![Version](https://img.shields.io/badge/version-0.5.3-222222)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.6.0-1f4d3a)](./CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-185_passing-2E8B57)](./tests)
+[![CI](https://github.com/joyozhang333-lgtm/human-design-llm/actions/workflows/ci.yml/badge.svg)](https://github.com/joyozhang333-lgtm/human-design-llm/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-2E8B57)](./LICENSE)
 
 **在线体验 / Live Demo：<https://humandesign.guichu.chat>**
 
-**Human Design LLM** 是 [HumanDesign.guichu.chat](https://humandesign.guichu.chat) 的完整开源代码。它既是一个可直接使用的人类图 Web 产品，也是一个可安装到 Codex、Claude Code、Hermes、OpenClaw 或其他 AI Agent 的 Skill，同时提供 Python API、FastAPI 服务和 React 前端，方便开发者构建自己的 Human Design 产品。
+**Human Design LLM** 是 [HumanDesign.guichu.chat](https://humandesign.guichu.chat) 的完整开源代码。它既是一个可直接使用和自托管的人类图 Web 产品，也是一个可安装到 **Codex、Claude Code、DeepSeek Harness、Hugging Face / OpenClaw 和腾讯 WorkBuddy** 的标准 Agent Skill，同时提供 Python API、FastAPI 服务和 React 前端。
 
 The repository contains the complete open-source product behind [HumanDesign.guichu.chat](https://humandesign.guichu.chat). Use it as a standalone Web app, a Human Design skill for AI agents, a Python library, or a backend/frontend foundation for your own product.
 
@@ -26,16 +26,16 @@ The repository contains the complete open-source product behind [HumanDesign.gui
 
 仓库使用 MIT License。你可以学习、修改、部署和用于自己的产品；外部模型 API 与服务器费用仍由使用者自行承担。
 
-## V0.5 更新了什么
+## V0.6 更新了什么
 
-V0.5 的关键词是 **从术语墙到完整阅读体验**。本版本不再只把固定模板拼成报告，而是引入新的内容生成链路：
+V0.6 的关键词是 **一张图、一条阅读主线、五份真正能读的报告**。它不是在旧页面上继续删卡片，而是重新设计整个结果页和报告阅读模型：
 
 ```text
 出生信息
   -> HumanDesignChart 结构化排盘
   -> 中文 ChartFacts 与事实白名单
-  -> 分层解读 Prompt
-  -> DeepSeek / Claude 综合生成
+  -> 全盘报告与通道诊断
+  -> DeepSeek 连续咨询
   -> 闸门、通道、中心与术语护栏校验
   -> SQLite 缓存
   -> 无模型或校验失败时安全回退
@@ -43,19 +43,16 @@ V0.5 的关键词是 **从术语墙到完整阅读体验**。本版本不再只�
 
 主要变化：
 
-- **BodyGraph 优先**：结果页先展示完整人类图，再给出类型、Strategy、Authority、人生角色、定义与轮回交叉。
-- **术语解释**：不只显示专业名称；`等待回应`、`先告知再行动`、`Sacral Authority`、一分人/二分人等配置都有个人化说明。
-- **极简主阅读**：主页面只保留 BodyGraph、六项必要配置、全盘解读和五份主题报告入口，不再罗列中心与闸门。
-- **综合天赋**：把人生角色与多条通道合成一组现实能力来讲，避免把每个结构拆成互相重复的标签。
-- **五份完整报告**：身体、财富、天赋、关系与使命各自回答四个核心问题，并保持即时打开。
-- **真实 AI 生成**：主阅读与细读可以调用 DeepSeek 或 Claude；没有 API Key 时自动使用结构化中文回退内容。
+- **BodyGraph 真正置顶**：图是结果页的第一内容，图后只保留类型、行动方式、Authority、人生角色、定义和人生主轴六项配置。
+- **删除顶层术语清单**：结果页不再展示“已定义中心”“开放中心”和闸门目录；这些事实只在相关报告中按需解释。
+- **通道单独成篇**：逐条解释当前盘面真实接通的能力线路，并讲清多条通道组合后的成熟表达、误用方式和现实练习。
+- **五份可读报告**：身体、天赋、财富、关系、使命采用单栏文章和渐进展开，不再把目录、标签、诊断字段一次性堆满屏幕。
+- **全盘综合解读**：任何天赋和人生角色都必须与真实通道、决策方式和现实场景联动，而不是给一段可套在所有人身上的定义。
+- **真实连续咨询**：点击报告问题会携带当前盘面和章节上下文进入 DeepSeek 对话，回答继续推进，不复制报告原文。
+- **即时打开**：主题报告由本地确定性引擎先生成，不等待外部模型；模型只在用户主动深聊时参与。
 - **事实护栏**：输出中的闸门、通道、中心和爻线必须来自当前盘面；违规文本会被重写或拦截。
-- **中文化层**：行星、变量、回路、通道类型和常见 Human Design 术语统一转成简体中文。
 - **隐私缓存**：生成缓存只保存盘面事实哈希与文本，不保存昵称、生日、出生时间、性别或出生地。
-- **单栏阅读界面**：BodyGraph 置顶，核心配置采用紧凑清单，主题报告采用无封面卡、无目录墙的单栏文章；桌面和移动端使用同一套阅读流。
-- **内容审核**：自动检查主题报告的盘面可追溯、通道覆盖、文本区分度、可读性、行动性和内部语言污染。
-- **深度探索与对话**：身体、财富、关系等主题可以继续展开，并把问题带入基于当前全盘的 AI 对话。
-- **污染回归保护**：模型输出若泄露提示词、编造结构或混入开发者语言会被重写或拦截，并回退到基于真实盘面的结构化解读。
+- **六宿主 Agent Skill**：同一份经过审计的 Skill 可安装到 Codex、Claude Code、DeepSeek Harness、Hugging Face / OpenClaw 和腾讯 WorkBuddy；CI 验证宿主路径、元数据、执行入口和无密钥发布包。
 
 完整发布记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
@@ -119,42 +116,48 @@ HD_LLM_PROVIDER=deepseek
 
 ### 2. 作为 AI Skill 使用
 
-仓库根目录的 [SKILL.md](./SKILL.md) 是 Skill 入口，`runtimes/` 提供不同 Agent 的运行时适配。
+标准 Skill 包位于 [skills/human-design](./skills/human-design)。提供 UTC offset 或 IANA 时区时会完全在本地计算，不会把出生资料自动发送到公开网站；仅在用户明确允许地点查时区时才访问外部解析服务。需要 AI 深聊时，由宿主自己的模型继续解释结构化上下文。
 
-#### Codex
-
-推荐安装到当前共享 Skill 目录：
+先克隆仓库，然后使用一个安装命令：
 
 ```bash
-python scripts/install_skill.py --mode link --force
+git clone https://github.com/joyozhang333-lgtm/human-design-llm.git
+cd human-design-llm
+python scripts/install_skill.py --target <host> --scope user --force
 ```
 
-默认目标为 `~/.agents/skills/human-design`。如果你的 Codex 仍使用 `CODEX_HOME`，脚本会兼容 `$CODEX_HOME/skills/human-design`。安装后可用 `$human-design` 显式调用。
+| 宿主 | `<host>` | 用户级安装位置 | 仓库级自动发现位置 |
+| --- | --- | --- | --- |
+| OpenAI Codex | `codex` | `~/.codex/skills/human-design` | `.agents/skills/human-design` |
+| Claude Code | `claude-code` | `~/.claude/skills/human-design` | `.claude/skills/human-design` |
+| DeepSeek Harness | `deepseek-harness` | `~/.dsh/skills/human-design` | `.dsh/skills/human-design` |
+| Hugging Face Agent Skills | `huggingface` | `~/.agents/skills/human-design` | `.agents/skills/human-design` |
+| OpenClaw / 小龙虾 | `openclaw` | `~/.agents/skills/human-design` | `.agents/skills/human-design` |
+| 腾讯 WorkBuddy / CodeBuddy | `workbuddy` | `~/.workbuddy/skills/human-design` | `.codebuddy/skills/human-design` |
 
-#### Claude Code
-
-项目级安装：
+一次安装所有宿主位置：
 
 ```bash
-mkdir -p .claude/skills
-ln -s "$(pwd)" .claude/skills/human-design
+python scripts/install_skill.py --target all --scope project --force
 ```
 
-个人级安装：
+为腾讯 WorkBuddy 生成可直接上传的、内容确定且不含 `.env`/缓存/密钥的 ZIP：
 
 ```bash
-mkdir -p ~/.claude/skills
-ln -s "$(pwd)" ~/.claude/skills/human-design
+python scripts/install_skill.py --target workbuddy --package dist/human-design-workbuddy.zip --package-only
 ```
 
-#### Hermes、OpenClaw、Harness 与其他 AI
+每个 `v*` 标签的 [GitHub Release](https://github.com/joyozhang333-lgtm/human-design-llm/releases) 同时提供 Python wheel、WorkBuddy ZIP 和 `SHA256SUMS`，可先校验再安装。Skill 负责 Agent 发现与工作流，Python wheel 提供本地排盘与解读引擎。
 
-- Hermes：加载 [runtimes/hermes/SYSTEM_PROMPT.md](./runtimes/hermes/SYSTEM_PROMPT.md)。
-- OpenClaw：加载 [runtimes/openclaw/SYSTEM_PROMPT.md](./runtimes/openclaw/SYSTEM_PROMPT.md)。
-- Codex：可直接安装 Skill，也可加载 [runtimes/codex/SYSTEM_PROMPT.md](./runtimes/codex/SYSTEM_PROMPT.md)。
-- Harness 或其他 Agent 框架：加载 [runtimes/generic/SYSTEM_PROMPT.md](./runtimes/generic/SYSTEM_PROMPT.md)，并把 `build_llm_product()` 生成的 JSON 作为上下文。
+Skill 的本地执行入口：
 
-详细配置与工作原理见 [AI Agent / Skill 安装指南](./docs/ai-agent-setup.md)。
+```bash
+python skills/human-design/scripts/human_design_agent.py chart '1988-10-09T20:30:00+08:00'
+python skills/human-design/scripts/human_design_agent.py report '1988-10-09T20:30:00+08:00' --map-type talent
+python skills/human-design/scripts/human_design_agent.py context '1988-10-09T20:30:00+08:00' --focus talent --question '我的天然优势怎样形成代表作？' --format markdown
+```
+
+详细配置、隐私边界和宿主验证方式见 [AI Agent / Skill 安装指南](./docs/ai-agent-setup.md)。
 
 ## Python 快速开始
 
@@ -185,11 +188,11 @@ python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' --output outputs/
 | Endpoint | 用途 |
 | --- | --- |
 | `POST /api/charts` | 排盘并返回 chart、中文摘要、精度提醒与 BodyGraph URL |
-| `POST /api/readings/main` | 生成 V0.5 主线综合解读 |
+| `POST /api/readings/main` | 生成 V0.6 主线综合解读 |
 | `POST /api/readings/detail` | 按需生成中心、通道、闸门、变量或人生主轴细读 |
 | `GET /api/charts/{id}/bodygraph.svg` | 获取固定模板 BodyGraph SVG |
 | `GET /api/charts/{id}/reading-book` | 获取结构化阅读本 |
-| `POST /api/interpretation-maps` | 即时获取身体、财富、天赋、关系、使命或专业信息报告，不等待模型 |
+| `POST /api/interpretation-maps` | 即时获取身体、通道、财富、天赋、关系、使命或专业信息报告，不等待模型 |
 | `POST /api/reports` | 生成总览、身体、天赋、职业或深度报告包 |
 | `POST /api/chat` | 基于当前盘面、地图上下文和会话历史继续对话 |
 | `GET /api/product/providers` | 查看模型是否已配置，不返回任何 Key |
@@ -201,11 +204,16 @@ python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' --output outputs/
 ```text
 human-design-llm/
 ├── human_design/          # 排盘、schema、解读、LLM 产品与 Web API
-│   └── generation/        # V0.5 facts / prompt / LLM / validator / cache / fallback
+│   └── generation/        # V0.6 facts / prompt / LLM / validator / cache / fallback
 ├── web/                   # React 19 + TypeScript + Vite 用户界面
+├── skills/human-design/   # 六类 Agent 共用的标准 Skill 包与本地执行器
+├── .agents/               # Codex / Hugging Face / OpenClaw 仓库级发现入口
+├── .claude/               # Claude Code 仓库级发现入口
+├── .dsh/                  # DeepSeek Harness 仓库级发现入口
+├── .codebuddy/            # 腾讯 WorkBuddy 仓库级发现入口
 ├── references/            # 类型、中心、闸门、通道和研究知识卡
 ├── scripts/               # CLI、安装、评估和实验工具
-├── tests/                 # 177 个自动化回归测试
+├── tests/                 # 排盘、报告、隐私、安装与 API 自动化回归
 ├── runtimes/              # Codex / Claude-compatible / Hermes / OpenClaw / 通用适配
 ├── agents/openai.yaml     # Agent 元数据
 ├── SKILL.md               # Skill 入口
@@ -214,10 +222,12 @@ human-design-llm/
 
 ## 质量与边界
 
-当前发布已通过：
+每次发布必须通过：
 
-- `177` 个 pytest 测试。
+- 全量 pytest 与内容审计。
 - React/TypeScript 生产构建。
+- 六类 Agent 发现路径、安装结果和本地执行入口验证。
+- WorkBuddy ZIP 可重复构建与密钥排除检查。
 - 闸门、通道、中心和爻线防编造校验。
 - 中文术语、开发者语言污染和决定论表达回归测试。
 - 公开人物排盘结构、时区转换与 BodyGraph 渲染回归。
@@ -232,7 +242,7 @@ Human Design LLM is an open-source, Chinese-first Human Design AI toolkit and pr
 - Structured Human Design chart calculation and BodyGraph SVG rendering.
 - LLM-generated whole-chart readings with deterministic fact guardrails.
 - DeepSeek and Claude provider support with safe local fallback.
-- Human Design skills for Codex, Claude Code, Hermes, OpenClaw, Harness, and generic agents.
+- One audited Agent Skill for Codex, Claude Code, DeepSeek Harness, Hugging Face / OpenClaw, Tencent WorkBuddy, and compatible Agent Skills hosts.
 - FastAPI endpoints and a responsive React reading experience.
 - Career, talent, relationship, timing, uncertainty, citation, and evaluation workflows.
 

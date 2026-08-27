@@ -1,4 +1,4 @@
-"""V0.5 P0 污染回归：fallback-to-professional 已从根删除，永不复发。
+"""V0.6 P0 污染回归：fallback-to-professional 已从根删除，永不复发。
 
 样本盘 = 真实取证盘（投射者 / 2-4 / 意志力权威 / 一分人）：
 wealth/mission 无规则匹配时，绝不能再把开发者方法论当用户内容渲染。

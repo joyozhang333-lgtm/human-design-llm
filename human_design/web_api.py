@@ -118,6 +118,7 @@ class ChatRequest(BaseModel):
     question_id: str | None = None
     entry_source: str | None = None
     synthesis_mode: str | None = None
+    external_ai_consent: bool = False
 
 
 class InterpretationMapRequest(BaseModel):
@@ -210,7 +211,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             "product_version": f"V{VERSION.rsplit('.', 1)[0]}",
             "api_version": VERSION,
             "report_types": list(REPORT_CONFIG),
-            "map_types": ["body", "wealth", "talent", "relationship", "mission", "professional"],
+            "map_types": ["body", "channels", "wealth", "talent", "relationship", "mission", "professional"],
             "required_birth_fields": ["birth_date", "birth_time", "city/region"],
             "precision_policy": "birthday_only_is_guidance_not_formal_chart",
             "terminology": {
@@ -344,7 +345,9 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         saved_chart = active_store.get_chart(request.chart_id)
         user_terms = tuple(term for term in (saved_chart.user_name,) if term)
         # LLM 相关错误在 generation 层内部消化（对外只给 fallback 文案，原始错误只进脱敏日志）。
-        reading = generate_main_reading(saved_chart.chart, user_terms=user_terms)
+        # The main report must be instant and private. External AI is reserved for
+        # the consultation endpoint after the user has explicitly opted in.
+        reading = generate_main_reading(saved_chart.chart, mode="fallback", user_terms=user_terms)
         return {
             "l1": reading.l1,
             "l2": reading.l2,
@@ -416,6 +419,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             session=session,
             question=request.question,
             map_item_key=request.map_item_key,
+            allow_external_ai=request.external_ai_consent,
         )
         user_message = ChatMessage(
             role="user",
@@ -440,6 +444,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             "provider_configured": provider_configured,
             "entry_source": request.entry_source,
             "synthesis_mode": request.synthesis_mode,
+            "external_ai_consent": request.external_ai_consent,
             "citations": [citation.to_dict() for citation in package.answer_citations],
             "map_context": {
                 "map_type": map_package.map_type,
@@ -557,6 +562,8 @@ def _infer_focus(question: str) -> str:
 
 
 def _infer_map_type(question: str, focus: str) -> str:
+    if any(keyword in question for keyword in ("通道", "能力线路")):
+        return "channels"
     if any(keyword in question for keyword in ("使命", "人生主轴", "轮回交叉", "人生主题")):
         return "mission"
     return map_type_from_focus(focus)
@@ -570,10 +577,28 @@ def _generate_chat_answer(
     session: ChatSession,
     question: str,
     map_item_key: str | None,
+    allow_external_ai: bool,
 ) -> tuple[str, str, str | None, bool]:
+    def normalize(text: str) -> str:
+        cleaned = _normalize_chat_answer(_professionalize_authority_terms(text, saved_chart.chart))
+        return _ensure_progressive_followup(
+            cleaned,
+            session=session,
+            map_package=map_package,
+            question=question,
+            map_item_key=map_item_key,
+        )
+
     provider_status = external_provider_status()["deepseek"]
+    if not allow_external_ai:
+        return (
+            normalize(_fallback_map_answer(map_package, question, map_item_key)),
+            "local-fallback",
+            None,
+            bool(provider_status["configured"]),
+        )
     if not provider_status["configured"]:
-        return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
+        return normalize(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
     messages = _build_deepseek_messages(saved_chart, package, map_package, session, question, map_item_key)
     facts = extract_chart_facts(
         saved_chart.chart,
@@ -590,14 +615,14 @@ def _generate_chat_answer(
             max_repair=1,
         )
     except ProviderConfigurationError:
-        return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
+        return normalize(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, False
     except ProviderError:
-        return _normalize_chat_answer(
+        return normalize(
             _fallback_with_provider_note(_fallback_map_answer(map_package, question, map_item_key))
         ), "local-fallback", None, True
     if status == "fallback_after_repair_fail" or not answer_text.strip():
-        return _normalize_chat_answer(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, True
-    return _normalize_chat_answer(answer_text), "deepseek", client.model, True
+        return normalize(_fallback_map_answer(map_package, question, map_item_key)), "local-fallback", None, True
+    return normalize(answer_text), "deepseek", client.model, True
 
 
 def _build_deepseek_messages(
@@ -614,12 +639,16 @@ def _build_deepseek_messages(
             "你现在面向简体中文用户，回答必须自然、具体、可执行。",
             "必须使用目标术语：荐骨中心、荐骨权威、阿姬娜中心、喉咙中心；不要使用骶骨中心、额骨中心、阿扎那。",
             "只能基于下方 chart facts、reading context 和历史会话作答；不知道就说明无法从当前图表推出。",
+            "不要把三个或更多独立闸门拼成自创的能力轴、回路、系统、模块或组合；只能引用当前事实里真实存在的完整通道。",
+            "已定义通道本来就稳定存在。邀请、认可和策略只影响进入事情及表达时机，不能说它们会激活、启动或创造通道。",
+            "Authority 的专业名称必须逐字使用当前图表事实中的精确名称，不能简写，也不能换成另一种 Authority。",
             "优先引用当前地图条目和资料依据；回答要像给用户看的解读，不要输出内部字段名。",
             "深度解读必须做结构叠加：不要只按人生角色、类型或单个闸门回答；要说明真实通道、已定义/开放中心、关键闸门如何共同作用。",
             "如果当前地图条目提供特质诊断层，必须基于活出来、盲区、卡住状态和卡住原因继续展开；不要复制卡片原文，要围绕用户问题生成新的深度回答。",
             "点击追问时，不能只补充当前卡片；至少联动两个其他结构，例如身体回应、开放中心、通道、人生角色、财富边界、关系模式或使命主题。",
             "回答要像一位成熟的人类图咨询师在继续聊天，不像报告、课程讲义或百科词条。",
             "不要把前面卡片重新整理一遍；每次只推进一层：更具体的现实场景、更尖锐的盲区、更可验证的练习，或一个能继续深聊的问题。",
+            "历史里咨询师已经问过、用户已经回答的问题，不得原样或换词重复；结尾必须根据用户本轮新增的事实推进下一层。",
             "如果用户的问题很大，先收窄到当下最关键的一层，并用一句话说明为什么先看这一层。",
             "先看身体真实反应，再看心理模式、关系环境和现实行动四层如何互相影响。",
             "内容底层可以吸收整合心理学、儒释道和佛法见地，但不要堆术语；要帮助用户少一点自我证明和执着，多一点鲜活、清醒、落地的生命力。",
@@ -661,7 +690,7 @@ def _chat_history_text(session: ChatSession, *, limit: int = 8) -> str:
         return ""
     lines = []
     for message in session.messages[-limit:]:
-        role = "用户" if message.role == "user" else "系统"
+        role = "用户" if message.role == "user" else "咨询师"
         lines.append(f"{role}: {message.content}")
     return "\n".join(lines)
 
@@ -687,7 +716,7 @@ def _chart_fact_digest(chart) -> str:
         (
             f"类型：{summary['type']}",
             f"策略：{summary['strategy']}",
-            f"权威：{summary['authority']}",
+            f"Authority：{summary['authority_professional']}",
             f"人生角色：{summary['profile']}",
             f"定义：{summary['definition']}",
             f"签名/非自己主题：{summary['signature']} / {summary['not_self_theme']}",
@@ -696,9 +725,25 @@ def _chart_fact_digest(chart) -> str:
             "开放中心：" + ("、".join(open_centers) if open_centers else "无"),
             "通道：" + ("、".join(channels) if channels else "无"),
             "闸门：" + ("、".join(gates[:32]) if gates else "无"),
-            f"输入时间：{chart.input.birth_datetime_local}，时区：{chart.input.timezone_name}",
         )
     )
+
+
+def _professionalize_authority_terms(text: str, chart) -> str:
+    chinese = display_authority(chart.summary.authority.code, chart.summary.authority.label)
+    professional = display_authority_professional(chart.summary.authority.code, chart.summary.authority.label)
+    normalized = (text or "").replace(chinese, professional).replace("权威", professional)
+    duplicate = re.compile(
+        rf"{re.escape(professional)}\s*(?:是|为|：|:)?\s*{re.escape(professional)}",
+        re.IGNORECASE,
+    )
+    normalized = duplicate.sub(professional, normalized)
+    generic_prefix = re.compile(
+        rf"(?<![A-Za-z-])Authority\s*(?:是|为|：|:)?\s*{re.escape(professional)}",
+        re.IGNORECASE,
+    )
+    normalized = generic_prefix.sub(professional, normalized)
+    return re.sub(r"[ \t]{2,}", " ", normalized).strip()
 
 
 def _fallback_with_provider_note(answer_markdown: str) -> str:
@@ -852,6 +897,60 @@ def _normalize_chat_answer(text: str) -> str:
     while "\n\n\n" in normalized:
         normalized = normalized.replace("\n\n\n", "\n\n")
     return normalized + ("\n" if normalized else "")
+
+
+def _ensure_progressive_followup(
+    text: str,
+    *,
+    session: ChatSession,
+    map_package,
+    question: str,
+    map_item_key: str | None,
+) -> str:
+    """Replace a repeated closing question after the user has already answered it."""
+    matches = tuple(re.finditer(r"[^。！？?\n]{4,}[？?]", text.rstrip()))
+    if not matches:
+        return text
+    final_match = matches[-1]
+    if final_match.end() != len(text.rstrip()):
+        return text
+    previous_questions = {
+        _normalize_question_for_comparison(match.group())
+        for message in session.messages
+        if message.role == "assistant"
+        for match in re.finditer(r"[^。！？?\n]{4,}[？?]", message.content)
+    }
+    current_followup = _normalize_question_for_comparison(final_match.group())
+    if not current_followup or current_followup not in previous_questions:
+        return text
+    replacement = _progressive_chat_followup(map_package, question, map_item_key)
+    prefix = text.rstrip()[: final_match.start()].rstrip()
+    return f"{prefix}\n\n{replacement}\n"
+
+
+def _normalize_question_for_comparison(question: str) -> str:
+    return re.sub(r"[\s，。！？?：、“”‘’（）()《》]", "", question)
+
+
+def _progressive_chat_followup(map_package, question: str, map_item_key: str | None) -> str:
+    map_type = getattr(map_package, "map_type", "")
+    if any(keyword in question for keyword in ("提前", "忍不住", "冒犯", "立刻指出", "抢着说")):
+        return "下一次你想立刻指出问题时，你愿不愿意先确认“对方是否正在邀请我的判断”，再观察表达效果有什么不同？"
+    if map_type == "channels":
+        return "最近哪一个具体场景最适合用“先确认对象和时机，再使用这项能力”做一次对照实验？"
+    if map_type == "talent":
+        return "如果只选一个真实案例来验证这项天赋，你会选哪件事，当时谁需要你、你具体改变了什么？"
+    if map_type == "relationship":
+        return "在最近一次关系拉扯里，你最先越过的是自己的决定节奏、表达边界，还是身体已经出现的拒绝？"
+    if map_type == "wealth":
+        return "拿最近一笔收入来看，你最想先验证的是价值表达、定价边界，还是承诺过量？"
+    if map_type == "mission":
+        return "回看最近一年，哪件事同时让你的能力变强、身体更有生命力，也真实影响了别人？"
+    if map_type == "body":
+        return "最近一次身体明显变紧或变沉时，你当时正在替谁承担什么决定或压力？"
+    if map_item_key:
+        return "如果拿一个刚发生的真实场景继续拆，你最想验证这里的对象、时机，还是行动方式？"
+    return "这轮你补充的信息里，哪一个具体场景最值得我们继续往下拆？"
 
 
 def _append_optional_markdown_list(lines: list[str], title: str, items) -> None:

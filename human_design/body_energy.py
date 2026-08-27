@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 
+from .channel_guides import CHANNEL_LINES
 from .glossary import display_planet
 from .labels import (
     CENTER_LABELS,
@@ -206,15 +207,21 @@ def _build_center_note(code: str, defined: bool) -> CenterEnergyNote:
 def _build_channel_note(channel) -> ChannelEnergyNote:
     center_labels = tuple(_center_label(code) for code in channel.centers)
     channel_name = display_channel_label(channel.code) or f"{channel.code} 通道"
+    core_expression = CHANNEL_LINES.get(
+        channel.code,
+        "这条线路会把两个中心的资源合成一种可以反复使用的能力",
+    ).rstrip("。")
     body_flow = (
-        f"{center_labels[0]} 与 {center_labels[1]} 之间形成稳定连接。"
-        "这不是偶然状态，而是你身体里会反复出现的能量路径。"
+        f"{center_labels[0]}与{center_labels[1]}长期接通。现实里，它往往表现为：{core_expression}。"
     )
     expression = (
-        f"通道 {channel.code}「{channel_name}」会把两个中心的资源合成一种固定表达。"
-        "真正顺的时候，它通常不是靠头脑硬推，而是像一条已经接通的内在线路。"
+        f"{channel.code}「{channel_name}」不是偶尔出现的状态，而是你在工作、关系和选择里会反复调用的能力。"
+        "成熟时，你不需要证明自己有这项能力，别人会从你处理问题的方式和结果里直接感受到它。"
     )
-    practice = "观察这条通道在工作、关系、表达中何时自然启动；自然启动时顺势用，卡住时不要强行证明。"
+    practice = (
+        "回想最近三次你不费力却真正解决了问题的场景：记录这条能力怎样开始、帮助了谁、留下了什么结果。"
+        "只保留反复出现的部分，不用把每一次偶然表现都当成天赋。"
+    )
     return ChannelEnergyNote(
         code=channel.code,
         label=channel_name,

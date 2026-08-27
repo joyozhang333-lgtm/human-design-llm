@@ -1,0 +1,90 @@
+[
+  {
+    "source_id": "jovian-dictionary",
+    "title": "Human Design Dictionary",
+    "author": "Jovian Archive",
+    "language": "en",
+    "source_type": "official-reference",
+    "url": "https://jovianarchive.com/pages/human-design-dictionary",
+    "priority": "core",
+    "copyright_policy": "metadata-and-summary-only",
+    "product_use": ["terminology", "type", "authority", "profile", "center", "gate", "channel"]
+  },
+  {
+    "source_id": "jovian-chart-kb",
+    "title": "What is a Human Design Chart?",
+    "author": "Jovian Archive Knowledge Base",
+    "language": "en",
+    "source_type": "official-kb",
+    "url": "https://support.jovianarchive.com/hc/en-us/articles/15883298680465-What-is-a-Human-Design-Chart",
+    "priority": "core",
+    "copyright_policy": "metadata-and-summary-only",
+    "product_use": ["bodygraph", "chart-facts", "precision-policy"]
+  },
+  {
+    "source_id": "jovian-origin-kb",
+    "title": "What is Jovian Archive?",
+    "author": "Jovian Archive Knowledge Base",
+    "language": "en",
+    "source_type": "official-kb",
+    "url": "https://support.jovianarchive.com/hc/en-us/articles/15883189666833-What-is-Jovian-Archive",
+    "priority": "core",
+    "copyright_policy": "metadata-and-summary-only",
+    "product_use": ["source-ranking", "foundational-context"]
+  },
+  {
+    "source_id": "ihds-definitive-book",
+    "title": "The Definitive Book of Human Design",
+    "author": "Lynda Bunnell, Ra Uru Hu",
+    "language": "en",
+    "source_type": "book",
+    "url": "https://ihdschool.com/products/definitive-book",
+    "priority": "core",
+    "copyright_policy": "bibliographic-and-original-summary-only",
+    "product_use": ["system-foundation", "centers", "channels", "gates", "profiles"]
+  },
+  {
+    "source_id": "chetan-parkyn-human-design",
+    "title": "Human Design",
+    "author": "Chetan Parkyn",
+    "language": "en",
+    "source_type": "book",
+    "url": "https://books.apple.com/us/book/human-design/id389598404",
+    "priority": "secondary",
+    "copyright_policy": "bibliographic-and-original-summary-only",
+    "product_use": ["user-language", "relationship", "life-application"]
+  },
+  {
+    "source_id": "karen-curry-understanding",
+    "title": "Understanding Human Design",
+    "author": "Karen Curry Parker",
+    "language": "en",
+    "source_type": "book",
+    "url": "https://www.simonandschuster.co.uk/books/Understanding-Human-Design/Karen-Curry-Parker/Human-Design/9781938289101",
+    "priority": "secondary",
+    "copyright_policy": "bibliographic-and-original-summary-only",
+    "product_use": ["user-language", "energy-management", "life-application"]
+  },
+  {
+    "source_id": "zh-authorized-science-of-differentiation",
+    "title": "人類圖：區分的科學",
+    "author": "Ra Uru Hu / 中文授权版",
+    "language": "zh-Hant",
+    "source_type": "book",
+    "url": "https://www.books.com.tw/products/0011042375",
+    "priority": "core",
+    "copyright_policy": "bibliographic-and-original-summary-only",
+    "product_use": ["chinese-terminology", "system-foundation"]
+  },
+  {
+    "source_id": "joyce-human-design-intro",
+    "title": "人类图入门篇",
+    "author": "乔宜思",
+    "language": "zh-Hans",
+    "source_type": "ebook",
+    "url": "https://read.douban.com/ebook/488997818/",
+    "priority": "context",
+    "copyright_policy": "bibliographic-and-original-summary-only",
+    "product_use": ["simplified-chinese-user-language", "entry-level-explanation"]
+  }
+]

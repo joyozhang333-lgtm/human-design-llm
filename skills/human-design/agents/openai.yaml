@@ -1,0 +1,4 @@
+interface:
+  display_name: "Human Design"
+  short_description: "Grounded BodyGraph, whole-chart reports, channels, talents, relationships, work, and mission."
+  default_prompt: "Use $human-design to calculate my chart locally, then interpret my question from the whole chart without inventing chart facts."

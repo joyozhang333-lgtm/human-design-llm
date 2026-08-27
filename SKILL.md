@@ -5,7 +5,7 @@ description: "人类图 (Human Design) 全盘解读技能。根据出生日期�
 
 # Human Design LLM Skill
 
-这是 [HumanDesign.guichu.chat](https://humandesign.guichu.chat) 的 Skill 入口。仓库同时包含排盘、BodyGraph、全盘综合解读、六张主题地图、连续咨询、Web API、前端、runtime adapter 与评测工具链。
+这是 [HumanDesign.guichu.chat](https://humandesign.guichu.chat) 的仓库级兼容入口。可分发的标准 Skill 包位于 `skills/human-design/`，仓库同时包含排盘、BodyGraph、全盘综合解读、通道与五份主题报告、连续咨询、Web API、前端和评测工具链。
 
 ## 使用时机
 
@@ -42,10 +42,12 @@ description: "人类图 (Human Design) 全盘解读技能。根据出生日期�
 - 解读生成器：`human_design/reading.py`
 - 解读知识：`human_design/knowledge.py`
 - LLM 产品层：`human_design/product.py`
-- V0.5 生成与护栏：`human_design/generation/`
+- V0.6 生成与护栏：`human_design/generation/`
 - Web API：`human_design/web_api.py`
 - Web 用户产品：`web/`
-- Runtime 提示：`runtimes/`（当前已提供 Codex / Hermes / OpenClaw）
+- 标准 Agent Skill：`skills/human-design/`
+- 宿主发现入口：`.agents/`、`.claude/`、`.dsh/`、`.codebuddy/`
+- Runtime 提示：`runtimes/`（用于不支持 Agent Skills 的通用运行时）
 - Agent 元数据：`agents/openai.yaml`
 - 知识卡目录：`references/`（当前已包含 types / authorities / profiles / centers / definitions，以及 `64 gates / 36 channels` draft 覆盖）
 - 脚本目录：`scripts/`
@@ -61,8 +63,8 @@ description: "人类图 (Human Design) 全盘解读技能。根据出生日期�
 2. 再用 `human_design.reading.generate_reading()` 生成完整阅读对象
 3. 需要文本成稿时，用 `human_design.reading.render_reading_markdown()`
 4. 需要 LLM 会话产品时，用 `human_design.product.build_llm_product()`
-5. 需要 V0.5 主阅读时，用 `human_design.generation.generate_main_reading()`
-6. 需要主题地图时，用 `human_design.generation.generate_map_reading()` 或 `POST /api/interpretation-maps`
+5. 需要 V0.6 主阅读时，用 `human_design.generation.generate_main_reading()`
+6. 需要身体、通道、财富、天赋、关系或使命报告时，用 `human_design.interpretation_maps.build_interpretation_map()` 或 `POST /api/interpretation-maps`
 7. 需要连续咨询时，用 `POST /api/chat`，并保留 `session_id`
 8. 需要职业深读时，用 `human_design.career.generate_career_report()`
 9. 需要脚本入口时，优先使用：
@@ -81,9 +83,9 @@ description: "人类图 (Human Design) 全盘解读技能。根据出生日期�
 
 - 最好给带时区的 ISO 时间，例如 `1988-10-09T20:30:00+08:00`
 - 如果没有 offset，优先传 `--timezone`，例如 `Asia/Shanghai`
-- 也支持 `--city` + `--country`，必要时补 `--region`
-- 如果什么都不补，当前默认按 UTC 处理，而且结果里会显式带精度 warning
-- 城市解析当前通过 geocoder + IANA timezone 解析；若解析失败，必须明确报错，不能假装成功
+- Agent Skill 也支持地点解析，但没有显式时区时必须取得用户同意并传 `--allow-location-lookup`
+- Agent Skill 对无 offset、无 `--timezone`、无地点的本地时间直接拒绝，不能按 UTC 假装生成正式结果
+- 城市解析通过外部 geocoder + IANA timezone 服务；若解析失败，必须明确报错，不能假装成功
 
 ## LLM 产品要求
 

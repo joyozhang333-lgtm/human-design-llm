@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 
 from .labels import (
@@ -35,10 +36,12 @@ from .schema import (
     SourceCard,
     SourceReference,
 )
+from .session import followups_by_depth, normalize_depth
 from .version import VERSION
 
 MAP_TITLES = {
     "body": ("身体报告", "看身体怎样参与决定、稳定能量从哪里来、压力从哪里进入，以及乱掉以后怎样回来。"),
+    "channels": ("通道报告", "逐条看懂你的稳定能力线路，再看它们怎样在真实生活里组合成一套完整能力。"),
     "wealth": ("财富报告", "看钱怎样沿着你的稳定能力进入、哪些能力可以变现、什么承诺会吞掉利润。"),
     "talent": ("天赋报告", "把人生角色、每条已定义通道和稳定中心放在一起，看天赋怎样从八十分练到一百分。"),
     "relationship": ("关系报告", "看你怎样进入关系、最容易替别人承担什么，以及适合你的相处条件。"),
@@ -48,6 +51,7 @@ MAP_TITLES = {
 
 SECTION_TITLES = {
     "body": ("身体怎么运作", "看你什么时候有力、什么时候被外界带走，以及身体怎样回到稳定。"),
+    "channels": ("通道怎样形成能力", "不只解释名称，也讲成熟状态、常见误用和现实练习。"),
     "wealth": ("财富从哪里来", "看资源、承诺和主航道如何连成赚钱方式，而不是只给行业标签。"),
     "talent": ("天赋怎么形成", "看爻位、通道和关键闸门如何叠加成可以被练出来的能力。"),
     "relationship": ("关系怎么对位", "看你怎样连接、怎样被影响，以及什么关系会让你更像自己。"),
@@ -60,6 +64,11 @@ MAP_FOLLOWUPS = {
         "我怎么训练荐骨回应？",
         "我最容易在哪个开放中心被带跑？",
         "我现在能量低落时应该先检查什么？",
+    ),
+    "channels": (
+        "哪一条通道最值得先练成我的代表能力？",
+        "这些通道怎样在同一份工作里彼此配合？",
+        "我现在最可能误用的是哪一条通道？",
     ),
     "wealth": (
         "我最适合靠什么方式赚钱？",
@@ -109,6 +118,7 @@ def build_interpretation_map(
     chart_id: str | None = None,
 ) -> InterpretationMapPackage:
     map_key = normalize_map_type(map_type)
+    depth_key = normalize_depth(depth)
     chart_keys = _chart_keys(chart)
     selected_rules = tuple(
         rule
@@ -118,7 +128,7 @@ def build_interpretation_map(
         and _rule_matches(rule, chart_keys)
     )
     # 无匹配规则时诚实地返回空内容，绝不回落 professional（开发者方法论）——
-    # 那会把元信息污染当成用户内容渲染（V0.5 P0 硬 bug，勿恢复）。
+    # 那会把元信息污染当成用户内容渲染（P0 硬 bug，勿恢复）。
 
     atom_lookup = atoms_by_id()
     source_lookup = sources_by_id()
@@ -135,7 +145,7 @@ def build_interpretation_map(
         atom_ids=tuple(atom.atom_id for atom in retrieved_atoms),
         rule_ids=tuple(rule.rule_id for rule in selected_rules),
     )
-    title, description = MAP_TITLES[map_key]
+    title, description = _map_identity(map_key, chart)
 
     return InterpretationMapPackage(
         generated_at_utc=datetime.now(UTC).isoformat(),
@@ -145,11 +155,11 @@ def build_interpretation_map(
         description=description,
         chart_id=chart_id,
         professional_facts=_professional_facts(chart),
-        sections=_build_sections(map_key, chart, selected_rules, atom_lookup, source_lookup, depth),
+        sections=_build_sections(map_key, chart, selected_rules, atom_lookup, source_lookup, depth_key),
         prompt_pack=prompt_pack,
         retrieved_knowledge=retrieved_atoms,
         sources=source_cards,
-        suggested_questions=_suggested_questions(map_key, chart),
+        suggested_questions=followups_by_depth(_suggested_questions(map_key, chart), depth_key),
         chart=chart,
     )
 
@@ -165,6 +175,17 @@ def map_type_from_focus(focus: str | None) -> str:
     }.get(focus or "", "talent")
 
 
+def _map_identity(map_key: str, chart: HumanDesignChart) -> tuple[str, str]:
+    title, description = MAP_TITLES[map_key]
+    if map_key != "channels":
+        return title, description
+    if not chart.channels:
+        return title, "看懂为什么你的能力更依赖人与环境被接通，以及怎样辨认适合自己的场域。"
+    if len(chart.channels) == 1:
+        return title, "看懂这条稳定能力线路，再看它怎样经过人生角色成熟，并在正确时机进入现实。"
+    return title, description
+
+
 def _suggested_questions(map_key: str, chart: HumanDesignChart) -> tuple[str, ...]:
     summary = _summary(chart)
     first_channel = next(iter(chart.channels), None)
@@ -175,12 +196,31 @@ def _suggested_questions(map_key: str, chart: HumanDesignChart) -> tuple[str, ..
     )
     first_open = next((center for center in chart.centers if not center.defined), None)
     open_name = normalize_center_title(CENTER_LABELS.get(first_open.code, first_open.label)) if first_open else "稳定中心"
+    if not chart.channels:
+        channel_questions = (
+            "哪些人和环境最容易把我的能力点亮？",
+            "没有固定通道时，我怎样辨认可以重复发展的能力？",
+            "拿我的一个真实案例，帮我判断当时是什么环境条件让我发挥出来。",
+        )
+    elif len(chart.channels) == 1:
+        channel_questions = (
+            f"{channel_name}在我的生活里最可能怎样出现？",
+            f"{channel_name}怎样成为一项别人愿意选择的能力？",
+            "拿我的一个真实案例，帮我辨认这条通道有没有被正确使用。",
+        )
+    else:
+        channel_questions = (
+            f"{channel_name}在我的生活里最可能怎样出现？",
+            "我的多条通道怎样组合成一项别人愿意选择的能力？",
+            "拿我的一个真实案例，帮我辨认是哪条通道在发挥。",
+        )
     questions = {
         "body": (
             f"我的 {display_authority_professional(chart.summary.authority.code, summary['authority'])} 应该怎么练？",
             f"{open_name}最容易在什么场景把我带跑？",
             "拿我最近一次能量低落，帮我判断压力链从哪里开始。",
         ),
+        "channels": channel_questions,
         "wealth": (
             f"{channel_name}最适合怎样形成收入？",
             "我现在的定价和承诺边界，最需要先改哪一条？",
@@ -278,7 +318,7 @@ def _build_sections(
 ) -> tuple[InterpretationMapSection, ...]:
     if map_key == "professional":
         section_title, intro = SECTION_TITLES[map_key]
-        return (
+        sections = (
             InterpretationMapSection(
                 key=f"{map_key}-core",
                 title=section_title,
@@ -286,7 +326,59 @@ def _build_sections(
                 items=(_professional_detail_item(chart),),
             ),
         )
-    return build_report_sections(map_key, chart)
+    else:
+        sections = build_report_sections(map_key, chart)
+    return _sections_for_depth(sections, depth)
+
+
+def _sections_for_depth(
+    sections: tuple[InterpretationMapSection, ...],
+    depth: str,
+) -> tuple[InterpretationMapSection, ...]:
+    if depth == "deep":
+        return sections
+
+    selected_sections = sections[:2] if depth == "brief" else sections
+    projected = []
+    for section in selected_sections:
+        selected_items = section.items[:2] if depth == "brief" else section.items
+        projected.append(
+            replace(
+                section,
+                items=tuple(_item_for_depth(item, depth) for item in selected_items),
+            )
+        )
+    return tuple(projected)
+
+
+def _item_for_depth(item: InterpretationMapItem, depth: str) -> InterpretationMapItem:
+    if item.diagnosis_depth == "trace":
+        return item
+    if depth == "brief":
+        return replace(
+            item,
+            diagnosis_depth="trace",
+            life_scenes=(),
+            embodied_expression=(),
+            blind_spots=(),
+            stuck_patterns=(),
+            stuck_causes=(),
+            common_blocks=(),
+            practices=item.practices[:1],
+            followup_questions=item.followup_questions[:1],
+        )
+    return replace(
+        item,
+        diagnosis_depth="standard",
+        life_scenes=item.life_scenes[:1],
+        embodied_expression=item.embodied_expression[:1],
+        blind_spots=item.blind_spots[:1],
+        stuck_patterns=item.stuck_patterns[:1],
+        stuck_causes=(),
+        common_blocks=(),
+        practices=item.practices[:1],
+        followup_questions=item.followup_questions[:2],
+    )
 
 
 def _rule_to_item(

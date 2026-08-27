@@ -23,6 +23,7 @@ STRATEGY_LABELS = {
     "wait-for-the-invitation": "等待邀请",
     "inform": "先告知再行动",
     "respond-inform": "等待回应后告知",
+    "lunar-cycle": "等待完整月亮周期",
     "wait-lunar-cycle": "等待月亮周期",
 }
 
