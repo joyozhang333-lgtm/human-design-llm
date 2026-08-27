@@ -3,7 +3,7 @@
 > 把 Human Design（人类图）从昂贵、封闭的一次性报告，变成人人可以运行、验证、扩展和自托管的开源产品。
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-humandesign.guichu.chat-c46f55)](https://humandesign.guichu.chat)
-[![Version](https://img.shields.io/badge/version-0.6.0-1f4d3a)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.6.1-1f4d3a)](./CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org/)
 [![CI](https://github.com/joyozhang333-lgtm/human-design-llm/actions/workflows/ci.yml/badge.svg)](https://github.com/joyozhang333-lgtm/human-design-llm/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-2E8B57)](./LICENSE)

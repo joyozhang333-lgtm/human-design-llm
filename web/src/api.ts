@@ -174,14 +174,6 @@ export type InterpretationMapResponse = {
   chart_id?: string | null;
   professional_facts: string[];
   sections: InterpretationMapSection[];
-  prompt_pack: {
-    pack_id: string;
-    map_type: string;
-    system_prompt: string;
-    retrieval_topics: string[];
-    atom_ids: string[];
-    rule_ids: string[];
-  };
   retrieved_knowledge: Array<{
     atom_id: string;
     topic: string;
