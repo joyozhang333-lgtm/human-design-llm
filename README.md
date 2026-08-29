@@ -3,7 +3,7 @@
 > 把 Human Design（人类图）从昂贵、封闭的一次性报告，变成人人可以运行、验证、扩展和自托管的开源产品。
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-humandesign.guichu.chat-c46f55)](https://humandesign.guichu.chat)
-[![Version](https://img.shields.io/badge/version-0.6.2-1f4d3a)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.7.0-0071e3)](./CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://www.python.org/)
 [![CI](https://github.com/joyozhang333-lgtm/human-design-llm/actions/workflows/ci.yml/badge.svg)](https://github.com/joyozhang333-lgtm/human-design-llm/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-2E8B57)](./LICENSE)
@@ -26,16 +26,16 @@ The repository contains the complete open-source product behind [HumanDesign.gui
 
 仓库使用 MIT License。你可以学习、修改、部署和用于自己的产品；外部模型 API 与服务器费用仍由使用者自行承担。
 
-## V0.6 更新了什么
+## V0.7 更新了什么
 
-V0.6 的关键词是 **一张图、一条阅读主线、五份真正能读的报告**。它不是在旧页面上继续删卡片，而是重新设计整个结果页和报告阅读模型：
+V0.7 的关键词是 **一张图、一篇能读下去的报告、一段真正能继续的对话**。这一版不再追求“功能看起来很多”，而是让信息层级、文字和咨询过程都更接近一个安静、可靠的个人阅读产品：
 
 ```text
 出生信息
   -> HumanDesignChart 结构化排盘
   -> 中文 ChartFacts 与事实白名单
-  -> 全盘报告与通道诊断
-  -> DeepSeek 连续咨询
+  -> 六份即时个人报告
+  -> 带当前话题的 DeepSeek 连续咨询
   -> 闸门、通道、中心与术语护栏校验
   -> SQLite 缓存
   -> 无模型或校验失败时安全回退
@@ -43,16 +43,15 @@ V0.6 的关键词是 **一张图、一条阅读主线、五份真正能读的报
 
 主要变化：
 
-- **BodyGraph 真正置顶**：图是结果页的第一内容，图后只保留类型、行动方式、Authority、人生角色、定义和人生主轴六项配置。
-- **删除顶层术语清单**：结果页不再展示“已定义中心”“开放中心”和闸门目录；这些事实只在相关报告中按需解释。
-- **通道单独成篇**：逐条解释当前盘面真实接通的能力线路，并讲清多条通道组合后的成熟表达、误用方式和现实练习。
-- **五份可读报告**：身体、天赋、财富、关系、使命采用单栏文章和渐进展开，不再把目录、标签、诊断字段一次性堆满屏幕。
-- **全盘综合解读**：任何天赋和人生角色都必须与真实通道、决策方式和现实场景联动，而不是给一段可套在所有人身上的定义。
-- **真实连续咨询**：点击报告问题会携带当前盘面和章节上下文进入 DeepSeek 对话，回答继续推进，不复制报告原文。
-- **即时打开**：主题报告由本地确定性引擎先生成，不等待外部模型；模型只在用户主动深聊时参与。
-- **事实护栏**：输出中的闸门、通道、中心和爻线必须来自当前盘面；违规文本会被重写或拦截。
-- **隐私缓存**：生成缓存只保存盘面事实哈希与文本，不保存昵称、生日、出生时间、性别或出生地。
-- **六宿主 Agent Skill**：同一份经过审计的 Skill 可安装到 Codex、Claude Code、DeepSeek Harness、Hugging Face / OpenClaw 和腾讯 WorkBuddy；CI 验证宿主路径、元数据、执行入口和无密钥发布包。
+- **克制的结果页**：BodyGraph 仍然置顶，图后只保留类型、行动方式、Authority、人生角色、定义和人生主轴六项信息。
+- **连续文章，而非卡片墙**：身体、通道、天赋、财富、关系和使命报告按阅读顺序完整展开，不再把诊断字段、标签和按钮铺满页面。
+- **标题直接说重点**：删除“全盘先读、当前章节、说人话的解读”等内部产品语言，直接说明“你怎样做决定”“钱更可能从哪里来”“别人为什么会看见你”。
+- **全盘综合解读**：人生角色、通道、决策方式和现实场景会放在一起解释，不把某个标签孤立成可套用的定义。
+- **真正继续聊**：报告中的问题会直接带入独立咨询工作区；桌面端可边看报告边聊，移动端进入专注对话页。
+- **一轮只谈一件事**：DeepSeek 每轮给出一个具体判断、少量短段落和一个追问，通过用户的真实经历逐步校准，而不是一次倾倒标准答案。
+- **内部内容隔离**：公共接口和界面继续拦截提示词、模型要求、地图上下文、校验说明与思考过程。
+- **隐私与事实护栏**：未经同意不调用外部模型；远程对话不发送姓名或出生资料；回答只能引用当前盘面真实存在的结构。
+- **多宿主 Agent Skill**：同一份经过审计的 Skill 可安装到 Codex、Claude Code、DeepSeek Harness、Hugging Face / OpenClaw 和腾讯 WorkBuddy。
 
 完整发布记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
@@ -188,7 +187,7 @@ python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' --output outputs/
 | Endpoint | 用途 |
 | --- | --- |
 | `POST /api/charts` | 排盘并返回 chart、中文摘要、精度提醒与 BodyGraph URL |
-| `POST /api/readings/main` | 生成 V0.6 主线综合解读 |
+| `POST /api/readings/main` | 生成 V0.7 主线综合解读 |
 | `POST /api/readings/detail` | 按需生成中心、通道、闸门、变量或人生主轴细读 |
 | `GET /api/charts/{id}/bodygraph.svg` | 获取固定模板 BodyGraph SVG |
 | `GET /api/charts/{id}/reading-book` | 获取结构化阅读本 |
@@ -204,7 +203,7 @@ python scripts/render_bodygraph.py '1988-10-09T20:30:00+08:00' --output outputs/
 ```text
 human-design-llm/
 ├── human_design/          # 排盘、schema、解读、LLM 产品与 Web API
-│   └── generation/        # V0.6 facts / prompt / LLM / validator / cache / fallback
+│   └── generation/        # V0.7 facts / prompt / LLM / validator / cache / fallback
 ├── web/                   # React 19 + TypeScript + Vite 用户界面
 ├── skills/human-design/   # 六类 Agent 共用的标准 Skill 包与本地执行器
 ├── .agents/               # Codex / Hugging Face / OpenClaw 仓库级发现入口

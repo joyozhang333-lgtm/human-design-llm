@@ -28,7 +28,7 @@ Human Design LLM is an LLM-native product layer for Human Design. It wraps chart
 
 The core output is not just a markdown reading. The project can produce a full LLM product package containing chart facts, reading sections, source references, assistant instructions, context blocks, answer citations, suggested follow-ups, delivery depth, and session state. This makes it suitable for AI agents, API backends, prompt orchestration systems, and local Codex/OpenAI-style skills.
 
-The current V0.6 release places the BodyGraph first, removes top-level center and gate catalogues, and turns the result into one editorial reading path. Six essential facts, a dedicated channel reading, and five focused reports open instantly. DeepSeek powers grounded follow-up consultation, while deterministic validators and content audits block invented chart facts, repeated templates, prompt leakage, and developer language. The same audited Agent Skill installs into Codex, Claude Code, DeepSeek Harness, Hugging Face / OpenClaw-compatible hosts, and Tencent WorkBuddy.
+The current V0.7 release places the BodyGraph first and turns the result into a calm, continuous reading experience instead of a dashboard or card wall. Six focused reports open instantly. A report question carries its exact chart context into a dedicated DeepSeek consultation workspace, where each turn advances one concrete observation instead of repeating the report. Deterministic validators and content audits block invented chart facts, repeated templates, prompt leakage, and developer language. The same audited Agent Skill installs into Codex, Claude Code, DeepSeek Harness, Hugging Face / OpenClaw-compatible hosts, and Tencent WorkBuddy.
 
 ## 中文长介绍
 
@@ -36,7 +36,7 @@ Human Design LLM 是一个面向大模型的人类图产品层。它把人类图
 
 这个项目的核心输出不只是 Markdown 解读，而是一份完整的 LLM 产品包：包含 chart 事实、阅读章节、来源引用、助手指令、上下文块、回答引用、推荐追问、输出深度和会话状态。因此它适合 AI Agent、API 后端、prompt orchestration、Codex/OpenAI 风格技能，以及任何需要结构化人类图事实的大模型应用。
 
-当前 V0.6 版本把 BodyGraph 放在结果页首屏，从顶层删除中心与闸门目录，只保留六项核心配置、三条全盘结论、独立通道解读和五份即时打开的主题报告。报告采用单栏文章和渐进展开，DeepSeek 负责基于当前盘面的连续咨询，确定性护栏与内容审核负责拦截虚构盘面事实、重复模板、提示词泄漏和开发者语言。同一份标准 Agent Skill 可安装到 Codex、Claude Code、DeepSeek Harness、Hugging Face / OpenClaw 兼容宿主和腾讯 WorkBuddy。
+当前 V0.7 版本把 BodyGraph 放在结果页首屏，把结果页从仪表盘和卡片墙改造成安静、连续的个人阅读。身体、通道、天赋、财富、关系和使命六份报告即时打开；点击报告中的问题，会携带当前盘面和条目进入独立的 DeepSeek 咨询工作区，每一轮只推进一个具体观察，不复述整份报告。确定性护栏与内容审核负责拦截虚构盘面事实、重复模板、提示词泄漏和开发者语言。同一份标准 Agent Skill 可安装到 Codex、Claude Code、DeepSeek Harness、Hugging Face / OpenClaw 兼容宿主和腾讯 WorkBuddy。
 
 ## GitHub Description Options
 

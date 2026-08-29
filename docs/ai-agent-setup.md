@@ -1,6 +1,6 @@
 # AI Agent / Skill 安装指南
 
-Human Design LLM V0.6 使用一份标准 `skills/human-design/SKILL.md` 服务多个 Agent。所有宿主共享同一套计算入口、隐私边界和全盘解读规则，避免分别维护多份 Prompt 后内容漂移。
+Human Design LLM V0.7 使用一份标准 `skills/human-design/SKILL.md` 服务多个 Agent。所有宿主共享同一套计算入口、隐私边界和全盘解读规则，避免分别维护多份 Prompt 后内容漂移。
 
 ## 安装前准备
 

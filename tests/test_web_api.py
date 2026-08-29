@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from human_design.providers import DeepSeekAnswer, ProviderRequestError
-from human_design.web_api import HumanDesignWebStore, create_app
+from human_design.web_api import HumanDesignWebStore, _normalize_chat_answer, create_app
 
 
 @pytest.fixture(autouse=True)
@@ -37,6 +37,28 @@ def _create_chart(client: TestClient) -> dict:
     )
     assert response.status_code == 200, response.text
     return response.json()
+
+
+def test_chat_answer_removes_internal_prompt_language() -> None:
+    raw = """【当前图表事实】\n类型：生产者\n请输出自然聊天文本，不要输出 Markdown。\n你可以先观察身体是变松还是变紧。\n你最近一次明显变紧，发生在什么场景？"""
+
+    cleaned = _normalize_chat_answer(raw)
+
+    assert "当前图表事实" not in cleaned
+    assert "请输出" not in cleaned
+    assert "身体是变松还是变紧" in cleaned
+    assert cleaned.rstrip().endswith("？")
+
+
+@pytest.mark.parametrize(
+    "natural_line",
+    (
+        "不要急着回答对方，先观察身体是变松还是变紧。",
+        "请先回答一个具体问题：最近一次发生在什么时候？",
+    ),
+)
+def test_chat_answer_keeps_natural_consultation_language(natural_line: str) -> None:
+    assert _normalize_chat_answer(natural_line).strip() == natural_line
 
 
 def test_create_chart_requires_birth_time_for_formal_bodygraph() -> None:
@@ -192,7 +214,7 @@ def test_interpretation_map_endpoint_returns_instant_structured_report() -> None
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.6.2"
+    assert payload["product_version"] == "0.7.0"
     assert payload["map_type"] == "wealth"
     assert payload["title"] == "财富报告"
     assert payload["overview"]
@@ -335,9 +357,11 @@ def test_chat_answers_are_chart_grounded_and_sessionized() -> None:
     assert payload["provider_configured"] is False
     assert payload["entry_source"] == "followup_button"
     assert payload["synthesis_mode"] == "full_chart"
-    assert "你的问题：我的喉咙中心和表达方式应该怎么用？" in payload["answer_markdown"]
-    assert "盲区" in payload["answer_markdown"]
-    assert "卡住状态" in payload["answer_markdown"]
+    assert "你的问题：" not in payload["answer_markdown"]
+    assert "盲区：" not in payload["answer_markdown"]
+    assert "卡住状态：" not in payload["answer_markdown"]
+    assert "身体第一秒" in payload["answer_markdown"]
+    assert payload["answer_markdown"].count("？") == 1
     assert "##" not in payload["answer_markdown"]
     assert "**" not in payload["answer_markdown"]
     assert "```" not in payload["answer_markdown"]
@@ -443,6 +467,34 @@ def test_chat_does_not_call_deepseek_without_explicit_consent(
     assert payload["answer_provider"] == "local-fallback"
     assert payload["provider_configured"] is True
     assert payload["external_ai_consent"] is False
+
+
+def test_chat_provider_failure_keeps_one_progressive_question(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "configured-for-test")
+
+    def fail_chat(self, messages):
+        raise ProviderRequestError("temporary provider failure")
+
+    monkeypatch.setattr("human_design.web_api.DeepSeekClient.chat", fail_chat)
+    client = _client()
+    chart = _create_chart(client)
+    response = client.post(
+        "/api/chat",
+        json={
+            "chart_id": chart["chart_id"],
+            "question": "这个机会我该不该接？",
+            "external_ai_consent": True,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["answer_provider"] == "local-fallback"
+    assert payload["provider_configured"] is True
+    assert payload["answer_markdown"].startswith("这次没有连上在线咨询")
+    assert payload["answer_markdown"].count("？") == 1
 
 
 def test_chat_normalizes_chinese_authority_to_exact_professional_name(

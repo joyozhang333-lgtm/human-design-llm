@@ -42,7 +42,7 @@ description: "人类图 (Human Design) 全盘解读技能。根据出生日期�
 - 解读生成器：`human_design/reading.py`
 - 解读知识：`human_design/knowledge.py`
 - LLM 产品层：`human_design/product.py`
-- V0.6 生成与护栏：`human_design/generation/`
+- V0.7 生成与护栏：`human_design/generation/`
 - Web API：`human_design/web_api.py`
 - Web 用户产品：`web/`
 - 标准 Agent Skill：`skills/human-design/`
@@ -63,7 +63,7 @@ description: "人类图 (Human Design) 全盘解读技能。根据出生日期�
 2. 再用 `human_design.reading.generate_reading()` 生成完整阅读对象
 3. 需要文本成稿时，用 `human_design.reading.render_reading_markdown()`
 4. 需要 LLM 会话产品时，用 `human_design.product.build_llm_product()`
-5. 需要 V0.6 主阅读时，用 `human_design.generation.generate_main_reading()`
+5. 需要 V0.7 主阅读时，用 `human_design.generation.generate_main_reading()`
 6. 需要身体、通道、财富、天赋、关系或使命报告时，用 `human_design.interpretation_maps.build_interpretation_map()` 或 `POST /api/interpretation-maps`
 7. 需要连续咨询时，用 `POST /api/chat`，并保留 `session_id`
 8. 需要职业深读时，用 `human_design.career.generate_career_report()`
