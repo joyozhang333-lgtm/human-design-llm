@@ -650,7 +650,8 @@ def _build_deepseek_messages(
             "如果当前地图条目提供特质诊断层，必须基于活出来、盲区、卡住状态和卡住原因继续展开；不要复制卡片原文，要围绕用户问题生成新的深度回答。",
             "点击追问时，不能只补充当前卡片；至少联动两个其他结构，例如身体回应、开放中心、通道、人生角色、财富边界、关系模式或使命主题。",
             "回答要像一位成熟的人类图咨询师在继续聊天，不像报告、课程讲义或百科词条。",
-            "不要把前面卡片重新整理一遍；每次只推进一层：更具体的现实场景、更尖锐的盲区、更可验证的练习，或一个能继续深聊的问题。",
+            "不要把前面报告重新整理一遍；每轮只推进一个判断，不要顺手把所有相关配置都讲完。",
+            "先回应用户刚刚说的具体经历，再解释一个最相关的盘面机制；如果用户没有提供具体经历，就用一个问题帮助他补充，而不是替他编故事。",
             "历史里咨询师已经问过、用户已经回答的问题，不得原样或换词重复；结尾必须根据用户本轮新增的事实推进下一层。",
             "如果用户的问题很大，先收窄到当下最关键的一层，并用一句话说明为什么先看这一层。",
             "先看身体真实反应，再看心理模式、关系环境和现实行动四层如何互相影响。",
@@ -659,7 +660,7 @@ def _build_deepseek_messages(
             "不要输出医疗、法律、财务或确定性命运承诺。",
             *package.assistant_instructions,
             "本轮聊天的最高优先级：不要输出 Markdown 标题、编号大纲、加粗符号、代码块或长列表。",
-            "段落要短，每段 2-4 句；不要一次性给标准答案，最后只问 1 个能继续深入的具体问题。",
+            "段落要短，每段 1-3 句；不要一次性给标准答案，最后只问 1 个能继续深入的具体问题。",
         )
     )
     context = _context_block_text(package)
@@ -671,7 +672,7 @@ def _build_deepseek_messages(
             "【当前解读地图】\n" + map_context_text(map_package, selected_item_key=map_item_key),
             "【可引用解读上下文】\n" + context,
             "【本轮历史】\n" + history if history else "【本轮历史】\n暂无。",
-            "请输出自然聊天文本，不要输出 Markdown。控制在 300-550 字。结构：先接住问题；再指出一个盘面机制；然后给一个现实验证练习；最后只问一个继续深聊的问题。",
+            "请输出自然聊天文本，不要输出 Markdown。控制在 180-320 个汉字、3-5 个短段落。本轮只推进一个判断：先回应用户刚说的事，再解释一个盘面机制，给一个现实观察点，最后只问一个具体问题。",
         )
     )
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
@@ -751,49 +752,36 @@ def _professionalize_authority_terms(text: str, chart) -> str:
 
 def _fallback_with_provider_note(answer_markdown: str) -> str:
     note = (
-        "\n\n当前外部问答服务暂时不可用，以下回答由本地结构化解读引擎生成，"
-        "仍然基于当前图表事实。"
+        "这次没有连上在线咨询，我先按你的盘面给一个简短判断。\n\n"
     )
-    return answer_markdown.rstrip() + note
+    return note + answer_markdown.lstrip()
 
 
 def _fallback_map_answer(map_package, question: str, map_item_key: str | None = None) -> str:
     items = _ordered_map_items(map_package, map_item_key)
     selected = items[0] if items else None
-    supporting = items[1:3]
-    lines = [f"你的问题：{question}", ""]
+    supporting = items[1:2]
+    lines: list[str] = []
     if selected is not None:
-        lines.append(
-            f"我先不急着给标准答案。这个问题我会先看「{selected.title}」有没有在生活里被用对，"
-            "因为人类图里很多困惑不是不知道，而是身体、关系和行动节奏没有对上。"
-        )
-        lines.append("")
         lines.append(_dialogue_pattern(selected, supporting))
         lines.append("")
         blind_spot = _first_item(selected.blind_spots)
         stuck = _first_item(selected.stuck_patterns)
         if blind_spot or stuck:
-            lines.append(
-                "盲区不是“你不懂”，而是你可能太快跳到解释，忽略身体已经给出的松紧感。"
-                + (f" 盲区：{blind_spot}" if blind_spot else "")
-                + (f" 卡住状态：{stuck}" if stuck else "")
-            )
+            friction = blind_spot or stuck
+            lines.append(f"你现在最值得留意的是：{_trim_text(friction, 150)}")
             lines.append("")
         cause = _first_item(selected.stuck_causes)
         if cause:
-            lines.append(f"为什么会卡住，我会先看这里：{cause}")
+            clean_cause = cause.replace("盘面机制：", "").replace("；现实场景：", "。")
+            lines.append(_trim_text(clean_cause, 170))
             lines.append("")
         practice = _first_item(selected.practices)
         if practice:
-            lines.append(f"先做一个小验证，不要急着想通：{practice}")
+            lines.append(f"先别急着想通，可以做一次小验证：{_trim_text(practice, 150)}")
             lines.append("")
-    if supporting:
-        support_text = "；".join(f"{item.title}：{_first_sentence(item.user_language)}" for item in supporting)
-        lines.append(f"我还会放在旁边一起看：{support_text} 这样就不是单点解释，而是看这个模式怎样牵动你的身体节奏、关系入口和现实选择。")
-        lines.append("")
-    facts = "；".join(_dialogue_fact_subset(map_package.professional_facts))
-    if facts:
-        lines.append(f"我看盘时抓的依据是：{facts}。")
+    else:
+        lines.append("这个问题还缺一个真实场景。先不用把经历讲完整，只要说最近一次它发生在什么时候。")
         lines.append("")
     lines.append(f"我想继续问你：{_progressive_question(selected, question)}")
     return "\n".join(lines).strip() + "\n"
@@ -811,8 +799,8 @@ def _dialogue_pattern(item, supporting) -> str:
         base = _trim_text(alive, 220) if alive else _first_sentence(item.user_language)
     if not supporting:
         return base
-    support_titles = "、".join(next_item.title for next_item in supporting[:2])
-    return f"{base} 这件事还会牵动 {support_titles}，所以不能只看单一特质，要看它怎样影响你的身体节奏、关系入口和现实选择。"
+    support = supporting[0]
+    return f"{base} 同时留意「{support.title}」：{_first_sentence(support.user_language)}"
 
 
 def _dialogue_fact_subset(facts: tuple[str, ...] | list[str]) -> list[str]:
@@ -835,7 +823,7 @@ def _progressive_question(item, question: str) -> str:
     if item is None:
         return "这件事最近最具体发生在哪个场景，是工作、关系、钱，还是身体状态？"
     if item.key == "talent.profile-24":
-        return "最近别人反复夸你、但你觉得“这有什么难的”的能力是哪一个？它现在有没有被你做成作品、案例或稳定服务？"
+        return "最近别人反复夸你、而你觉得“这有什么难的”，却还没有做成作品或稳定服务的能力是哪一个？"
     if "02-14" in item.key or "02-14" in item.title:
         return "最近哪一个方向一想到就有身体力量，哪一个方向只是看起来有资源、但你身体并不想持续投入？"
     if item.key.startswith("wealth."):
@@ -843,9 +831,9 @@ def _progressive_question(item, question: str) -> str:
     if item.key.startswith("relationship."):
         return "你在关系里最常见的卡点，是太快答应、太晚表达边界，还是等对方看懂你？"
     if item.key.startswith("body."):
-        return "最近一件让你身体变沉的事是什么？如果只看身体，不看道理，它在拒绝什么？"
+        return "最近一件让你身体变沉的事发生时，如果不看道理，你的身体最想拒绝什么？"
     if item.key.startswith("mission."):
-        return "你现在最想证明给别人看的东西是什么？如果先不证明，你真正想服务或创造的是什么？"
+        return "如果先不向任何人证明自己，你真正想服务或创造的是什么？"
     next_followup = _next_followup(item, question)
     if next_followup:
         return next_followup
@@ -878,6 +866,18 @@ def _trim_text(text: str, limit: int) -> str:
 
 
 def _normalize_chat_answer(text: str) -> str:
+    internal_markers = (
+        "当前图表事实",
+        "当前解读地图",
+        "可引用解读上下文",
+        "本轮历史",
+        "用户当前展开的条目",
+        "chart facts",
+        "reading context",
+        "内部字段",
+        "请输出自然聊天文本",
+        "控制在 180-320",
+    )
     cleaned_lines: list[str] = []
     for raw_line in text.replace("\r\n", "\n").split("\n"):
         line = raw_line.strip()
@@ -886,6 +886,19 @@ def _normalize_chat_answer(text: str) -> str:
                 cleaned_lines.append("")
             continue
         if line.startswith("```"):
+            continue
+        lowered = line.lower()
+        if any(marker.lower() in lowered for marker in internal_markers):
+            continue
+        if re.match(
+            r"^(?:系统提示|系统要求|输出要求|格式要求|回答要求|任务要求|规则|约束)[：:]",
+            line,
+        ) or re.match(
+            r"^(?:请|必须|禁止|输出).{0,24}(?:JSON|Markdown|字数|字以内|系统提示|提示词|"
+            r"图表事实|内部字段|上下文|不得编造|仅使用)",
+            line,
+            flags=re.IGNORECASE,
+        ):
             continue
         line = line.lstrip("#").strip() if line.startswith("#") else line
         if line.startswith(">"):

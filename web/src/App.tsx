@@ -70,9 +70,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 }
 
 const transitionLines = [
-  "正在校准你的出生时刻……",
+  "正在计算出生时刻……",
   "正在生成人类图……",
-  "正在整理你的个人解读……"
+  "正在准备个人报告……"
 ];
 
 export default function App() {
@@ -178,7 +178,7 @@ export default function App() {
           <h1 className="intake-title">人类图</h1>
           <span className="version-badge">{PUBLIC_VERSION}</span>
         </div>
-        <p className="intake-sub">一面看见自己模式的镜子。不算命，只帮你把「我好像一直这样」变成「我可以观察一下」。</p>
+        <p className="intake-sub">输入出生信息，生成 BodyGraph，并查看身体、天赋、财富、关系和人生方向。</p>
         <form onSubmit={handleCreateChart} className="birth-form">
           <label htmlFor="user-name">
             昵称
@@ -275,7 +275,7 @@ export default function App() {
             </label>
           </div>
           <button className="primary-button" disabled={state.generating} type="submit">
-            {state.generating ? "正在为你排盘……" : "照见我的人类图"}
+            {state.generating ? "正在生成……" : "生成我的人类图"}
           </button>
         </form>
         {state.error && <p className="error-text">{state.error}</p>}

@@ -1,4 +1,4 @@
-# Human Design V0.6 Design System
+# Human Design V0.7 Design System
 
 ## Product Principle
 
@@ -25,23 +25,34 @@ The main page must not render textual lists of defined centers, open centers, or
 
 ## Report Reading Model
 
-Reports use progressive disclosure:
+Reports are continuous articles rather than accordions or card collections:
 
-- Cover: report title, one-sentence purpose, and a concise overview.
-- Chapters: one chapter open at a time; the first chapter is open by default.
-- Article: lead interpretation first, then optional sections for lived expression, blind spots, stuck patterns, and practice.
-- Follow-up: clicking a question opens the consultation area and sends the selected report context with the chart.
+- Header: report title, one-sentence purpose, and a concise overview.
+- Navigation: a quiet text table of contents on desktop; natural document flow on mobile.
+- Article: interpretation first, followed by lived expression, blind spots, causes, and a concrete practice only when the material supports them.
+- Evidence: chart basis stays inside a collapsed details element and never competes with the reading.
+- Follow-up: one understated text link carries the selected topic and chart context into consultation.
 
-No report renders every diagnostic field as a single uninterrupted wall of text.
+Every heading must describe the reader's concern directly. Interface labels such as “当前章节”, “全盘先读”, “诊断层”, and “说人话的解读” are forbidden.
 
 ## Visual Direction
 
-- Mood: quiet Chinese editorial page, warm paper, dark ink, restrained cinnabar accent.
-- Typography: serif for titles and chart facts; sans-serif for controls and long-form body copy.
-- Layout: one main reading column, generous whitespace, thin rules instead of nested cards.
-- Shape: small radii only; avoid pill-heavy dashboards and large floating card stacks.
-- Motion: one short page-entry reveal and deliberate accordion transitions.
-- Mobile: 16px minimum long-form text, 1.8 line height, controls at least 44px high.
+- Mood: neutral, quiet, and familiar; closer to an Apple settings/document experience than a spiritual dashboard.
+- Color: white and `#f5f5f7` surfaces, near-black text, restrained system blue for actions; no ornamental gradients.
+- Typography: system sans-serif (`SF Pro` / `PingFang SC`) throughout for clarity and native-platform familiarity.
+- Layout: one 720px reading column, generous whitespace, hairline separators, and very few containers.
+- Shape: moderate radii only for functional groups; no pill-heavy dashboards, floating buttons, or nested card stacks.
+- Motion: short state transitions only; motion must not delay reading.
+- Mobile: 16px minimum long-form text, comfortable line height, controls at least 44px high.
+
+## Consultation Model
+
+- Consultation is a dedicated workspace, not a floating chatbot or modal overlay.
+- Desktop keeps the report visible beside a fixed conversation column.
+- Mobile switches to a focused full-page conversation and restores the report position on return.
+- A report follow-up must preserve `map_type`, item key, title, and the user's conversation history.
+- Each answer advances one concrete observation in 3-5 short paragraphs and ends with one question.
+- The model must respond to the user's lived example before offering another interpretation.
 
 ## Content Rules
 

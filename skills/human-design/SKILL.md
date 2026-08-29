@@ -36,7 +36,7 @@ python scripts/human_design_agent.py context '1988-10-09T20:30:00+08:00' --focus
 With an explicit UTC offset or `--timezone`, chart calculation stays local and makes no network requests. If you use a birth place without a timezone, the CLI refuses to continue unless you pass `--allow-location-lookup`; that flag means the user has consented to external geocoding and timezone lookup. The script also rejects a local datetime that has neither an offset, timezone, nor place. Read the privacy reference before using remote lookup. The script requires the `human-design-llm` Python package. If it is unavailable, install the repository in a virtual environment:
 
 ```bash
-python -m pip install 'human-design-llm @ git+https://github.com/joyozhang333-lgtm/human-design-llm.git@v0.6.0'
+python -m pip install 'human-design-llm @ git+https://github.com/joyozhang333-lgtm/human-design-llm.git@v0.7.0'
 ```
 
 For development inside the cloned repository, prefer:

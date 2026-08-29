@@ -156,7 +156,7 @@ def _single_channel_integration(chart: HumanDesignChart, channel) -> Interpretat
     expression = CHANNEL_LINES.get(channel.code, "这条线路会把两个中心的资源接成一种可重复使用的能力")
     return _item(
         key="channels.integration",
-        title=f"{name}怎样进入你的完整盘面",
+        title=f"{name}怎样进入你的生活",
         subtitle=f"{summary['profile']}决定成熟路径，{summary['authority_professional']}决定是否投入",
         basis=(f"已定义通道：{name}", f"人生角色：{summary['profile']}", f"Authority：{summary['authority_professional']}"),
         user=(
@@ -170,7 +170,7 @@ def _single_channel_integration(chart: HumanDesignChart, channel) -> Interpretat
         stuck=("能力偶尔很有冲击力，但没有稳定案例；或者一出手就过量，事后只剩消耗。",),
         causes=("盘面机制：已定义通道会稳定存在，但 Strategy 与 Authority 决定怎样进入具体事情；现实场景：别人一有需要就立刻出手，会把能力和正确时机混为一谈。",),
         practices=("找出三次这条能力真正产生结果的经历，同时记录谁邀请或触发了你、你怎样确认投入、最后改变了什么。",),
-        followups=(f"结合我的完整盘面，{name}在什么人和问题上最容易被正确使用？",),
+        followups=(f"结合我的其他特质，{name}在什么人和问题上最容易被正确使用？",),
     )
 
 
@@ -222,7 +222,7 @@ def _channels_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection,
             causes=("盘面机制：没有固定通道时，不同能力会被不同的人与环境接通；现实场景：离开适合的团队后仍要求自己复制原来的输出，会把场域变化误判成能力退步。",),
             practices=("列出三个你发挥最好和三个最消耗的场景，比较空间、关系、任务和节奏的共同差异。",),
         )
-        return (_section("channels-environment", "能力怎样被环境点亮", "先找接通条件，不用制造固定人设。", item),)
+        return (_section("channels-environment", "什么环境会让你发挥出来", "同一个人换了环境，能用出来的能力也会不同。", item),)
 
     details = tuple(_channel_detail_item(channel) for channel in channels)
     integration = _single_channel_integration(chart, channels[0]) if len(channels) == 1 else _multi_channel_integration(chart, channels)
@@ -234,7 +234,7 @@ def _channels_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection,
     maturation = _item(
         key="channels.maturation",
         title="把通道从天然反应练成可靠能力",
-        subtitle="真实案例比术语更能证明天赋",
+        subtitle="真正可靠的能力，一定能在生活里找到重复证据",
         basis=tuple(f"已定义通道：{_channel_name(channel)}" for channel in channels),
         user=(
             "一条通道被定义，只说明这套能量线路会反复出现，不代表它已经成熟。成熟要经过三步：先认出它什么时候自然启动，"
@@ -248,14 +248,14 @@ def _channels_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection,
         followups=(maturation_followup,),
     )
     return (
-        _section("channels-details", "逐条看懂你的通道", "每条通道先讲清能力，再讲误用和成熟。", *details),
+        _section("channels-details", "每条通道带来什么能力", "先看它自然会怎么工作，再看什么时候容易用过头。", *details),
         _section(
             "channels-combination",
-            "这条能力怎样进入全盘" if len(channels) == 1 else "这些能力怎样一起工作",
-            "把通道放回人生角色、决定方式和真实场景。" if len(channels) == 1 else "现实中的你不是几条通道的相加，而是一套完整动作。",
+            "这条能力怎样进入你的生活" if len(channels) == 1 else "这些能力怎样一起工作",
+            "同一项能力，在不同对象和时机里会产生完全不同的结果。" if len(channels) == 1 else "现实中的你不是几条通道相加，而是一套完整的做事方式。",
             integration,
         ),
-        _section("channels-maturation", "从天然反应到可靠能力", "用案例、反馈和边界让天赋真正成熟。", maturation),
+        _section("channels-maturation", "怎样把能力练成熟", "用案例、反馈和边界，把偶尔做得好变成可以稳定做到。", maturation),
     )
 
 
@@ -284,7 +284,7 @@ def _channel_detail_item(channel) -> InterpretationMapItem:
         stuck=(f"这条能力被卡住时，常见状态是：{misuse}",),
         causes=(f"盘面机制：{name}会稳定存在并反复参与；现实场景：如果对象、时机或问题不对，天然反应就容易被误用成过度用力。",),
         practices=(practice,),
-        followups=(f"结合我的完整盘面，{name}最适合在哪类现实问题里发挥？",),
+        followups=(f"结合我的其他特质，{name}最适合在哪类现实问题里发挥？",),
     )
 
 
@@ -318,7 +318,7 @@ def _body_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, ...
     stable = _item(
         key="body.stable-resources",
         title="你身体里相对稳定的资源",
-        subtitle="这些中心不需要从别人那里借来",
+        subtitle="这些力量在你身上比较稳定",
         basis=stable_basis,
         user=(
             f"你的{'、'.join(_center_name(center.code) for center in defined)}是较稳定的资源。"
@@ -360,7 +360,7 @@ def _body_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, ...
         pressure = _item(
             key="body.open-pressure-chain",
             title="压力最容易从哪里进入",
-            subtitle="开放中心不是缺陷，是最容易受环境影响的位置",
+            subtitle="这些地方更容易把别人的状态接到自己身上",
             basis=tuple(f"{_center_name(center.code)}：开放" for center in open_centers),
             user=(
                 f"你开放的是{'、'.join(_center_name(center.code) for center in open_centers)}。"
@@ -400,19 +400,19 @@ def _body_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, ...
     recovery = _item(
         key="body.recovery-order",
         title="能量乱掉以后，按什么顺序回来",
-        subtitle="先退出放大场，再做决定",
+        subtitle="先离开让你越来越乱的现场，再想下一步",
         basis=(f"Strategy：{summary['strategy']}", f"Authority：{summary['authority_professional']}", f"开放中心数量：{len(open_centers)}"),
-        user="能量乱掉时，恢复不是再逼自己做一套正确方法，而是先停止继续接收现场压力。等身体重新听得见自己，再决定下一步，不要在放大场里寻找答案。",
+        user="能量乱掉时，恢复不是再逼自己做一套正确方法，而是先停止继续接收现场压力。等身体重新听得见自己，再决定下一步，不要在还被现场情绪和压力裹住时寻找答案。",
         scenes=("第一步离开高压现场；第二步把问题缩小；第三步按自己的决定方式确认；第四步只处理下一件事。",),
         embodied=("恢复之后，你会重新知道什么值得做、什么可以晚一点、什么根本不是你的责任。",),
         stuck=("如果休息时还在反复想怎样让所有人满意，身体虽然停了，压力链并没有停。",),
         practices=("今天只做一次：感到急时离开现场十分钟，不解决问题，只记录身体哪里紧、哪里松。",),
     )
     return (
-        _section("body-decision", "你的决定系统", "先弄清身体怎样参与选择。", decision),
-        _section("body-resources", "稳定能量", "哪些力量属于你，怎样避免把强项用成负担。", stable),
-        _section("body-pressure", "压力入口", "逐个看开放中心会把什么放大。", pressure),
-        _section("body-recovery", "恢复顺序", "能量乱掉以后，不靠硬撑把自己拉回来。", recovery),
+        _section("body-decision", "你怎样做决定", "身体会先给信号，头脑再负责安排。", decision),
+        _section("body-resources", "你能稳定使用的力量", "强项可以反复使用，也可能因为用得太多变成负担。", stable),
+        _section("body-pressure", "你最容易在哪里被带着走", "压力往往不是突然出现，而是从一个熟悉的入口慢慢累积。", pressure),
+        _section("body-recovery", "乱掉以后，先做什么", "先让身体重新安静下来，再处理问题。", recovery),
     )
 
 
@@ -422,7 +422,7 @@ def _wealth_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
     route = _item(
         key="wealth.income-route",
         title="钱更可能从哪里来",
-        subtitle="机会入口 × 稳定能力 × 可重复交付",
+        subtitle="先选对事情，再把能力做成别人愿意付费的结果",
         basis=_core_basis(chart) + tuple(f"通道：{_channel_name(channel)}" for channel in channels),
         user=(
             f"你的财富入口要先服从「{summary['strategy']}」，不是看到市场热点就把全部资源压上去。"
@@ -451,7 +451,7 @@ def _wealth_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
     plan = _item(
         key="wealth.asset-plan",
         title="把收入变成长期资产",
-        subtitle="未来 30 天只验证一条主线",
+        subtitle="先用 30 天看这条方向有没有真实积累",
         basis=(f"人生角色：{summary['profile']}", f"定义：{summary['definition']}", *tuple(f"通道：{_channel_name(channel)}" for channel in channels)),
         user="财富稳定的关键不是同时开发更多方向，而是选一条身体愿意投入、能力可以重复、市场已经给出反馈的路径，连续做够一个周期。",
         scenes=("把一次服务变成流程，把一个案例变成公开证据，把重复问题变成产品，把信任关系变成稳定转介绍。",),
@@ -461,10 +461,10 @@ def _wealth_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
         followups=("结合我的真实工作，帮我选一条最值得做 30 天验证的财富主线。",),
     )
     return (
-        _section("wealth-route", "财富主线", "不是先猜行业，而是先看钱怎样沿着你的盘面进入。", route),
-        _section("wealth-assets", "可变现的能力", "逐条看你的稳定通道能解决什么问题。", *channel_items),
-        _section("wealth-boundaries", "定价与承诺", "哪些压力会让你低价、多做或答应过头。", promise),
-        _section("wealth-plan", "资产化路径", "把天然能力变成案例、方法和长期复利。", plan),
+        _section("wealth-route", "钱更可能从哪里来", "先看你能持续创造什么价值，再看适合什么行业。", route),
+        _section("wealth-assets", "哪些能力可以形成收入", "真正能变现的能力，需要能解决清楚的问题。", *channel_items),
+        _section("wealth-boundaries", "怎样定价，怎样不过度承诺", "很多损耗不是不会赚钱，而是答应得太多。", promise),
+        _section("wealth-plan", "怎样形成长期积累", "把一次交付留下的经验，慢慢变成案例、方法和资产。", plan),
     )
 
 
@@ -492,7 +492,7 @@ def _talent_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
     combination = _item(
         key="talent.center-combination",
         title="这些能力为什么能连在一起",
-        subtitle="稳定中心是天赋的供能系统",
+        subtitle="这些稳定力量会反复支持你的能力",
         basis=center_basis,
         user=(
             f"你的{'、'.join(_center_name(center.code) for center in defined)}不是几个孤立标签。"
@@ -540,10 +540,10 @@ def _talent_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, .
         followups=("根据我的盘和现实经历，帮我找出最可能已经有八十分基础的那项天赋。",),
     )
     return (
-        _section("talent-profile", "天赋怎样被发现", "先看你为什么会忽视天赋，以及别人怎样看见它。", profile),
-        _section("talent-channels", "你的稳定天赋", "每条通道都是一条可以反复调用的完整能力。", *channel_items),
-        _section("talent-system", "天赋怎样组合", "把人生角色、中心和通道放在一起看。", combination),
-        _section("talent-maturation", "从天赋到代表作", "不给标签收尾，给出一条能验证的成熟路径。", maturation),
+        _section("talent-profile", "别人为什么会看见你", "你常常最容易忽视那些自己做起来很自然的事。", profile),
+        _section("talent-channels", "你天然会的能力", "每条通道都会带来一种可以反复使用的完整能力。", *channel_items),
+        _section("talent-system", "这些能力怎样放在一起", "真正的天赋通常不是一个点，而是一套重复出现的做事方式。", combination),
+        _section("talent-maturation", "把天赋练成代表作", "用作品和真实结果，看清哪项能力值得长期练下去。", maturation),
     )
 
 
@@ -615,10 +615,10 @@ def _relationship_report(chart: HumanDesignChart) -> tuple[InterpretationMapSect
         followups=("根据我的盘，帮我分析一段具体关系里我正在替对方承担什么。",),
     )
     return (
-        _section("relationship-entry", "连接方式", "你怎样靠近别人，也怎样保留自己。", connection),
-        _section("relationship-emotion", "情绪与冲突", "分清自己的感受和现场被放大的感受。", emotional),
-        _section("relationship-attraction", "吸引与盲区", "最强的吸引不一定是最稳的关系。", attraction),
-        _section("relationship-fit", "适合你的关系", "把“合不合适”落到可以观察的相处条件。", fit),
+        _section("relationship-entry", "你怎样和人靠近", "靠近一个人时，也要看自己有没有越来越像自己。", connection),
+        _section("relationship-emotion", "冲突里最容易发生什么", "先分清自己的感受，再处理现场被放大的情绪。", emotional),
+        _section("relationship-attraction", "哪些吸引会让你失去自己", "感觉很强烈，不一定代表这段关系适合长期走下去。", attraction),
+        _section("relationship-fit", "什么关系更适合你", "不猜理想类型，只看真实相处里有没有尊重、边界和空间。", fit),
     )
 
 
@@ -662,8 +662,8 @@ def _mission_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, 
         subtitle=f"{summary['type']} · {summary['profile']}",
         basis=_core_basis(chart),
         user=(
-            f"使命必须通过你的实际运作方式发生：用「{summary['strategy']}」进入正确事情，"
-            f"用 {summary['authority_professional']} 决定是否投入，再用{summary['profile']}的角色路径让贡献成熟。"
+            f"你会用自己的方式走这条路：先按「{summary['strategy']}」进入合适的事情，"
+            f"再用 {summary['authority_professional']} 决定是否投入，并按{summary['profile']}的节奏让贡献慢慢成熟。"
         ),
         scenes=(PROFILE_GUIDES.get(chart.summary.profile.code, "你的人生角色决定经验怎样沉淀成影响力。"),),
         embodied=("你不再追问“我最终应该成为什么”，而是越来越清楚“什么事情值得我用这种方式持续承担”。",),
@@ -701,10 +701,10 @@ def _mission_report(chart: HumanDesignChart) -> tuple[InterpretationMapSection, 
         followups=("结合我最近三年的经历，帮我找使命主线的重复证据。",),
     )
     return (
-        _section("mission-theme", "使命主题", "先讲清轮回交叉的名字和四个核心位置。", theme),
-        _section("mission-role", "你怎样承担使命", "使命必须通过你的类型、决定方式和人生角色发生。", role),
-        _section("mission-capabilities", "使命靠什么能力落地", "稳定通道是你长期贡献时可以反复调用的能力。", *channel_items),
-        _section("mission-proof", "用现实验证使命", "看 90 天证据，不靠一句宏大结论。", experiment),
+        _section("mission-theme", "你反复遇到的人生主题", "轮回交叉的名字只是入口，真正的主题会在经历里反复出现。", theme),
+        _section("mission-role", "你会怎样走这条路", "你做决定、与人连接和使用能力的方式，决定了这条路怎样展开。", role),
+        _section("mission-capabilities", "哪些能力帮你落地", "使命不是想出来的，它会通过你反复使用的能力留下结果。", *channel_items),
+        _section("mission-proof", "用 90 天验证方向", "不急着给一生定案，先看这条路会不会让你更有力、更成熟。", experiment),
     )
 
 
@@ -716,12 +716,12 @@ def _profile_item(chart: HumanDesignChart) -> InterpretationMapItem:
     channel_names = tuple(_channel_name(channel) for channel in chart.channels[:2])
     if channel_names:
         full_chart_context = (
-            f"放回你的全盘，这条角色路径会先在{'、'.join(channel_names)}这些稳定能力上被看见；"
+            f"在你身上，这条角色路径会先通过{'、'.join(channel_names)}这些稳定能力被看见；"
             f"是否把它用于眼前的人和事，仍由 {summary['authority_professional']} 确认。"
         )
     else:
         full_chart_context = (
-            "放回你的全盘，你的能力更依赖正确的人和环境来组合；人生角色决定你怎样学习和被看见，"
+            "在你身上，能力更依赖合适的人和环境来组合；人生角色决定你怎样学习和被看见，"
             f"具体投入仍由 {summary['authority_professional']} 确认。"
         )
     if code == "2-4":
@@ -759,7 +759,7 @@ def _profile_item(chart: HumanDesignChart) -> InterpretationMapItem:
         stuck=stuck,
         causes=causes,
         practices=("列出三件别人反复找你做、你却觉得不难的事；只选重复出现两次以上的能力。",),
-        followups=(f"结合我的完整盘面，{summary['profile']}最可能让我忽视哪一种天赋？",),
+        followups=(f"结合我的其他特质，{summary['profile']}最可能让我忽视哪一种天赋？",),
     )
 
 
@@ -784,7 +784,7 @@ def _talent_channel_item(chart: HumanDesignChart, channel) -> InterpretationMapI
         basis=(f"已定义通道：{name}", f"人生角色：{summary['profile']}", f"Authority：{summary['authority_professional']}"),
         user=(
             f"{name}给你的稳定能力是：{expression}。"
-            f"放进{summary['profile']}的人生角色里看，{name}不是一个等着你证明的标签，而是一项要经过真实关系、作品和反馈才会被认出的本领。"
+            f"对{summary['profile']}来说，{name}不是一个等着你证明的标签，而是一项要经过真实关系、作品和反馈才会被认出的本领。"
             f"对于{name}，{summary['authority_professional']}只回答眼前这件事是否值得投入；它是否成熟，则要看你能否用这项能力反复解决同一类问题，同时没有把自己耗空。"
         ),
         scenes=(f"现实里留意：{expression}。再看这种动作最后帮助谁改变了什么。",),
@@ -793,7 +793,7 @@ def _talent_channel_item(chart: HumanDesignChart, channel) -> InterpretationMapI
         stuck=(f"{name}被卡住时，不是能力消失，而是它只剩下天然反应，没有形成可重复、可说明的结果。",),
         causes=(f"盘面机制：{name}会稳定存在；现实场景：如果跳过{summary['strategy']}和 {summary['authority_professional']}，强项容易被用在错误对象上。",),
         practices=(CHANNEL_PRACTICES.get(channel.code, "回看三次这项能力自然出现的场景，写下触发条件、关键动作和结果，找出可重复部分。"),),
-        followups=(f"结合我的完整盘面，{name}最可能怎样被练成一项代表能力？",),
+        followups=(f"结合我的其他特质，{name}最可能怎样被练成一项代表能力？",),
     )
 
 
