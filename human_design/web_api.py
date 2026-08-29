@@ -298,7 +298,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
     @app.get("/api/charts/{chart_id}/reading-book")
     def get_reading_book(chart_id: str) -> dict[str, Any]:
         saved_chart = active_store.get_chart(chart_id)
-        return _build_reading_book(saved_chart)
+        return _public_payload(_build_reading_book(saved_chart))
 
     @app.post("/api/reports")
     def create_report(request: ReportRequest) -> dict[str, Any]:
@@ -338,7 +338,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             created_at_utc=utc_now_iso(),
         )
         active_store.save_report(report)
-        return report.to_dict()
+        return _public_payload(report.to_dict())
 
     @app.post("/api/readings/main")
     def create_main_reading(request: MainReadingRequest) -> dict[str, Any]:
@@ -395,7 +395,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         payload.pop("prompt_pack", None)
         payload["overview"] = build_report_overview(package.map_type, saved_chart.chart)
         payload["generation_mode"] = "instant"
-        return payload
+        return _public_payload(payload)
 
     @app.post("/api/chat")
     def chat(request: ChatRequest) -> dict[str, Any]:
@@ -437,7 +437,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
         )
         session = session.append(user_message, assistant_message, focus=focus)
         active_store.save_session(session)
-        return {
+        return _public_payload({
             "session_id": session.session_id,
             "chart_id": request.chart_id,
             "focus": focus,
@@ -457,7 +457,7 @@ def create_app(store: HumanDesignWebStore | None = None) -> FastAPI:
             },
             "suggested_followups": list(package.suggested_followups),
             "session": session.to_dict(),
-        }
+        })
 
     @app.post("/api/images/reading-visual")
     def create_reading_visual(request: ImageGenerationRequest) -> dict[str, Any]:
@@ -1081,7 +1081,7 @@ def _chart_guidance(chart) -> dict[str, Any]:
     body_profile = build_body_energy_profile(chart)
     talent_profile = build_deep_synthesis_profile(chart, focus="talent")
     talent_keys = {"deep-talent-axis", "deep-talent-modules"}
-    return {
+    return _public_payload({
         "center_notes": [note.to_dict() for note in body_profile.center_notes],
         "channel_notes": [note.to_dict() for note in body_profile.channel_notes],
         "talent_sections": [
@@ -1089,7 +1089,34 @@ def _chart_guidance(chart) -> dict[str, Any]:
             for section in talent_profile.sections
             if section.key in talent_keys
         ],
-    }
+    })
+
+
+def _public_payload(value: Any) -> Any:
+    """Remove host filesystem details while preserving useful source references."""
+    if isinstance(value, dict):
+        return {
+            key: _public_source_path(item) if key == "path" and isinstance(item, str) else _public_payload(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_public_payload(item) for item in value]
+    if isinstance(value, tuple):
+        return [_public_payload(item) for item in value]
+    return value
+
+
+def _public_source_path(path: str) -> str:
+    normalized = path.replace("\\", "/")
+    if re.match(r"^[a-z][a-z0-9+.-]*://", normalized, flags=re.IGNORECASE):
+        return normalized
+    for marker in ("references/", "docs/research/"):
+        marker_index = normalized.find(marker)
+        if marker_index >= 0:
+            return normalized[marker_index:]
+    if normalized.startswith("/") or re.match(r"^[A-Za-z]:/", normalized):
+        return normalized.rsplit("/", 1)[-1]
+    return normalized
 
 
 def _split_paragraphs(text: str, *, max_chars: int = 118) -> list[str]:

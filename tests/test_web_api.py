@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from time import perf_counter
 
@@ -93,6 +94,9 @@ def test_create_chart_returns_chart_and_bodygraph_svg() -> None:
     assert "开放中心" not in payload["bodygraph_svg"]
     # The web BodyGraph is graphic-only; the long booklet ships via /reading-book.
     assert "人类图解读本" not in payload["bodygraph_svg"]
+    serialized = json.dumps(payload, ensure_ascii=False)
+    assert "/opt/" not in serialized
+    assert "/Users/" not in serialized
 
 
 def test_reflector_strategy_is_displayed_in_chinese() -> None:
@@ -177,6 +181,7 @@ def test_body_energy_report_returns_structured_profile_and_export_markdown() -> 
     assert "/references/" not in payload["answer_markdown"]
     assert payload["citations"]
     assert "骶骨" not in payload["export_markdown"]
+    assert "/opt/" not in json.dumps(payload, ensure_ascii=False)
 
 
 def test_talent_report_returns_deep_synthesis_profile() -> None:
@@ -214,7 +219,7 @@ def test_interpretation_map_endpoint_returns_instant_structured_report() -> None
 
     assert response.status_code == 200, response.text
     payload = response.json()
-    assert payload["product_version"] == "0.7.0"
+    assert payload["product_version"] == "0.7.1"
     assert payload["map_type"] == "wealth"
     assert payload["title"] == "财富报告"
     assert payload["overview"]
@@ -236,6 +241,7 @@ def test_interpretation_map_endpoint_returns_instant_structured_report() -> None
     assert any("盘面机制" in cause and "现实场景" in cause for cause in item["stuck_causes"])
     assert payload["retrieved_knowledge"]
     assert payload["sources"]
+    assert "/opt/" not in json.dumps(payload, ensure_ascii=False)
 
 
 def test_interpretation_map_endpoint_opens_without_model_latency() -> None:
