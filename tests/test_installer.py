@@ -193,8 +193,8 @@ def test_canonical_skill_installs_the_current_release() -> None:
     root = Path(__file__).resolve().parents[1]
     content = (root / "skills/human-design/SKILL.md").read_text(encoding="utf-8")
 
-    assert "@v0.7.0" in content
-    assert "@v0.6.0" not in content
+    assert "@v0.7.1" in content
+    assert "@v0.7.0" not in content
 
 
 def test_canonical_agent_script_generates_a_grounded_channel_report() -> None:
